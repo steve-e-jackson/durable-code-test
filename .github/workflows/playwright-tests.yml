@@ -20,17 +20,29 @@ jobs:
       - name: Start services
         run: make dev-start
 
+      - name: Get dynamic ports
+        id: ports
+        run: |
+          BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD | tr '/' '-' | tr '[:upper:]' '[:lower:]')
+          source <(./scripts/get-branch-ports.sh "$BRANCH_NAME" export)
+          echo "frontend_port=$FRONTEND_PORT" >> $GITHUB_OUTPUT
+          echo "backend_port=$BACKEND_PORT" >> $GITHUB_OUTPUT
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          echo "Using ports - Frontend: $FRONTEND_PORT, Backend: $BACKEND_PORT"
+
       - name: Wait for services
         run: |
-          echo "Waiting for frontend..."
-          timeout 60 bash -c 'until curl -s http://localhost:5570 > /dev/null; do sleep 1; done'
-          echo "Waiting for backend..."
-          timeout 60 bash -c 'until curl -s http://localhost:8397/health > /dev/null; do sleep 1; done'
+          echo "Waiting for frontend on port ${{ steps.ports.outputs.frontend_port }}..."
+          timeout 60 bash -c 'until curl -s http://localhost:${{ steps.ports.outputs.frontend_port }} > /dev/null; do sleep 1; done'
+          echo "Waiting for backend on port ${{ steps.ports.outputs.backend_port }}/health..."
+          timeout 60 bash -c 'until curl -s http://localhost:${{ steps.ports.outputs.backend_port }}/health > /dev/null; do sleep 1; done'
 
       - name: Build Playwright container
         run: make test-playwright-build
 
       - name: Run oscilloscope tests
+        env:
+          CI: true
         run: make test-playwright-oscilloscope
 
       - name: Upload test results
