@@ -96,7 +96,7 @@ describe('App Component', () => {
       // Should show Infrastructure tab content by default (after lazy loading)
       await waitFor(() => {
         expect(
-          screen.getByText('Rigid Infrastructure: The Foundation for AI'),
+          screen.getByText('Why Rigid Infrastructure Matters for AI Development'),
         ).toBeInTheDocument();
       });
       await waitFor(() => {
@@ -112,7 +112,7 @@ describe('App Component', () => {
       // Should show Infrastructure tab content (after lazy loading)
       await waitFor(() => {
         expect(
-          screen.getByText('Rigid Infrastructure: The Foundation for AI'),
+          screen.getByText('Why Rigid Infrastructure Matters for AI Development'),
         ).toBeInTheDocument();
       });
       await waitFor(() => {
@@ -169,7 +169,7 @@ describe('App Component', () => {
       await user.click(screen.getByRole('tab', { name: /Infrastructure/i }));
       await waitFor(() => {
         expect(
-          screen.getByText('Rigid Infrastructure: The Foundation for AI'),
+          screen.getByText('Why Rigid Infrastructure Matters for AI Development'),
         ).toBeInTheDocument();
       });
       expect(screen.queryByText('Bulletproof Code Quality')).not.toBeInTheDocument();
@@ -551,7 +551,7 @@ describe('App Component', () => {
       await user.click(infrastructureTab);
       await waitFor(() => {
         expect(
-          screen.getByText('Rigid Infrastructure: The Foundation for AI'),
+          screen.getByText('Why Rigid Infrastructure Matters for AI Development'),
         ).toBeInTheDocument();
       });
       const infrastructureLinks = screen.getAllByRole('link');
