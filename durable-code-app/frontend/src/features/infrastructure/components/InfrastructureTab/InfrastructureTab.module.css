@@ -531,6 +531,7 @@
   margin: 0;
 }
 
+/* stylelint-disable-next-line no-descending-specificity */
 .benefitList li {
   padding: 0.5rem 0;
   border-bottom: 1px solid var(--border-light, #f3f4f6);
