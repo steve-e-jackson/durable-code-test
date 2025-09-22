@@ -16,6 +16,7 @@ import type { ReactElement } from 'react';
 import { ErrorMessage, LoadingSpinner } from '../../../../components/common';
 import { useInfrastructure } from '../../hooks/useInfrastructure';
 import type {
+  FolderItem,
   InfrastructureItem,
   InfrastructureTabProps,
 } from '../../types/infrastructure.types';
@@ -31,7 +32,15 @@ export function InfrastructureTab({
   className = '',
   onError,
 }: InfrastructureTabProps): ReactElement {
-  const { infrastructureItems, loading, error } = useInfrastructure();
+  const {
+    infrastructureItems,
+    folderStructure: _folderStructure,
+    makeTargets,
+    stats,
+    actionLinks,
+    loading,
+    error,
+  } = useInfrastructure();
 
   // State for clicked popup
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
@@ -90,15 +99,274 @@ export function InfrastructureTab({
     );
   }, [infrastructureItems, handleItemClick]);
 
-  // Removed unused renderFolderStructure function
+  const renderFolderStructure = useCallback(
+    (
+      items: FolderItem[],
+      title: string,
+      icon: string,
+      description: string,
+      benefits: string[],
+    ) => {
+      return (
+        <div className={styles.folderSection}>
+          <h4 className="dark-title-on-light">
+            <span className="section-icon">{icon}</span>
+            {title}
+          </h4>
+          <div className={styles.folderContainer}>
+            <div className={styles.folderPreview}>
+              {items.map((item) => {
+                const linePrefix =
+                  item.depth === 0
+                    ? ''
+                    : item.depth === 1
+                      ? item.isLast
+                        ? '└──'
+                        : '├──'
+                      : item.parentIsLast
+                        ? item.isLast
+                          ? ' └──'
+                          : ' ├──'
+                        : item.isLast
+                          ? '│ └──'
+                          : '│ ├──';
 
-  // Removed unused renderMakeTargets function
+                return (
+                  <div
+                    key={item.id}
+                    className={`${styles.folderItem} ${item.type === 'folder' ? styles.folder : styles.file} ${item.depth > 0 ? styles.nested : styles.root}`}
+                  >
+                    {linePrefix && (
+                      <span className={styles.folderLine}>{linePrefix}</span>
+                    )}
+                    <span className={styles.icon}>{item.icon}</span>
+                    <span className={styles.name}>{item.name}</span>
+                    {item.description && (
+                      <span className={styles.description}>{item.description}</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <div className={styles.folderDescription}>
+              <h5>{description}</h5>
+              <ul className={styles.benefitList}>
+                {benefits.map((benefit, index) => (
+                  <li key={index}>{benefit}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      );
+    },
+    [],
+  );
 
-  // Removed unused renderCustomLinters function
+  const _renderMakeTargets = useCallback(() => {
+    const benefits = [
+      '🔴 Problem: "Works on my machine" syndrome',
+      '✅ Solution: Docker wraps everything, pinned versions',
+      '🔴 Problem: AI code works once, fails later',
+      '✅ Solution: Deterministic execution via make targets',
+      '🔴 Problem: Environment drift between dev/prod',
+      '✅ Solution: Identical containers everywhere',
+      '🔴 Example: make test = same result on any machine',
+    ];
 
-  // Removed unused renderStats function
+    const makeTargetItems: FolderItem[] = makeTargets.map((target, index) => ({
+      id: target.name,
+      type: 'file' as const,
+      name: target.name,
+      icon: target.icon,
+      description: target.description,
+      depth: 1,
+      isLast: index === makeTargets.length - 1,
+    }));
 
-  // Removed unused renderActionLinks function
+    // Add root item
+    const allItems: FolderItem[] = [
+      {
+        id: 'repeatable-operations',
+        type: 'folder',
+        name: 'Repeatable Operations',
+        icon: '🎯',
+        depth: 0,
+      },
+      ...makeTargetItems,
+    ];
+
+    return renderFolderStructure(
+      allItems,
+      'Make Targets: Your Shield Against "It Worked Yesterday"',
+      '⚙️',
+      'Abstract: Deterministic Operations',
+      benefits,
+    );
+  }, [makeTargets, renderFolderStructure]);
+
+  const _renderCustomLinters = useCallback(() => {
+    const linterItems: FolderItem[] = [
+      {
+        id: 'print-statements',
+        type: 'file',
+        name: 'print() statements',
+        icon: '🚫',
+        description: 'Ban console.log, print() everywhere',
+        depth: 1,
+      },
+      {
+        id: 'logging-consistency',
+        type: 'file',
+        name: 'Logging consistency',
+        icon: '📝',
+        description: 'Enforce single logging framework',
+        depth: 1,
+      },
+      {
+        id: 'file-placement',
+        type: 'file',
+        name: 'File placement rules',
+        icon: '📁',
+        description: 'Tests here, components there',
+        depth: 1,
+      },
+      {
+        id: 'magic-numbers',
+        type: 'file',
+        name: 'Magic number detection',
+        icon: '🔢',
+        description: 'Constants must be named',
+        depth: 1,
+      },
+      {
+        id: 'architecture',
+        type: 'file',
+        name: 'Architecture patterns',
+        icon: '🏗️',
+        description: 'SOLID, DRY, design principles',
+        depth: 1,
+      },
+      {
+        id: 'security',
+        type: 'file',
+        name: 'Security patterns',
+        icon: '🔒',
+        description: 'No hardcoded secrets',
+        depth: 1,
+      },
+      {
+        id: 'naming',
+        type: 'file',
+        name: 'Naming conventions',
+        icon: '📋',
+        description: 'Variables, functions, classes',
+        depth: 1,
+      },
+      {
+        id: 'imports',
+        type: 'file',
+        name: 'Import organization',
+        icon: '📦',
+        description: 'Dependencies, structure',
+        depth: 1,
+      },
+      {
+        id: 'coverage',
+        type: 'file',
+        name: 'Test coverage rules',
+        icon: '🧪',
+        description: 'Missing tests detected',
+        depth: 1,
+      },
+      {
+        id: 'docs',
+        type: 'file',
+        name: 'Documentation requirements',
+        icon: '📚',
+        description: 'Headers, docstrings, comments',
+        depth: 1,
+        isLast: true,
+      },
+    ];
+
+    const allItems: FolderItem[] = [
+      {
+        id: 'project-standards',
+        type: 'folder',
+        name: 'Your Project Standards',
+        icon: '🎯',
+        depth: 0,
+      },
+      ...linterItems,
+    ];
+
+    const benefits = [
+      '🔴 Problem: Standard linters miss architecture issues',
+      '✅ Solution: Custom rules for SOLID, patterns, security',
+      '🔴 Problem: AI generates anti-patterns',
+      '✅ Solution: Gate specific violations before commit',
+      '🔴 Problem: Manual code review misses issues',
+      '✅ Solution: Automated enforcement, consistent standards',
+      '🔴 Example: Block print(), enforce error handling',
+    ];
+
+    return renderFolderStructure(
+      allItems,
+      'Custom Design Linters: Beyond Syntax to Architecture',
+      '🔧',
+      'Abstract: Enforce What Matters to YOUR Project',
+      benefits,
+    );
+  }, [renderFolderStructure]);
+
+  const _renderStats = useCallback(() => {
+    return (
+      <div className={styles.statsSection}>
+        <div className={styles.statCard}>
+          <div className={styles.statNumber}>{stats.makeTargets}+</div>
+          <div className={styles.statLabel}>Make Targets</div>
+        </div>
+        <div className={styles.statCard}>
+          <div className={styles.statNumber}>{stats.linterCategories}</div>
+          <div className={styles.statLabel}>Linter Categories</div>
+        </div>
+        <div className={styles.statCard}>
+          <div className={styles.statNumber}>{stats.codeTemplates}</div>
+          <div className={styles.statLabel}>Code Templates</div>
+        </div>
+        <div className={styles.statCard}>
+          <div className={styles.statNumber}>{stats.dockerCoverage}</div>
+          <div className={styles.statLabel}>Docker-based Testing</div>
+        </div>
+      </div>
+    );
+  }, [stats]);
+
+  const _renderActionLinks = useCallback(() => {
+    return (
+      <div className={styles.actionSection}>
+        <h4 className="dark-title-on-light">
+          <span className="section-icon">🚀</span>
+          Try the Infrastructure
+        </h4>
+        <div className={styles.actionLinks}>
+          {actionLinks.map((link) => (
+            <a
+              key={link.id}
+              href={link.url}
+              className={`${styles.actionLink} ${styles[link.type]}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span className={styles.linkIcon}>{link.icon}</span>
+              {link.text}
+            </a>
+          ))}
+        </div>
+      </div>
+    );
+  }, [actionLinks]);
 
   // Find selected item for popup
   const selectedInfraItem = useMemo(() => {

@@ -221,7 +221,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-.popupSection .sectionTitle {
+.sectionTitle {
   font-size: 1.5rem;
   font-weight: 600;
   margin-bottom: 1.5rem;
@@ -271,6 +271,10 @@
   padding-left: 2.5rem;
   position: relative;
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.pointsList li:last-child {
+  border-bottom: none;
 }
 
 .pointsList li:before {
@@ -538,7 +542,6 @@
   line-height: 1.5;
 }
 
-.pointsList li:last-child,
 .benefitList li:last-child {
   border-bottom: none;
 }
