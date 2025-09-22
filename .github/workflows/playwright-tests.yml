@@ -23,12 +23,18 @@ jobs:
       - name: Get dynamic ports
         id: ports
         run: |
-          BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD | tr '/' '-' | tr '[:upper:]' '[:lower:]')
+          # In GitHub Actions, we're in a detached HEAD state, so we need to get the branch from the event
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BRANCH_NAME="${{ github.head_ref }}"
+          else
+            BRANCH_NAME="${{ github.ref_name }}"
+          fi
+          BRANCH_NAME=$(echo "$BRANCH_NAME" | tr '/' '-' | tr '[:upper:]' '[:lower:]')
           source <(./scripts/get-branch-ports.sh "$BRANCH_NAME" export)
           echo "frontend_port=$FRONTEND_PORT" >> $GITHUB_OUTPUT
           echo "backend_port=$BACKEND_PORT" >> $GITHUB_OUTPUT
           echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
-          echo "Using ports - Frontend: $FRONTEND_PORT, Backend: $BACKEND_PORT"
+          echo "Using branch: $BRANCH_NAME, Frontend: $FRONTEND_PORT, Backend: $BACKEND_PORT"
 
       - name: Wait for services
         run: |

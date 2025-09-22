@@ -8,7 +8,16 @@
 
 # Variables
 # Get current git branch name, sanitized for Docker container names
-BRANCH_NAME := $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null | tr '/' '-' | tr '[:upper:]' '[:lower:]' || echo "main")
+# In CI, use GITHUB_HEAD_REF for PRs or GITHUB_REF_NAME for pushes
+ifdef GITHUB_ACTIONS
+  ifdef GITHUB_HEAD_REF
+    BRANCH_NAME := $(shell echo "$(GITHUB_HEAD_REF)" | tr '/' '-' | tr '[:upper:]' '[:lower:]')
+  else
+    BRANCH_NAME := $(shell echo "$(GITHUB_REF_NAME)" | tr '/' '-' | tr '[:upper:]' '[:lower:]')
+  endif
+else
+  BRANCH_NAME := $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null | tr '/' '-' | tr '[:upper:]' '[:lower:]' || echo "main")
+endif
 export BRANCH_NAME
 
 # Calculate dynamic ports based on branch name
