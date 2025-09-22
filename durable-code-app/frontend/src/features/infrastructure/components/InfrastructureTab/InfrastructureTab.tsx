@@ -34,7 +34,7 @@ export function InfrastructureTab({
 }: InfrastructureTabProps): ReactElement {
   const {
     infrastructureItems,
-    folderStructure,
+    folderStructure: _folderStructure,
     makeTargets,
     stats,
     actionLinks,
@@ -159,7 +159,7 @@ export function InfrastructureTab({
     [],
   );
 
-  const renderMakeTargets = useCallback(() => {
+  const _renderMakeTargets = useCallback(() => {
     const benefits = [
       '🎯 Same command = same result',
       '🎯 Dockerized environments eliminate drift',
@@ -199,7 +199,7 @@ export function InfrastructureTab({
     );
   }, [makeTargets, renderFolderStructure]);
 
-  const renderCustomLinters = useCallback(() => {
+  const _renderCustomLinters = useCallback(() => {
     const linterItems: FolderItem[] = [
       {
         id: 'print-statements',
@@ -312,7 +312,7 @@ export function InfrastructureTab({
     );
   }, [renderFolderStructure]);
 
-  const renderStats = useCallback(() => {
+  const _renderStats = useCallback(() => {
     return (
       <div className={styles.statsSection}>
         <div className={styles.statCard}>
@@ -335,7 +335,7 @@ export function InfrastructureTab({
     );
   }, [stats]);
 
-  const renderActionLinks = useCallback(() => {
+  const _renderActionLinks = useCallback(() => {
     return (
       <div className={styles.actionSection}>
         <h4 className="dark-title-on-light">
