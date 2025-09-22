@@ -100,7 +100,7 @@ describe('App Component', () => {
         ).toBeInTheDocument();
       });
       await waitFor(() => {
-        expect(screen.getAllByText('Custom Linters')[0]).toBeInTheDocument();
+        expect(screen.getByText('Gate Everything You Care About')).toBeInTheDocument();
       });
     });
   });
@@ -116,10 +116,12 @@ describe('App Component', () => {
         ).toBeInTheDocument();
       });
       await waitFor(() => {
-        expect(screen.getAllByText('Custom Linters')[0]).toBeInTheDocument();
+        expect(screen.getByText('Gate Everything You Care About')).toBeInTheDocument();
       });
       await waitFor(() => {
-        expect(screen.getAllByText('Make Targets')[0]).toBeInTheDocument();
+        expect(
+          screen.getByText('Make It Work The Same Everywhere'),
+        ).toBeInTheDocument();
       });
     });
 
@@ -178,6 +180,7 @@ describe('App Component', () => {
 
   describe('Link Validation and Navigation', () => {
     it('has working external links in Infrastructure tab', async () => {
+      const user = userEvent.setup();
       render(<AppWithRouter />);
 
       // Wait for Infrastructure tab to be available
