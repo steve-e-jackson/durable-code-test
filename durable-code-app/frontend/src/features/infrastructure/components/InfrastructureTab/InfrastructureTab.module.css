@@ -221,7 +221,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-.popupSection .sectionTitle {
+.sectionTitle {
   font-size: 1.5rem;
   font-weight: 600;
   margin-bottom: 1.5rem;
@@ -271,6 +271,10 @@
   padding-left: 2.5rem;
   position: relative;
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.pointsList li:last-child {
+  border-bottom: none;
 }
 
 .pointsList li:before {
@@ -531,13 +535,13 @@
   margin: 0;
 }
 
+/* stylelint-disable-next-line no-descending-specificity */
 .benefitList li {
   padding: 0.5rem 0;
   border-bottom: 1px solid var(--border-light, #f3f4f6);
   line-height: 1.5;
 }
 
-.pointsList li:last-child,
 .benefitList li:last-child {
   border-bottom: none;
 }
