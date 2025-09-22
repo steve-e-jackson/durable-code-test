@@ -409,12 +409,14 @@ export function InfrastructureTab({
           Why Rigid Infrastructure Matters for AI Development
         </h3>
         <p className="subtitle">
-          AI coding assistants are powerful but unpredictable. Without strict repository controls,
-          they create inconsistent code, violate conventions, and introduce subtle bugs that compound over time.
-          The solution isn't to restrict AI, but to create <strong>rigid infrastructure</strong> that channels its
-          creativity productively. When every file has a defined location, every operation runs identically,
-          and every violation gets caught automatically, AI becomes a reliable engineering partner instead of
-          a source of technical debt. The patterns below show how to build this foundation.
+          AI coding assistants are powerful but unpredictable. Without strict repository
+          controls, they create inconsistent code, violate conventions, and introduce
+          subtle bugs that compound over time. The solution isn't to restrict AI, but to
+          create <strong>rigid infrastructure</strong> that channels its creativity
+          productively. When every file has a defined location, every operation runs
+          identically, and every violation gets caught automatically, AI becomes a
+          reliable engineering partner instead of a source of technical debt. The
+          patterns below show how to build this foundation.
         </p>
       </div>
 
@@ -424,10 +426,7 @@ export function InfrastructureTab({
       {/* Popup rendered at component level */}
       {selectedInfraItem && selectedInfraItem.popup && (
         <>
-          <div
-            className={styles.popupBackdrop}
-            onClick={() => setSelectedItem(null)}
-          />
+          <div className={styles.popupBackdrop} onClick={() => setSelectedItem(null)} />
           <div className={styles.structuredPopup}>
             {/* Document Header */}
             <div className={styles.documentHeader}>
@@ -484,13 +483,19 @@ export function InfrastructureTab({
                   Example from Our Code
                 </h3>
                 <div className={styles.exampleHeader}>
-                  <span className={styles.exampleTitle}>{selectedInfraItem.popup.example.title}</span>
+                  <span className={styles.exampleTitle}>
+                    {selectedInfraItem.popup.example.title}
+                  </span>
                   {selectedInfraItem.popup.example.file && (
-                    <span className={styles.exampleFile}>{selectedInfraItem.popup.example.file}</span>
+                    <span className={styles.exampleFile}>
+                      {selectedInfraItem.popup.example.file}
+                    </span>
                   )}
                 </div>
                 <pre className={styles.codeBlock}>
-                  <code className={`language-${selectedInfraItem.popup.example.language}`}>
+                  <code
+                    className={`language-${selectedInfraItem.popup.example.language}`}
+                  >
                     {selectedInfraItem.popup.example.code}
                   </code>
                 </pre>
