@@ -30,8 +30,9 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    host: true, // Listen on all interfaces and accept connections from any hostname
     // Enable SPA mode for client-side routing
-    open: true,
+    open: false, // Don't auto-open browser in Docker
     proxy: {
       // Proxy API requests to backend
       '/api': {
