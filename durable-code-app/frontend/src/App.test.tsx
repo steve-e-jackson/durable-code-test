@@ -96,12 +96,10 @@ describe('App Component', () => {
       // Should show Infrastructure tab content by default (after lazy loading)
       await waitFor(() => {
         expect(
-          screen.getByText('Rigid Infrastructure: The Foundation for AI'),
+          screen.getByText('Why Rigid Infrastructure Matters for AI Development'),
         ).toBeInTheDocument();
       });
-      await waitFor(() => {
-        expect(screen.getAllByText('Custom Linters')[0]).toBeInTheDocument();
-      });
+      // Custom Linters link removed from simplified InfrastructureTab
     });
   });
 
@@ -112,15 +110,10 @@ describe('App Component', () => {
       // Should show Infrastructure tab content (after lazy loading)
       await waitFor(() => {
         expect(
-          screen.getByText('Rigid Infrastructure: The Foundation for AI'),
+          screen.getByText('Why Rigid Infrastructure Matters for AI Development'),
         ).toBeInTheDocument();
       });
-      await waitFor(() => {
-        expect(screen.getAllByText('Custom Linters')[0]).toBeInTheDocument();
-      });
-      await waitFor(() => {
-        expect(screen.getAllByText('Make Targets')[0]).toBeInTheDocument();
-      });
+      // Make Targets and Custom Linters sections removed from simplified InfrastructureTab
     });
 
     it('switches to different tabs when clicked', async () => {
@@ -169,7 +162,7 @@ describe('App Component', () => {
       await user.click(screen.getByRole('tab', { name: /Infrastructure/i }));
       await waitFor(() => {
         expect(
-          screen.getByText('Rigid Infrastructure: The Foundation for AI'),
+          screen.getByText('Why Rigid Infrastructure Matters for AI Development'),
         ).toBeInTheDocument();
       });
       expect(screen.queryByText('Bulletproof Code Quality')).not.toBeInTheDocument();
@@ -177,29 +170,7 @@ describe('App Component', () => {
   });
 
   describe('Link Validation and Navigation', () => {
-    it('has working external links in Infrastructure tab', async () => {
-      render(<AppWithRouter />);
-
-      // Wait for lazy-loaded content
-      await waitFor(() => {
-        expect(
-          screen.getByRole('link', { name: /Explore .ai Repository/i }),
-        ).toBeInTheDocument();
-      });
-
-      const projectLink = screen.getByRole('link', { name: /Explore .ai Repository/i });
-      expect(projectLink).toHaveAttribute(
-        'href',
-        'https://github.com/stevej-at-benlabs/durable-code-test/tree/main/.ai',
-      );
-
-      const makeLink = screen.getByRole('link', { name: /View Make Targets/i });
-      expect(makeLink).toBeInTheDocument();
-      expect(makeLink).toHaveAttribute(
-        'href',
-        'https://github.com/stevej-at-benlabs/durable-code-test/blob/main/Makefile.lint',
-      );
-    });
+    // Removed test for external links that are no longer rendered in simplified component
 
     it('has working internal links in Building tab', async () => {
       const user = userEvent.setup();
@@ -291,20 +262,7 @@ describe('App Component', () => {
       expect(tabButtons.length).toBe(6); // Exactly 6 tab buttons including Demo
     });
 
-    it('has proper links for external resources', async () => {
-      render(<AppWithRouter />);
-
-      // Wait for lazy-loaded content
-      await waitFor(() => {
-        expect(
-          screen.getByRole('link', { name: /Explore .ai Repository/i }),
-        ).toBeInTheDocument();
-      });
-
-      const projectLink = screen.getByRole('link', { name: /Explore .ai Repository/i });
-      expect(projectLink).toHaveAttribute('href');
-      expect(projectLink.getAttribute('href')).toContain('github.com');
-    });
+    // Removed test for external resources that are no longer rendered in simplified component
 
     it('has semantic HTML structure', () => {
       render(<AppWithRouter />);
@@ -551,7 +509,7 @@ describe('App Component', () => {
       await user.click(infrastructureTab);
       await waitFor(() => {
         expect(
-          screen.getByText('Rigid Infrastructure: The Foundation for AI'),
+          screen.getByText('Why Rigid Infrastructure Matters for AI Development'),
         ).toBeInTheDocument();
       });
       const infrastructureLinks = screen.getAllByRole('link');
@@ -587,11 +545,9 @@ describe('App Component', () => {
         if (href && !allLinks.includes(href)) allLinks.push(href);
       });
 
-      // Verify specific expected links exist
+      // Verify specific expected links exist (removed GitHub links from simplified Infrastructure tab)
       expect(allLinks).toEqual(
         expect.arrayContaining([
-          'https://github.com/stevej-at-benlabs/durable-code-test/tree/main/.ai',
-          'https://github.com/stevej-at-benlabs/durable-code-test/blob/main/Makefile.lint',
           '/standards?return=Building',
           '/diagrams/durable-code-flow.html?return=Planning',
           '/diagrams/ai-review-sequence.html?return=Planning',
