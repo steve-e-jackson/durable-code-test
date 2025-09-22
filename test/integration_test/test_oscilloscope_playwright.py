@@ -42,14 +42,14 @@ import pytest_asyncio
 
 # Conditional import to prevent import errors when playwright is not available
 try:
-    from playwright.async_api import Page, WebSocket, async_playwright  # type: ignore[import-not-found]
+    from playwright.async_api import Page, WebSocket, async_playwright
     PLAYWRIGHT_AVAILABLE = True
 except ImportError:
     PLAYWRIGHT_AVAILABLE = False
-    # Define dummy types for type checking when playwright is not available
-    Page = Any
-    WebSocket = Any
-    async_playwright = None
+    # When playwright is not available, create placeholders to prevent NameError
+    Page = Any  # type: ignore[misc,assignment]
+    WebSocket = Any  # type: ignore[misc,assignment]
+    async_playwright = None  # type: ignore[assignment]
 
 # Enable auto mode for async fixtures
 pytestmark = pytest.mark.asyncio
