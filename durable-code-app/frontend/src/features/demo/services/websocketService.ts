@@ -49,7 +49,28 @@ export class WebSocketService {
       // Auto-generate URL if not provided
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const host = window.location.hostname;
-      url = `${protocol}//${host}:${WEBSOCKET_CONFIG.BACKEND_PORT}${WEBSOCKET_CONFIG.ENDPOINT}`;
+
+      // In development, try to detect the backend port dynamically
+      // The port offset is the same for both frontend and backend
+      const currentPort = parseInt(window.location.port);
+      let backendPort = WEBSOCKET_CONFIG.BACKEND_PORT;
+
+      if (currentPort >= 5173 && currentPort <= 6172) {
+        // We're in dev mode with a frontend dev server
+        // Frontend base port is 5173, backend base is 8000
+        // Both use the same offset from their base
+        const portOffset = currentPort - 5173;
+        backendPort = 8000 + portOffset;
+      } else if (!currentPort || currentPort === 80 || currentPort === 443) {
+        // Production mode - no port or standard HTTP/HTTPS ports
+        // Use the configured backend port
+        backendPort = WEBSOCKET_CONFIG.BACKEND_PORT;
+      } else {
+        // Use the same port as the page (likely proxied in production)
+        backendPort = currentPort;
+      }
+
+      url = `${protocol}//${host}:${backendPort}${WEBSOCKET_CONFIG.ENDPOINT}`;
     }
 
     this.url = url;
