@@ -87,3 +87,4 @@ terraform.rc
 **/override.tf.json
 **/*_override.tf
 **/*_override.tf.json
+.envrc.local
