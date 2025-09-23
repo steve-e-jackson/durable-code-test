@@ -631,10 +631,13 @@ _Space for team members to add notes, concerns, or suggestions_
    - **IMPORTANT**: Near PR completion, update http://localhost:5173/#Planning
    - Navigate to the "AWS Deployment Case Study" section
    - Update the deployment progress percentage
-   - Add any significant milestones or learnings
-   - Document actual vs estimated costs
-   - Update timeline if needed
-   - This keeps stakeholders informed via the web interface
+   - **Document lessons learned for future projects**:
+     - What planning approaches worked well
+     - Actual vs estimated costs and why they differed
+     - Unexpected challenges and solutions
+     - Successful cost optimization strategies
+   - Create a knowledge base for future AWS deployments
+   - This documents successful planning patterns for others to learn from
 
 ### Template for PR Completion Entry
 
