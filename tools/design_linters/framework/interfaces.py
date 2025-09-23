@@ -7,7 +7,7 @@ Overview: This module establishes the foundational interfaces that enable a plug
     components must implement. It defines the contracts for lint rules (both AST-based and
     file-based), violation reporting with severity levels, analysis contexts with comprehensive
     file information, and output reporters for various formats. The interfaces support dynamic
-    rule discovery and registration, allowing new rules to be added without modifying the
+    rule discovery and registration, supporting dynamic rule integration without modifying the
     framework core. The design follows SOLID principles with clear separation of concerns,
     dependency injection, and extensibility points. The module also includes ignore directive
     handling for suppressing specific violations, node stack tracking for context-aware analysis,

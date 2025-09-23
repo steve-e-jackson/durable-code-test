@@ -546,8 +546,6 @@ def test_input_validation(input, expected):
         id: 'error-resilience',
         icon: '🛡️',
         title: 'Handle Errors Like Production',
-        description:
-          'Structured exceptions, retry logic, circuit breakers - because AI forgets error handling, but production never forgives',
         badge: 'Critical',
         category: 'resilience',
         popup: {
