@@ -25,7 +25,8 @@ export interface RepositoryItem {
     | 'repository'
     | 'documentation'
     | 'resilience'
-    | 'testing';
+    | 'testing'
+    | 'infrastructure';
   popup?: {
     problem: {
       title: string;
@@ -91,7 +92,7 @@ export interface RepositoryTabProps {
 
 export interface RepositoryCardProps {
   item: RepositoryItem;
-  onClick?: (item: InfrastructureItem) => void;
+  onClick?: (item: RepositoryItem) => void;
   className?: string;
 }
 
