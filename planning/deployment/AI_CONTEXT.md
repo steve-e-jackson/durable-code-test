@@ -28,6 +28,13 @@ The Durable Code Test application is a full-stack React/FastAPI application curr
 - **ACM**: SSL certificate management
 - **CloudWatch**: Logging and monitoring
 
+### Cost Optimization Strategy
+- **Scheduled Infrastructure**: Automatic destroy/create cycles
+- **Lambda Automation**: Start at 8 AM, stop at 8 PM on weekdays
+- **Weekend Shutdown**: Complete infrastructure teardown Friday evening to Monday morning
+- **Manual Override**: Tag-based override for keeping resources running
+- **Result**: ~85% cost reduction vs 24/7 operation
+
 ### Deployment Strategy
 - **Infrastructure as Code**: Terraform for all AWS resources
 - **CI/CD**: GitHub Actions with OIDC for passwordless deployment

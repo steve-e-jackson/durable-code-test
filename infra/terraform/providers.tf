@@ -18,12 +18,15 @@ provider "aws" {
   # These tags are essential for cost tracking and resource management
   default_tags {
     tags = {
-      Project     = var.project_name
-      Environment = var.environment
-      ManagedBy   = "terraform"
-      CostCenter  = "durable-code"
-      Repository  = "github.com/steve-e-jackson/durable-code-test"
-      CreatedBy   = "terraform-${var.terraform_version}"
+      ProductDomain = var.product_domain
+      Project       = var.project_name
+      Environment   = var.environment
+      ManagedBy     = "terraform"
+      CostCenter    = "engineering"
+      Repository    = "github.com/steve-e-jackson/durable-code-test"
+      CreatedBy     = "terraform-${var.terraform_version}"
+      CanDestroy    = var.environment == "dev" ? "true" : "false"
+      AutoShutdown  = var.enable_auto_shutdown ? "true" : "false"
     }
   }
 
@@ -42,12 +45,15 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = var.project_name
-      Environment = var.environment
-      ManagedBy   = "terraform"
-      CostCenter  = "durable-code"
-      Repository  = "github.com/steve-e-jackson/durable-code-test"
-      CreatedBy   = "terraform-${var.terraform_version}"
+      ProductDomain = var.product_domain
+      Project       = var.project_name
+      Environment   = var.environment
+      ManagedBy     = "terraform"
+      CostCenter    = "engineering"
+      Repository    = "github.com/steve-e-jackson/durable-code-test"
+      CreatedBy     = "terraform-${var.terraform_version}"
+      CanDestroy    = var.environment == "dev" ? "true" : "false"
+      AutoShutdown  = var.enable_auto_shutdown ? "true" : "false"
     }
   }
 }

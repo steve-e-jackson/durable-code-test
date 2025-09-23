@@ -17,6 +17,17 @@
 # Core Configuration Variables
 # ============================================================================
 
+variable "product_domain" {
+  description = "Product domain identifier for resource naming and tagging"
+  type        = string
+  default     = "durableai"
+
+  validation {
+    condition     = can(regex("^[a-z][a-z0-9]*$", var.product_domain))
+    error_message = "Product domain must start with a letter and contain only lowercase letters and numbers."
+  }
+}
+
 variable "project_name" {
   description = "Name of the project, used as a prefix for all resources"
   type        = string
