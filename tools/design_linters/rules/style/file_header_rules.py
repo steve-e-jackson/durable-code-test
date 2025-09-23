@@ -41,6 +41,53 @@ class FileHeaderRule(ASTLintRule):
     # Recommended fields that generate warnings if missing
     RECOMMENDED_FIELDS = {"implementation"}
 
+    # Temporal language patterns to avoid in headers
+    TEMPORAL_PATTERNS = [
+        # Explicit dates and timestamps
+        (r"\b\d{4}[-/]\d{1,2}[-/]\d{1,2}\b", "date stamp (YYYY-MM-DD or YYYY/MM/DD)"),
+        (r"\b\d{1,2}[-/]\d{1,2}[-/]\d{4}\b", "date stamp (MM-DD-YYYY or DD-MM-YYYY)"),
+        (
+            r"\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}\b",
+            "date with month name",
+        ),
+        (r"\b\d{1,2}\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}\b", "date with abbreviated month"),
+        # Creation/modification language
+        (r"\b[Cc]reated:\s*", "creation timestamp"),
+        (r"\b[Uu]pdated:\s*", "update timestamp"),
+        (r"\b[Mm]odified:\s*", "modification timestamp"),
+        (r"\b[Ll]ast\s+(modified|updated|changed):", "last modification reference"),
+        # State change language
+        (r"\b[Rr]eplaces\s+", "replacement reference"),
+        (r"\b[Rr]eplacing\s+", "replacement reference"),
+        (r"\b[Cc]hanged\s+from\b", "change from reference"),
+        (r"\b[Mm]igrated\s+from\b", "migration reference"),
+        (r"\b[Mm]oved\s+from\b", "movement reference"),
+        (r"\b[Ee]xtracted\s+from\b", "extraction reference"),
+        (r"\b[Rr]efactored\s+from\b", "refactoring reference"),
+        (r"\b[Ff]ormerly\b", "former state reference"),
+        (r"\b[Pp]reviously\b", "previous state reference"),
+        (r"\b[Oo]riginally\b", "original state reference"),
+        # Temporal qualifiers
+        (r"\b[Cc]urrently\s+", "current state qualifier"),
+        (r"\b[Nn]ow\s+(includes?|supports?|provides?|handles?)\b", "now qualifier"),
+        (r"\b[Rr]ecently\s+", "recent change qualifier"),
+        (r"\b[Tt]emporarily\b", "temporary state qualifier"),
+        (r"\b[Ff]or\s+now\b", "temporary implementation qualifier"),
+        (r"\b[Aa]s\s+of\s+", "temporal reference point"),
+        # Future references
+        (r"\b[Ww]ill\s+be\b", "future plan reference"),
+        (r"\b[Tt]o\s+be\s+(implemented|added|removed)\b", "future implementation reference"),
+        (r"\b[Pp]lanned\s+(for|to)\b", "planned feature reference"),
+        (r"\b[Uu]pcoming\b", "upcoming feature reference"),
+        (r"\b[Ff]uture\s+(use|improvements?|enhancements?)\b", "future reference"),
+        # New/old references
+        (r"\b[Nn]ew\s+(implementation|version|approach)\b", "new implementation reference"),
+        (r"\b[Oo]ld\s+(implementation|version|approach)\b", "old implementation reference"),
+        (r"\b[Ll]egacy\s+", "legacy code reference"),
+        (r"\b[Dd]eprecated\b", "deprecation reference"),
+        (r"\b[Oo]bsolete\b", "obsolete reference"),
+    ]
+
     # File type configurations for header extraction
     FILE_CONFIGS = {
         ".py": {
@@ -309,6 +356,20 @@ class FileHeaderRule(ASTLintRule):
                     )
                 )
 
+        # Check for temporal language in header
+        if self.config.get("check_temporal_language", True):
+            temporal_issues = self._check_temporal_language(header_content)
+            for issue in temporal_issues:
+                violations.append(
+                    self.create_violation(
+                        context=context,
+                        node=node,
+                        message=f"Temporal language found in header: {issue['type']}",
+                        description=f"Headers should be atemporal. Found: '{issue['match']}'",
+                        suggestion=issue["suggestion"],
+                    )
+                )
+
         return violations
 
     def _should_skip_file(self, file_path: Path) -> bool:
@@ -411,6 +472,63 @@ class FileHeaderRule(ASTLintRule):
                 )
 
         return issues
+
+    def _check_temporal_language(self, header_content: str) -> list[dict[str, str]]:
+        """Check for temporal language patterns in header."""
+        issues = []
+
+        for pattern, pattern_type in self.TEMPORAL_PATTERNS:
+            matches = re.finditer(pattern, header_content, re.IGNORECASE)
+            for match in matches:
+                matched_text = match.group(0).strip()
+                issues.append(
+                    {
+                        "type": pattern_type,
+                        "match": matched_text,
+                        "suggestion": self._get_temporal_suggestion(pattern_type, matched_text),
+                    }
+                )
+
+        return issues
+
+    def _get_temporal_suggestion(self, pattern_type: str, matched_text: str) -> str:
+        """Get suggestion for fixing temporal language."""
+        suggestions = {
+            "date stamp": "Remove date stamps. Git tracks file history automatically",
+            "date with month name": "Remove dates. Version control maintains history",
+            "date with abbreviated month": "Remove dates. Use git for historical tracking",
+            "creation timestamp": "Remove 'Created:' field. Git tracks creation time",
+            "update timestamp": "Remove 'Updated:' field. Git tracks modifications",
+            "modification timestamp": "Remove modification timestamps. Use git log",
+            "last modification reference": "Remove last modified references. Check git history instead",
+            "replacement reference": "Describe what this does, not what it replaces",
+            "change from reference": "Describe current functionality without referencing changes",
+            "migration reference": "Describe current state without migration history",
+            "movement reference": "Describe current location and purpose",
+            "extraction reference": "Describe what this provides, not where it came from",
+            "refactoring reference": "Describe current implementation directly",
+            "former state reference": "Remove 'formerly' and describe current state",
+            "previous state reference": "Remove 'previously' and describe current functionality",
+            "original state reference": "Remove 'originally' and describe current purpose",
+            "current state qualifier": "Remove 'currently' - describe what it does",
+            "now qualifier": "Remove 'now' - state capabilities directly",
+            "recent change qualifier": "Remove 'recently' - describe features directly",
+            "temporary state qualifier": "Remove 'temporarily' or document in issue tracker",
+            "temporary implementation qualifier": "Remove 'for now' or track in issues if truly temporary",
+            "temporal reference point": "Remove 'as of' - describe current state",
+            "future plan reference": "Remove future plans - track in issues/roadmap",
+            "future implementation reference": "Remove 'to be implemented' - track in project management",
+            "planned feature reference": "Remove planned features - document in roadmap",
+            "upcoming feature reference": "Remove 'upcoming' - track features in issues",
+            "future reference": "Remove future references - use issue tracking",
+            "new implementation reference": "Remove 'new' - describe what it is",
+            "old implementation reference": "Remove 'old' references - describe current state",
+            "legacy code reference": "Remove 'legacy' label - describe current purpose",
+            "deprecation reference": "Move deprecation notices to separate documentation",
+            "obsolete reference": "Remove 'obsolete' - if truly obsolete, consider removal",
+        }
+
+        return suggestions.get(pattern_type, f"Remove temporal language: '{matched_text}'")
 
     def _get_header_template(self, file_ext: str) -> str:
         """Get header template for file type."""

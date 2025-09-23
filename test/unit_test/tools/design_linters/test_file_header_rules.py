@@ -430,3 +430,273 @@ Exports: TestClass, test_function
         assert "purpose" in fields
         assert fields["purpose"] == "Documentation for the system"
         assert "scope" in fields
+
+
+class TestFileHeaderTemporalLanguage:
+    """Test suite for temporal language detection in file headers."""
+
+    @pytest.fixture
+    def rule(self):
+        """Create a FileHeaderRule instance with temporal checking enabled."""
+        return FileHeaderRule(config={"check_temporal_language": True})
+
+    @pytest.fixture
+    def context(self):
+        """Create a basic lint context."""
+        ctx = LintContext()
+        ctx.file_path = "test_file.py"
+        ctx.file_content = ""
+        ctx.ast_tree = ast.parse("")
+        return ctx
+
+    def test_detects_date_stamps(self, rule, context):
+        """Test detection of date stamps in headers."""
+        content = '''"""
+Purpose: Test module for date detection
+Scope: Testing temporal patterns
+Overview: This module was created on 2025-09-12 and provides validation logic
+    for checking temporal patterns. It was last updated on 2025-09-16 to include
+    new features for comprehensive temporal language detection.
+Dependencies: pytest, ast
+Exports: Test functions
+Interfaces: Test interface
+Implementation: Pattern matching
+"""
+def test():
+    pass
+'''
+        context.file_content = content
+        context.ast_tree = ast.parse(content)
+
+        violations = rule.check(context)
+        temporal_violations = [v for v in violations if "Temporal language" in v.message]
+
+        assert len(temporal_violations) > 0
+        assert any("date stamp" in v.message for v in temporal_violations)
+
+    def test_detects_creation_updated_fields(self, rule, context):
+        """Test detection of Created/Updated fields."""
+        content = '''"""
+Purpose: Test module for temporal fields
+Scope: Testing header fields
+Created: 2025-09-12
+Updated: 2025-09-16
+Overview: This module provides comprehensive testing functionality for validating
+    temporal language patterns in file headers across the codebase.
+Dependencies: pytest, ast
+Exports: Test functions
+Interfaces: Standard test interface
+Implementation: Uses regex patterns
+"""
+def test():
+    pass
+'''
+        context.file_content = content
+        context.ast_tree = ast.parse(content)
+
+        violations = rule.check(context)
+        temporal_violations = [v for v in violations if "Temporal language" in v.message]
+
+        assert len(temporal_violations) > 0
+        assert any("creation timestamp" in v.message for v in temporal_violations)
+        assert any("update timestamp" in v.message for v in temporal_violations)
+
+    def test_detects_state_change_language(self, rule, context):
+        """Test detection of state change references."""
+        content = '''"""
+Purpose: Test module that replaces the old implementation
+Scope: Testing state changes
+Overview: This module was migrated from the legacy system and now provides enhanced
+    functionality. It was previously part of the old framework but has been refactored
+    to work with the new architecture. Originally designed for a different purpose,
+    it has been changed from a simple validator to a comprehensive checker.
+Dependencies: pytest, ast
+Exports: Test functions
+Interfaces: New interface replacing old one
+Implementation: Refactored from previous version
+"""
+def test():
+    pass
+'''
+        context.file_content = content
+        context.ast_tree = ast.parse(content)
+
+        violations = rule.check(context)
+        temporal_violations = [v for v in violations if "Temporal language" in v.message]
+
+        assert len(temporal_violations) > 0
+        assert any("replacement reference" in v.message for v in temporal_violations)
+        assert any("migration reference" in v.message for v in temporal_violations)
+        assert any("previous state reference" in v.message for v in temporal_violations)
+
+    def test_detects_temporal_qualifiers(self, rule, context):
+        """Test detection of temporal qualifiers."""
+        content = '''"""
+Purpose: Module that currently handles validation
+Scope: Testing temporal qualifiers
+Overview: This module currently supports JSON validation and will soon add XML support.
+    It temporarily uses a simplified algorithm for now, but the implementation is
+    planned to be enhanced. Recently added features include better error messages.
+    As of version 2.0, it now includes comprehensive validation logic.
+Dependencies: pytest, ast
+Exports: Test functions
+Interfaces: Current interface
+Implementation: Temporary simplified approach
+"""
+def test():
+    pass
+'''
+        context.file_content = content
+        context.ast_tree = ast.parse(content)
+
+        violations = rule.check(context)
+        temporal_violations = [v for v in violations if "Temporal language" in v.message]
+
+        assert len(temporal_violations) > 0
+        assert any("current state qualifier" in v.message for v in temporal_violations)
+        assert any("temporary" in v.message for v in temporal_violations)
+        assert any("recent change qualifier" in v.message for v in temporal_violations)
+
+    def test_detects_future_references(self, rule, context):
+        """Test detection of future plan references."""
+        content = '''"""
+Purpose: Module for validation with upcoming features
+Scope: Testing future references
+Overview: This module provides basic validation that will be enhanced with additional
+    features. Support for XML is planned for the next release. The API will be
+    redesigned to be more intuitive. Future improvements include better performance
+    and more comprehensive error messages that are to be implemented.
+Dependencies: pytest, ast
+Exports: Test functions
+Interfaces: Interface to be redesigned
+Implementation: Basic implementation, enhancements planned
+"""
+def test():
+    pass
+'''
+        context.file_content = content
+        context.ast_tree = ast.parse(content)
+
+        violations = rule.check(context)
+        temporal_violations = [v for v in violations if "Temporal language" in v.message]
+
+        assert len(temporal_violations) > 0
+        assert any("future" in v.message.lower() for v in temporal_violations)
+        assert any("planned" in v.message for v in temporal_violations)
+
+    def test_clean_header_no_temporal_violations(self, rule, context):
+        """Test that clean headers without temporal language pass."""
+        content = '''"""
+Purpose: Validates file headers according to project standards
+Scope: All source code files in the project
+Overview: This module provides comprehensive validation of file headers to ensure
+    they meet project documentation standards. It checks for required fields,
+    validates content quality, and ensures headers provide sufficient information
+    for developers to understand file purposes without reading implementation details.
+Dependencies: pytest framework, ast module, design_linters framework
+Exports: FileHeaderRule class implementing validation logic
+Interfaces: ASTLintRule interface for integration with linting framework
+Implementation: Pattern-based field extraction with file-type specific validation
+"""
+def test():
+    pass
+'''
+        context.file_content = content
+        context.ast_tree = ast.parse(content)
+
+        violations = rule.check(context)
+        temporal_violations = [v for v in violations if "Temporal language" in v.message]
+
+        # Should have no temporal language violations
+        assert len(temporal_violations) == 0
+
+    def test_typescript_file_with_temporal_language(self, rule, context):
+        """Test TypeScript file with temporal language."""
+        content = '''/**
+ * Purpose: Component that replaces the old UI element
+ * Scope: UI components
+ * Created: 2025-09-12
+ * Updated: 2025-09-16
+ * Overview: This new implementation provides enhanced functionality compared to
+ *     the previous version. It was recently refactored to improve performance.
+ * Dependencies: React, Redux
+ * Exports: NewComponent
+ * Props: Enhanced props interface
+ * State: Improved state management
+ */
+export const Component = () => {};
+'''
+        context.file_path = "test_file.tsx"
+        context.file_content = content
+        # For non-Python files, we still use ast.parse("") as placeholder
+        context.ast_tree = ast.parse("")
+
+        violations = rule.check(context)
+        temporal_violations = [v for v in violations if "Temporal language" in v.message]
+
+        assert len(temporal_violations) > 0
+        # Should detect multiple temporal patterns
+        assert any("creation timestamp" in v.message for v in temporal_violations)
+        assert any("update timestamp" in v.message for v in temporal_violations)
+        assert any("replacement reference" in v.message for v in temporal_violations)
+
+    def test_temporal_checking_can_be_disabled(self):
+        """Test that temporal checking can be disabled via config."""
+        rule_disabled = FileHeaderRule(config={"check_temporal_language": False})
+
+        content = '''"""
+Purpose: Test module
+Scope: Testing
+Created: 2025-09-12
+Updated: 2025-09-16
+Overview: This module was recently updated to provide better functionality than
+    the previous version. It replaces the old implementation completely.
+Dependencies: pytest
+Exports: Functions
+Interfaces: Test interface
+Implementation: New approach replacing old one
+"""
+def test():
+    pass
+'''
+        ctx = LintContext()
+        ctx.file_path = "test_file.py"
+        ctx.file_content = content
+        ctx.ast_tree = ast.parse(content)
+
+        violations = rule_disabled.check(ctx)
+        temporal_violations = [v for v in violations if "Temporal language" in v.message]
+
+        # Should have no temporal violations when disabled
+        assert len(temporal_violations) == 0
+
+    def test_temporal_suggestions_are_helpful(self, rule, context):
+        """Test that temporal language violations provide helpful suggestions."""
+        content = '''"""
+Purpose: Module created on 2025-09-12
+Scope: Testing suggestions
+Overview: This module currently provides validation and will be enhanced with
+    additional features in the future. It was previously part of another system.
+Dependencies: pytest
+Exports: Functions
+Interfaces: Current interface
+Implementation: Temporary approach for now
+"""
+def test():
+    pass
+'''
+        context.file_content = content
+        context.ast_tree = ast.parse(content)
+
+        violations = rule.check(context)
+        temporal_violations = [v for v in violations if "Temporal language" in v.message]
+
+        assert len(temporal_violations) > 0
+
+        # Check that suggestions are provided
+        for violation in temporal_violations:
+            assert violation.suggestion is not None
+            assert len(violation.suggestion) > 0
+            # Suggestions should mention git or issue tracking
+            assert any(keyword in violation.suggestion.lower()
+                      for keyword in ["git", "remove", "describe", "track", "issue"])

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
 Purpose: Unified CLI for the pluggable design linter framework
-Scope: Replaces individual linter CLIs with a single, extensible interface
-Overview: This module provides a unified command-line interface that replaces
-    all the individual linter CLIs (srp_analyzer.py, magic_number_detector.py,
-    print_statement_linter.py, etc.) with a single, extensible tool that uses
+Scope: Single extensible interface for all design linting operations
+Overview: This module provides a unified command-line interface that consolidates
+    all individual linter functionality (SRP analysis, magic number detection,
+    print statement linting, etc.) into a single extensible tool that uses
     the pluggable framework architecture.
 Dependencies: Framework components, argparse for CLI, pathlib for file operations
 Exports: Main CLI interface and configuration management

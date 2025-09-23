@@ -3,8 +3,8 @@
 Purpose: Main entry point for the unified design linter framework
 Scope: Provides CLI access to all design linting functionality
 Overview: This module serves as the main entry point for the unified design
-    linter framework, replacing individual CLI tools with a single, extensible
-    interface. It supports backward compatibility while enabling the new
+    linter framework, providing a single extensible interface for all linting
+    operations. It supports backward compatibility while enabling the
     pluggable architecture with proper SOLID principle compliance.
 Dependencies: Framework CLI components
 Exports: Main entry point for package execution

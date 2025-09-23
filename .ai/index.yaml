@@ -257,6 +257,10 @@ howto:
     purpose: "Complete development environment setup"
     key_commands: ["make init", "make dev", "make status"]
 
+  setup-direnv.md:
+    purpose: "Configure direnv for automatic environment variable loading"
+    key_commands: ["direnv allow", "direnv reload", "direnv status"]
+
   deploy-application.md:
     purpose: "Production deployment and monitoring"
     key_commands: ["make build", "make start", "make status"]
