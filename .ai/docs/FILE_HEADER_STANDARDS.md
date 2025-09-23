@@ -9,6 +9,56 @@
 
 This document establishes a simplified, practical format for file headers that focuses on essential operational information. Git already tracks creation dates, modification history, and authorship, so headers should focus on describing what the file does and how it fits into the system.
 
+## Atemporal Documentation Principle
+
+File headers must be written in an atemporal manner - avoiding language that references specific points in time, historical changes, or future plans. This ensures documentation remains accurate and relevant without requiring updates when circumstances change.
+
+### Avoid These Temporal Patterns
+
+**Explicit Timestamps:**
+- ❌ "Created: 2025-09-12"
+- ❌ "Updated: 2025-09-16"
+- ❌ "Last modified: September 2025"
+
+**State Change Language:**
+- ❌ "This replaces the old implementation"
+- ❌ "Changed from X to Y"
+- ❌ "New implementation of..."
+- ❌ "Formerly known as..."
+- ❌ "Migrated from the legacy system"
+
+**Temporal Qualifiers:**
+- ❌ "Currently supports..."
+- ❌ "Now includes..."
+- ❌ "Recently added..."
+- ❌ "Previously used for..."
+- ❌ "Temporarily disabled"
+- ❌ "For now, this handles..."
+
+**Future References:**
+- ❌ "Will be implemented"
+- ❌ "Planned features include..."
+- ❌ "To be added later"
+- ❌ "Future improvements"
+
+### Write Instead
+
+**Present-tense, factual descriptions:**
+- ✅ "Handles user authentication"
+- ✅ "Provides data validation"
+- ✅ "Implements the circuit breaker pattern"
+- ✅ "Manages WebSocket connections"
+
+**Feature descriptions without temporal context:**
+- ✅ "Supports JSON and XML formats"
+- ✅ "Includes error handling and retry logic"
+- ✅ "Provides type-safe API interfaces"
+
+**Capability statements:**
+- ✅ "Validates input according to business rules"
+- ✅ "Exports reusable UI components"
+- ✅ "Integrates with the authentication service"
+
 ## Standard Header Formats
 
 ### Markdown Documentation Files (.md)
@@ -119,6 +169,7 @@ Implementation: Notable algorithms, patterns, or architectural decisions
 - Focus on operational details: what the file does and how it works
 - Include key dependencies that aren't obvious from imports
 - Mention any special considerations or operational notes
+- **Use atemporal language**: Describe current capabilities without referencing time or changes
 
 ### 3. Automated Validation
 The header linter tool validates:
@@ -126,6 +177,7 @@ The header linter tool validates:
 - Header structure and placement
 - Field completeness and format
 - Consistent formatting across file types
+- Absence of temporal language patterns (dates, "currently", "now", "replaces", etc.)
 
 ## Examples
 
