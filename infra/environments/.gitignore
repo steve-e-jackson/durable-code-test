@@ -1,0 +1,26 @@
+# Terraform Environment Files Gitignore
+# This file prevents sensitive information from being committed to version control
+
+# Local override files
+*.local.tfvars
+local.tfvars
+
+# Files containing secrets or sensitive information
+secrets.tfvars
+*.secret.tfvars
+
+# Temporary files
+*.tmp
+*.temp
+*.backup
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
