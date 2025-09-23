@@ -180,8 +180,81 @@ const CASE_STUDY_STEPS: CaseStudyStep[] = [
     },
   },
   {
-    id: 'step-2-terraform',
+    id: 'step-2-aws-setup',
     stepNumber: 2,
+    title: 'PR0: Domain & AWS Setup',
+    icon: '🌐',
+    subtitle: 'AWS account and domain registration',
+    status: 'in-progress',
+    popup: {
+      overview: {
+        title: 'AWS Account & Domain Setup',
+        points: [
+          'Configure AWS account with billing alerts',
+          'Research and select domain name',
+          'Set up Terraform backend infrastructure',
+          'Create IAM users and permissions',
+          'Enable security best practices',
+        ],
+      },
+      documents: {
+        title: 'Setup Documentation Created',
+        items: [
+          {
+            name: 'infra/README.md',
+            description: 'Comprehensive AWS infrastructure guide',
+            purpose: 'Step-by-step setup instructions for team',
+          },
+          {
+            name: 'backend.tf',
+            description: 'S3 backend configuration for Terraform state',
+            purpose: 'Secure state management with locking',
+          },
+          {
+            name: 'variables.tf',
+            description: 'Input variables for all environments',
+            purpose: 'Flexible configuration with cost optimization',
+          },
+          {
+            name: 'setup-terraform-backend.sh',
+            description: 'Automated backend setup script',
+            purpose: 'One-command S3 and DynamoDB creation',
+          },
+        ],
+      },
+      implementation: {
+        title: 'Current Progress (Started: 2025-09-23)',
+        points: [
+          '✅ Created feature branch for PR0',
+          '✅ Set up Terraform backend configuration',
+          '✅ Created AWS provider and variables',
+          '✅ Documented domain recommendations',
+          '✅ Created environment-specific configurations',
+          '⏳ Awaiting domain registration decision',
+          '⏳ AWS account setup pending',
+        ],
+      },
+      outcomes: {
+        title: 'Cost Optimization Strategies',
+        points: [
+          '💰 Target: < $25/month with auto-shutdown',
+          '💰 Fargate Spot for 70% dev savings',
+          '💰 Auto-shutdown nights & weekends (66% savings)',
+          '💰 Minimal resource sizing (256 CPU/512 Memory)',
+          '💰 Domain: ~$12-15/year for .dev TLD',
+        ],
+      },
+      links: [
+        {
+          text: 'View Infrastructure Code',
+          url: 'https://github.com/steve-e-jackson/durable-code-test/tree/feature/pr0-domain-aws-setup/infra',
+        },
+      ],
+    },
+  },
+  {
+    id: 'step-3-terraform',
+    stepNumber: 3,
     title: 'PR1: Terraform Foundation',
     icon: '🏗️',
     subtitle: 'Infrastructure as Code setup',
@@ -240,8 +313,8 @@ const CASE_STUDY_STEPS: CaseStudyStep[] = [
     },
   },
   {
-    id: 'step-3-ecr',
-    stepNumber: 3,
+    id: 'step-4-ecr',
+    stepNumber: 4,
     title: 'PR2: Container Registry',
     icon: '📦',
     subtitle: 'ECR repositories setup',
@@ -295,8 +368,8 @@ const CASE_STUDY_STEPS: CaseStudyStep[] = [
     },
   },
   {
-    id: 'step-4-ecs',
-    stepNumber: 4,
+    id: 'step-5-ecs',
+    stepNumber: 5,
     title: 'PR3: ECS Fargate Setup',
     icon: '🚀',
     subtitle: 'Container orchestration',
@@ -350,8 +423,8 @@ const CASE_STUDY_STEPS: CaseStudyStep[] = [
     },
   },
   {
-    id: 'step-5-cicd',
-    stepNumber: 5,
+    id: 'step-6-cicd',
+    stepNumber: 6,
     title: 'PR5: GitHub Actions CI/CD',
     icon: '⚙️',
     subtitle: 'Automated deployment pipeline',

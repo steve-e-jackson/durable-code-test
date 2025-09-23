@@ -61,3 +61,30 @@ durable-code-app/frontend/*.local
 
 # Reports directory for analysis outputs
 .reports/
+
+# Terraform
+**/.terraform/
+**/*.tfstate
+**/*.tfstate.*
+**/*.tfplan
+**/crash.log
+**/crash.*.log
+**/*.tfvars.json
+
+# Sensitive Terraform files
+**/*.auto.tfvars
+**/*.secret.tfvars
+**/secrets.tfvars
+**/*.local.tfvars
+**/local.tfvars
+
+# Terraform CLI config
+.terraformrc
+terraform.rc
+
+# Override files
+**/override.tf
+**/override.tf.json
+**/*_override.tf
+**/*_override.tf.json
+.envrc.local

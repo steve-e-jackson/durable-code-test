@@ -394,55 +394,103 @@ infra/terraform/
 
 ---
 
-## PR8: Cost Optimization and Auto-scaling
+## PR8: Cost Optimization with Scheduled Infrastructure
 
 ### Context
-Implement cost optimization strategies including auto-scaling, spot instances for non-production environments, and resource right-sizing based on metrics.
+Implement cost optimization through scheduled infrastructure destruction/creation, eliminating costs during non-business hours. This approach provides ~85% cost reduction compared to 24/7 operation.
 
 ### Files to Create/Modify
 ```
 infra/terraform/
-├── autoscaling.tf
-├── cost-optimization.tf
+├── automation.tf         # Lambda functions for scheduling
+├── autoscaling.tf        # ECS auto-scaling (within operating hours)
+├── cost-optimization.tf  # Cost monitoring and budgets
+infra/scripts/
+├── start-infra.sh        # Manual start script
+├── stop-infra.sh         # Manual stop script
+└── scheduler.py          # Lambda function code
 ```
 
 ### Implementation Steps
-1. **Configure Auto-scaling**
+1. **Create Infrastructure Scheduler**
    ```hcl
-   # autoscaling.tf
-   resource "aws_appautoscaling_target" "ecs_target" {
-     max_capacity       = 4
-     min_capacity       = 1
-     resource_id        = "service/${aws_ecs_cluster.main.name}/${aws_ecs_service.backend.name}"
-     scalable_dimension = "ecs:service:DesiredCount"
+   # automation.tf
+   resource "aws_lambda_function" "infra_scheduler" {
+     function_name = "durableai-${var.environment}-scheduler"
+     handler       = "scheduler.handler"
+     runtime       = "python3.9"
+     timeout       = 900
+
+     environment {
+       variables = {
+         TF_STATE_BUCKET = "durableai-terraform-state"
+         ENVIRONMENT     = var.environment
+         PRODUCT_DOMAIN  = "durableai"
+       }
+     }
+
+     tags = {
+       ProductDomain = "durableai"
+       Component     = "automation"
+       Purpose       = "cost-optimization"
+     }
    }
    ```
 
-2. **Implement Scaling Policies**
-   - Target tracking for CPU
-   - Target tracking for memory
-   - Schedule-based scaling
+2. **Schedule Infrastructure Start/Stop**
+   ```hcl
+   # Morning startup - 8 AM EST (1 PM UTC)
+   resource "aws_cloudwatch_event_rule" "start_infra" {
+     name                = "durableai-${var.environment}-start"
+     schedule_expression = "cron(0 13 ? * MON-FRI *)"
+   }
 
-3. **Cost Optimization**
-   - Use Fargate Spot for dev/staging
-   - Right-size task definitions
-   - Set up Cost and Usage Reports
+   # Evening shutdown - 8 PM EST (1 AM UTC next day)
+   resource "aws_cloudwatch_event_rule" "stop_infra" {
+     name                = "durableai-${var.environment}-stop"
+     schedule_expression = "cron(0 1 ? * TUE-SAT *)"
+   }
+   ```
 
-4. **Resource Tagging Strategy**
-   - Cost center tags
-   - Environment tags
-   - Owner tags
+3. **Manual Control Scripts**
+   ```bash
+   # start-infra.sh
+   #!/bin/bash
+   cd /path/to/terraform
+   export AWS_PROFILE=terraform-deploy
+   terraform apply -var-file=environments/dev.tfvars -auto-approve
+
+   # stop-infra.sh
+   #!/bin/bash
+   cd /path/to/terraform
+   export AWS_PROFILE=terraform-deploy
+   terraform destroy -var-file=environments/dev.tfvars -auto-approve
+   ```
+
+4. **Cost Monitoring**
+   ```hcl
+   resource "aws_budgets_budget" "infrastructure" {
+     name         = "durableai-${var.environment}-budget"
+     budget_type  = "COST"
+     limit_amount = var.budget_amount
+     limit_unit   = "USD"
+     time_unit    = "MONTHLY"
+   }
+   ```
 
 ### Testing
-- Load test to trigger scaling
-- Verify spot instances work (dev)
-- Check cost allocation tags
+- Test Lambda function can successfully destroy/create infrastructure
+- Verify schedule triggers work correctly
+- Test manual override tags prevent unwanted destruction
+- Validate cost savings after one week
 
 ### Success Criteria
-- [ ] Auto-scaling functional
-- [ ] Costs reduced in non-prod
-- [ ] Resource tags applied
-- [ ] Scaling metrics visible
+- [ ] Infrastructure automatically starts at 8 AM weekdays
+- [ ] Infrastructure automatically stops at 8 PM weekdays
+- [ ] Weekend infrastructure remains destroyed
+- [ ] Manual override capability works
+- [ ] 85% cost reduction achieved vs 24/7 operation
+- [ ] All resources properly tagged with ProductDomain="durableai"
 
 ---
 
