@@ -25,6 +25,11 @@ class MockWebSocket {
   onerror: (() => void) | null = null;
   onmessage: (() => void) | null = null;
 
+  static CONNECTING = 0;
+  static OPEN = 1;
+  static CLOSING = 2;
+  static CLOSED = 3;
+
   constructor(url: string) {
     this.url = url;
     createdUrls.push(url);
@@ -35,7 +40,7 @@ class MockWebSocket {
 }
 
 // @ts-expect-error - Mocking WebSocket for tests
-global.WebSocket = MockWebSocket;
+global.WebSocket = MockWebSocket as unknown as typeof WebSocket;
 
 describe('WebSocketService Port Calculation', () => {
   let service: WebSocketService;
@@ -144,8 +149,10 @@ describe('WebSocketService Port Calculation', () => {
     testCases.forEach(({ frontend, backend }) => {
       // Clear URLs from previous iterations
       createdUrls = [];
+      // Create a new service instance for each test case
+      const testService = new WebSocketService();
       mockLocation(frontend.toString());
-      service.connect().catch(() => {});
+      testService.connect().catch(() => {});
 
       expect(createdUrls).toHaveLength(1);
       expect(createdUrls[0]).toBe(`ws://localhost:${backend}/api/oscilloscope/stream`);
