@@ -1,6 +1,17 @@
-# Terraform Variables Definition
-# This file defines all input variables used across the infrastructure
-# Default values are provided where appropriate
+# Purpose: Define all input variables for Terraform infrastructure with validation and defaults
+# Scope: Infrastructure configuration across all AWS resources and environments
+# Overview: This file centralizes all input variables used throughout the Terraform configuration,
+#     providing a single source of truth for infrastructure parameters. Variables are organized
+#     into logical groups covering core configuration, cost optimization, resource sizing,
+#     monitoring, security, and CI/CD settings. Each variable includes validation rules,
+#     descriptions, and sensible defaults optimized for cost efficiency. The configuration
+#     supports multiple environments (dev, staging, prod) with environment-specific overrides
+#     via tfvars files. Cost optimization is a primary focus, with variables for auto-shutdown,
+#     Fargate Spot, and minimal resource sizing to keep costs under $25/month.
+# Dependencies: Used by all Terraform modules and resources
+# Configuration: Overridden by environment-specific tfvars files (dev.tfvars, staging.tfvars, prod.tfvars)
+# Interfaces: Variables are referenced throughout the infrastructure code as var.<name>
+# Implementation: Includes validation blocks to ensure values meet requirements
 
 # ============================================================================
 # Core Configuration Variables

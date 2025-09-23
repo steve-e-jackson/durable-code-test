@@ -1,6 +1,15 @@
-# AWS Provider Configuration
-# This file configures the AWS provider with appropriate settings
-# for the Durable Code Test deployment infrastructure
+# Purpose: Define AWS provider configuration with default tags and multi-region support
+# Scope: AWS provider settings for all Terraform resources across environments
+# Overview: This file configures the AWS provider with appropriate settings for deploying
+#     infrastructure across multiple regions. It establishes default resource tagging for
+#     cost tracking, compliance, and resource management. The configuration includes both
+#     the primary provider for the main region and an aliased provider for us-east-1
+#     (required for CloudFront certificates). Default tags ensure all resources are
+#     properly labeled for cost allocation, project tracking, and automated management.
+#     The provider configuration supports role assumption for cross-account deployments.
+# Dependencies: AWS credentials configured via AWS CLI or environment variables
+# Configuration: Uses variables from variables.tf for region and project settings
+# Exports: Primary AWS provider and us-east-1 aliased provider for ACM certificates
 
 provider "aws" {
   region = var.aws_region

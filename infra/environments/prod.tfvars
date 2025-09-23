@@ -1,6 +1,17 @@
-# Production Environment Configuration
-# This file contains environment-specific values for the production environment
-# Production-ready settings with cost optimization where appropriate
+# Purpose: Production environment configuration with reliability and security focus
+# Scope: Variable overrides specific to the production environment
+# Overview: This file provides environment-specific variable values for the production
+#     infrastructure, prioritizing reliability, security, and performance while maintaining
+#     cost efficiency where possible. Uses on-demand Fargate instances for maximum
+#     reliability with no auto-shutdown to ensure 24/7 availability. Resources are sized
+#     for production workloads (512 CPU/1024 Memory) with a minimum of two instances for
+#     high availability. All security features are enabled including WAF, GuardDuty, and
+#     Security Hub for comprehensive threat detection and compliance monitoring. Full
+#     Container Insights provides detailed monitoring and alerting. The configuration
+#     targets a monthly budget of $25 while ensuring production-grade reliability,
+#     security, and performance for end users.
+# Dependencies: Requires variables defined in terraform/variables.tf
+# Configuration: Applied via terraform plan/apply -var-file=../environments/prod.tfvars
 
 environment = "prod"
 aws_region  = "us-west-2"

@@ -1,6 +1,13 @@
-# Backend configuration for Terraform state management
-# This file configures S3 as the backend for storing Terraform state
-# with DynamoDB for state locking to prevent concurrent modifications
+# Purpose: Configure Terraform backend for secure state management using AWS S3 and DynamoDB
+# Scope: Infrastructure state storage and locking for all environments
+# Overview: This file establishes the backend configuration for Terraform state management,
+#     using S3 for versioned state storage and DynamoDB for state locking to prevent
+#     concurrent modifications. The backend ensures infrastructure state is securely stored,
+#     encrypted at rest, and protected from simultaneous updates. This configuration must
+#     be initialized before any infrastructure can be created or modified. The S3 bucket
+#     and DynamoDB table must exist before running terraform init.
+# Dependencies: AWS S3 bucket and DynamoDB table (created via setup-terraform-backend.sh)
+# Configuration: Requires AWS credentials with S3 and DynamoDB permissions
 
 terraform {
   required_version = ">= 1.0"

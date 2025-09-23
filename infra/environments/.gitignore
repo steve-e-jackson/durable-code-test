@@ -1,5 +1,6 @@
-# Terraform Environment Files Gitignore
-# This file prevents sensitive information from being committed to version control
+# Purpose: Prevent sensitive environment configuration files from being committed to version control
+# Scope: Git ignore patterns for the environments directory
+# Dependencies: Used by git to exclude files from version control
 
 # Local override files
 *.local.tfvars

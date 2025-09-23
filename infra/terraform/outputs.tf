@@ -1,6 +1,17 @@
-# Terraform Outputs
-# This file defines output values that will be displayed after terraform apply
-# These outputs are useful for referencing resource attributes and for CI/CD pipelines
+# Purpose: Define Terraform output values for infrastructure resources and configuration
+# Scope: Output values displayed after terraform apply and used by CI/CD pipelines
+# Overview: This file defines all output values that expose important infrastructure
+#     attributes after deployment. Outputs are organized into logical groups including
+#     backend configuration, environment information, domain/DNS settings, and cost
+#     management metrics. These outputs serve multiple purposes: displaying critical
+#     information after terraform apply, providing values for CI/CD pipelines to consume,
+#     enabling cross-stack references, and documenting the deployed infrastructure state.
+#     Future outputs are commented but documented to show the complete deployment picture.
+#     All sensitive values are properly marked to prevent accidental exposure in logs.
+# Dependencies: References resources that will be created in subsequent PRs
+# Configuration: Outputs are automatically displayed after successful terraform apply
+# Exports: Infrastructure endpoints, resource identifiers, and configuration values
+# Implementation: Uses conditional logic for optional resources and try() for safe access
 
 # ============================================================================
 # S3 Backend Outputs

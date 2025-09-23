@@ -1,6 +1,16 @@
-# Development Environment Configuration
-# This file contains environment-specific values for the dev environment
-# Cost-optimized settings for development and testing
+# Purpose: Development environment configuration with aggressive cost optimization settings
+# Scope: Variable overrides specific to the development environment
+# Overview: This file provides environment-specific variable values for the development
+#     infrastructure, prioritizing cost savings over performance and availability. Key
+#     cost optimizations include Fargate Spot instances (70% savings), auto-shutdown
+#     scheduling (66% compute savings), minimal resource sizing (256 CPU/512 Memory),
+#     and scale-to-zero capabilities. All optional features like WAF, GuardDuty, and
+#     enhanced monitoring are disabled to minimize costs. The configuration targets a
+#     monthly budget of $10 or less while maintaining a functional development environment
+#     for testing and iteration. Auto-shutdown ensures resources only run during business
+#     hours on weekdays, with complete shutdown on weekends.
+# Dependencies: Requires variables defined in terraform/variables.tf
+# Configuration: Applied via terraform plan/apply -var-file=../environments/dev.tfvars
 
 environment = "dev"
 aws_region  = "us-west-2"

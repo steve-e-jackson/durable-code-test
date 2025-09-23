@@ -1,6 +1,16 @@
-# Staging Environment Configuration
-# This file contains environment-specific values for the staging environment
-# Balanced settings between cost and production-like behavior
+# Purpose: Staging environment configuration balancing cost efficiency with production-like behavior
+# Scope: Variable overrides specific to the staging/pre-production environment
+# Overview: This file provides environment-specific variable values for the staging
+#     infrastructure, balancing cost optimization with the need for production-like
+#     testing conditions. Uses on-demand Fargate instances for stability while still
+#     implementing auto-shutdown scheduling to reduce costs during off-hours. Resources
+#     are sized moderately (512 CPU/1024 Memory) with two instances for high-availability
+#     testing. Container Insights and GuardDuty are enabled to test monitoring and
+#     security features before production. The configuration targets a monthly budget
+#     of $15 while providing a realistic testing environment for pre-production validation,
+#     performance testing, and user acceptance testing.
+# Dependencies: Requires variables defined in terraform/variables.tf
+# Configuration: Applied via terraform plan/apply -var-file=../environments/staging.tfvars
 
 environment = "staging"
 aws_region  = "us-west-2"
