@@ -8,7 +8,7 @@
 #     enabling cross-stack references, and documenting the deployed infrastructure state.
 #     Future outputs are commented but documented to show the complete deployment picture.
 #     All sensitive values are properly marked to prevent accidental exposure in logs.
-# Dependencies: References resources that will be created in subsequent PRs
+# Dependencies: References Terraform resources defined in the infrastructure modules
 # Configuration: Outputs are automatically displayed after successful terraform apply
 # Exports: Infrastructure endpoints, resource identifiers, and configuration values
 # Implementation: Uses conditional logic for optional resources and try() for safe access
