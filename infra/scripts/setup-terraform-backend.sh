@@ -1,4 +1,4 @@
-#!/bin/bash
+2#!/bin/bash
 
 # Setup script for Terraform backend infrastructure
 # This script creates the S3 bucket and DynamoDB table required for Terraform state management
@@ -9,7 +9,8 @@ set -e  # Exit on any error
 # Configuration
 PROJECT_NAME="durable-code"
 AWS_REGION="${AWS_REGION:-us-west-2}"
-AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text 2>/dev/null || echo "")
+AWS_PROFILE="${AWS_PROFILE:-terraform-deploy}"
+AWS_ACCOUNT_ID=$(aws sts get-caller-identity --profile "$AWS_PROFILE" --query Account --output text 2>/dev/null || echo "")
 
 # Validate AWS credentials
 if [ -z "$AWS_ACCOUNT_ID" ]; then
@@ -36,13 +37,13 @@ echo ""
 
 # Function to check if S3 bucket exists
 bucket_exists() {
-    aws s3api head-bucket --bucket "$1" 2>/dev/null
+    aws s3api head-bucket --bucket "$1" --profile "$AWS_PROFILE" 2>/dev/null
     return $?
 }
 
 # Function to check if DynamoDB table exists
 table_exists() {
-    aws dynamodb describe-table --table-name "$1" --region "$AWS_REGION" 2>/dev/null >/dev/null
+    aws dynamodb describe-table --table-name "$1" --region "$AWS_REGION" --profile "$AWS_PROFILE" 2>/dev/null >/dev/null
     return $?
 }
 
@@ -55,11 +56,11 @@ else
 
     if [ "$AWS_REGION" == "us-east-1" ]; then
         # Special case for us-east-1
-        aws s3api create-bucket \
+        aws s3api create-bucket --profile "$AWS_PROFILE" \
             --bucket "$S3_BUCKET" \
             --region "$AWS_REGION"
     else
-        aws s3api create-bucket \
+        aws s3api create-bucket --profile "$AWS_PROFILE" \
             --bucket "$S3_BUCKET" \
             --region "$AWS_REGION" \
             --create-bucket-configuration LocationConstraint="$AWS_REGION"
@@ -70,14 +71,14 @@ fi
 
 # Enable versioning on S3 bucket
 echo "Enabling versioning on S3 bucket..."
-aws s3api put-bucket-versioning \
+aws s3api put-bucket-versioning --profile "$AWS_PROFILE" \
     --bucket "$S3_BUCKET" \
     --versioning-configuration Status=Enabled
 echo "✓ Versioning enabled"
 
 # Enable encryption on S3 bucket
 echo "Enabling encryption on S3 bucket..."
-aws s3api put-bucket-encryption \
+aws s3api put-bucket-encryption --profile "$AWS_PROFILE" \
     --bucket "$S3_BUCKET" \
     --server-side-encryption-configuration '{
         "Rules": [
@@ -92,7 +93,7 @@ echo "✓ Encryption enabled"
 
 # Block public access to S3 bucket
 echo "Blocking public access to S3 bucket..."
-aws s3api put-public-access-block \
+aws s3api put-public-access-block --profile "$AWS_PROFILE" \
     --bucket "$S3_BUCKET" \
     --public-access-block-configuration \
     "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
@@ -100,12 +101,12 @@ echo "✓ Public access blocked"
 
 # Add lifecycle policy for old versions (optional, for cost optimization)
 echo "Adding lifecycle policy for old state versions..."
-aws s3api put-bucket-lifecycle-configuration \
+aws s3api put-bucket-lifecycle-configuration --profile "$AWS_PROFILE" \
     --bucket "$S3_BUCKET" \
     --lifecycle-configuration '{
         "Rules": [
             {
-                "Id": "delete-old-versions",
+                "ID": "delete-old-versions",
                 "Status": "Enabled",
                 "NoncurrentVersionExpiration": {
                     "NoncurrentDays": 90
@@ -122,7 +123,7 @@ if table_exists "$DYNAMODB_TABLE"; then
     echo "✓ DynamoDB table '$DYNAMODB_TABLE' already exists"
 else
     echo "Creating DynamoDB table '$DYNAMODB_TABLE'..."
-    aws dynamodb create-table \
+    aws dynamodb create-table --profile "$AWS_PROFILE" \
         --table-name "$DYNAMODB_TABLE" \
         --attribute-definitions AttributeName=LockID,AttributeType=S \
         --key-schema AttributeName=LockID,KeyType=HASH \
@@ -134,13 +135,13 @@ else
             Key=ManagedBy,Value=terraform
 
     echo "Waiting for DynamoDB table to become active..."
-    aws dynamodb wait table-exists --table-name "$DYNAMODB_TABLE" --region "$AWS_REGION"
+    aws dynamodb wait table-exists --profile "$AWS_PROFILE" --table-name "$DYNAMODB_TABLE" --region "$AWS_REGION"
     echo "✓ DynamoDB table created successfully"
 fi
 
 # Enable point-in-time recovery for DynamoDB table (optional)
 echo "Enabling point-in-time recovery for DynamoDB table..."
-aws dynamodb update-continuous-backups \
+aws dynamodb update-continuous-backups --profile "$AWS_PROFILE" \
     --table-name "$DYNAMODB_TABLE" \
     --point-in-time-recovery-specification PointInTimeRecoveryEnabled=true \
     --region "$AWS_REGION" 2>/dev/null || echo "Note: Point-in-time recovery may already be enabled"

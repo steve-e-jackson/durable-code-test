@@ -17,9 +17,8 @@ environment = "prod"
 aws_region  = "us-west-2"
 
 # Domain Configuration
-# Will be updated after domain registration in PR0
-domain_name         = ""  # e.g., "codewithai.dev" or "www.codewithai.dev"
-create_route53_zone = false
+domain_name         = "durableaicoding.net"  # Main production domain
+create_route53_zone = true  # Create hosted zone for root domain
 
 # Cost Optimization Settings
 enable_auto_shutdown = false  # Always available in production

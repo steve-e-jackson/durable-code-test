@@ -1,4 +1,4 @@
-# Purpose: Configure Terraform backend for secure state management using AWS S3 and DynamoDB
+1# Purpose: Configure Terraform backend for secure state management using AWS S3 and DynamoDB
 # Scope: Infrastructure state storage and locking for all environments
 # Overview: This file establishes the backend configuration for Terraform state management,
 #     using S3 for versioned state storage and DynamoDB for state locking to prevent
