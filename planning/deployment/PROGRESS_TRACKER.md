@@ -98,6 +98,7 @@ This is the **PRIMARY HANDOFF DOCUMENT** for AI agents working on the AWS deploy
 - [ ] Enable bucket versioning and encryption
 - [ ] Configure DynamoDB table for state locking
 - [ ] Document AWS account ID and region choice
+- [ ] **Update AWS Deployment Case Study in Planning tab (http://localhost:5173/#Planning)**
 - [ ] PR created and reviewed
 - [ ] Merged to main
 
@@ -626,6 +627,15 @@ _Space for team members to add notes, concerns, or suggestions_
    - Document any cost-saving discoveries
    - Note any deviations from plan
 
+9. **Update AWS Deployment Case Study in Planning Tab**:
+   - **IMPORTANT**: Near PR completion, update http://localhost:5173/#Planning
+   - Navigate to the "AWS Deployment Case Study" section
+   - Update the deployment progress percentage
+   - Add any significant milestones or learnings
+   - Document actual vs estimated costs
+   - Update timeline if needed
+   - This keeps stakeholders informed via the web interface
+
 ### Template for PR Completion Entry
 
 ```markdown
@@ -659,6 +669,11 @@ _Space for team members to add notes, concerns, or suggestions_
 **Notes for Next PR**:
 - Cost optimization opportunities identified
 - Resources that could be downsized
+
+**Planning Tab Updated**:
+- [ ] AWS Deployment Case Study progress updated at http://localhost:5173/#Planning
+- [ ] Current completion percentage: X%
+- [ ] Key milestones documented
 ```
 
 ### Cost Optimization Checklist for Every PR
