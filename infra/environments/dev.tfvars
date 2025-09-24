@@ -25,7 +25,7 @@ use_fargate_spot    = true  # 70% cost savings for dev environment
 enable_nat_gateway  = true  # Keep NAT Gateway enabled, use scheduled start/stop for cost savings
 
 # Networking (cost optimized for dev)
-az_count = 1  # Single AZ for dev to reduce NAT Gateway costs
+az_count = 2  # Minimum 2 AZs required for ALB (will increase NAT Gateway costs)
 
 # Minimal resource sizing for dev
 fargate_cpu    = 256  # Minimum CPU

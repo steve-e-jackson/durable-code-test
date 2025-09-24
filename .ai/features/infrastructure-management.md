@@ -1,237 +1,233 @@
-# Infrastructure Management
+# Infrastructure as Code
 
-**Purpose**: Provide comprehensive infrastructure-as-code management using Docker-based Terraform execution
-**Scope**: AWS infrastructure deployment, state management, and workspace operations for all environments
-
----
+**Purpose**: Treat infrastructure as a software engineering discipline
+**Scope**: Complete infrastructure lifecycle management through code
 
 ## Overview
 
-The infrastructure management system provides comprehensive Make targets for managing AWS infrastructure using Terraform. All commands run in Docker containers, eliminating the need for local Terraform or AWS CLI installations.
+Infrastructure as Code (IaC) is not just tooling - it's a fundamental capability that enables reliable, repeatable, and auditable infrastructure management. Every piece of infrastructure can be created, modified, and destroyed through code, providing the same benefits we expect from application development: version control, code review, testing, and automation.
 
-## Key Features
+## The Feature
 
-- **Docker-based execution** - All Terraform commands run in containers
-- **Auto-initialization** - Terraform automatically initializes on first use
-- **Persistent caching** - Docker volumes cache `.terraform` directory
-- **AWS profile support** - Easy switching between AWS accounts
-- **Safety features** - Confirmation prompts for destructive operations
-- **State management** - S3 backend with DynamoDB locking
+### Declarative Infrastructure
+Write what you want, not how to build it. Terraform handles the complexity of resource dependencies, creation order, and state management.
+
+### Environment Parity
+```bash
+make infra-up ENV=dev    # Deploys development
+make infra-up ENV=prod   # Deploys production
+```
+Same code, different configurations. Environment differences are data, not logic.
+
+### Instant Infrastructure
+```bash
+make infra-plan  # See what will change
+make infra-up    # Apply changes
+make infra-down  # Destroy everything
+```
+Complete infrastructure lifecycle in three commands.
+
+### Cost Visibility
+Every resource is tagged, tracked, and attributed. Know exactly what costs what and why.
 
 ## Architecture
 
-### Components
+### Terraform State Management
+- Remote state in S3 ensures team collaboration
+- DynamoDB locking prevents concurrent modifications
+- State versioning enables rollback if needed
 
-1. **Makefile.infra** - Infrastructure Make targets
-2. **Docker Containers** - Terraform and AWS CLI execution
-3. **Docker Volumes** - Persistent `.terraform` cache
-4. **S3 Backend** - Remote state storage
-5. **DynamoDB** - State locking
+### Docker-Based Execution
+- No local tool installation required
+- Consistent versions across team and CI/CD
+- Isolated execution environment
 
-### Directory Structure
+### Make Target Abstraction
+- Simple commands hide complexity
+- Consistent interface across all operations
+- Self-documenting through make help
 
-```
-infra/
-├── terraform/              # Terraform configuration files
-│   ├── backend.tf         # S3 backend configuration
-│   ├── providers.tf       # AWS provider setup
-│   ├── variables.tf       # Input variables
-│   ├── outputs.tf         # Output values
-│   ├── main.tf           # Main resource definitions
-│   ├── networking.tf      # Network resources
-│   └── locals.tf         # Local values
-├── environments/          # Environment-specific configurations
-│   ├── dev.tfvars        # Development environment
-│   ├── staging.tfvars    # Staging environment
-│   └── prod.tfvars       # Production environment
-└── scripts/              # Helper scripts
-    ├── setup-terraform-backend.sh    # Backend setup
-    └── check-domain-availability.sh  # Domain checking
+## Capabilities
 
-```
+### What You Can Do
 
-## Available Make Targets
-
-### Core Commands
-- `make infra-help` - Show all infrastructure management commands
-- `make infra-init` - Initialize Terraform (auto-runs on first use)
-- `make infra-plan` - Preview infrastructure changes
-- `make infra-up` - Deploy infrastructure
-- `make infra-down` - Destroy infrastructure
-
-### State Management
-- `make infra-state-list` - List resources in state
-- `make infra-state-show RESOURCE=<name>` - Show resource details
-- `make infra-refresh` - Update state from real infrastructure
-- `make infra-output` - Show Terraform outputs (use FORMAT=json for JSON)
-
-### Workspace Management
-- `make infra-workspace-list` - List workspaces
-- `make infra-workspace-new WORKSPACE=<name>` - Create workspace
-- `make infra-workspace-select WORKSPACE=<name>` - Select workspace
-
-### Utilities
-- `make infra-check-aws` - Verify AWS credentials
-- `make infra-fmt` - Format Terraform files
-- `make infra-validate` - Validate configuration
-- `make infra-console` - Open Terraform console
-- `make infra-graph` - Generate infrastructure graph
-- `make infra-import RESOURCE=<name> ID=<id>` - Import existing resource
-- `make infra-clean-cache` - Remove Terraform cache
-- `make infra-reinit` - Clean and reinitialize
-
-### Quick Commands
-- `make infra-check` - Format and validate
-- `make infra-up` - Deploy infrastructure (auto-initializes)
-- `make infra-down` - Destroy infrastructure
-
-## Configuration
-
-### Environment Variables
-
-- `AWS_PROFILE` - AWS profile to use (default: "default")
-- `AWS_REGION` - AWS region (default: "us-west-2")
-- `AUTO` - Skip confirmation prompts when "true"
-
-### Examples
-
+**Create Complete Environments**
 ```bash
-# Use specific AWS profile
-AWS_PROFILE=production make infra-plan
-
-# Use different region
-AWS_REGION=eu-west-1 make infra-up
-
-# Skip confirmation
-AUTO=true make infra-up
-
-# Combine options
-AWS_PROFILE=staging AUTO=true make infra-down
+# Spin up a complete development environment
+ENV=feature-xyz make infra-up
 ```
 
-## Auto-Initialization
-
-The system automatically detects when Terraform needs initialization:
-
-1. Checks if `terraform providers` command works
-2. If not, automatically runs `make infra-init`
-3. Creates Docker volume for `.terraform` cache
-4. Downloads providers and configures backend
-5. Proceeds with requested command
-
-### Why Initialization is Required
-
-Even with state on S3, initialization is necessary to:
-
-- **Download provider plugins** - AWS provider and dependencies
-- **Configure backend** - Connect to S3 and DynamoDB
-- **Create local cache** - `.terraform` directory
-- **Validate access** - Verify credentials and permissions
-
-## Docker Implementation
-
-### Volume Management
-
-```makefile
-# Unique volume per project based on path hash
-TERRAFORM_VOLUME = terraform-cache-$(shell echo $(PWD) | md5sum | cut -d' ' -f1)
-```
-
-### Container Configuration
-
-```makefile
-# Base Docker run command
-TERRAFORM_DOCKER_RUN = docker run --rm \
-    -v $(PWD)/$(TERRAFORM_DIR):/terraform \
-    -v $(TERRAFORM_VOLUME):/terraform/.terraform \
-    -v $(HOME)/.aws:/root/.aws:ro \
-    -w /terraform \
-    -e AWS_PROFILE=$(AWS_PROFILE) \
-    -e AWS_REGION=$(AWS_REGION) \
-    $(TERRAFORM_IMAGE)
-```
-
-## Infrastructure Details
-
-### AWS Resources
-
-The infrastructure includes:
-
-- **ECS Fargate** - Serverless container hosting
-- **Application Load Balancer** - Traffic distribution
-- **Route53** - DNS management
-- **CloudWatch** - Logging and monitoring
-- **VPC** - Network isolation
-- **ECR** - Container registry
-
-### Cost Optimization
-
-Implemented strategies:
-
-1. **Auto-shutdown scheduling** - 60-70% savings
-   - Weekdays: 8 AM - 8 PM PST
-   - Weekends: Shut down
-
-2. **Fargate Spot** - 70% savings for dev/staging
-   - Automatic fallback to on-demand
-
-3. **Right-sizing** - Minimal resource allocation
-   - Dev: 256 CPU / 512 MB
-   - Staging: 512 CPU / 1024 MB
-   - Prod: 512 CPU / 1024 MB
-
-### Estimated Costs
-
-| Environment | 24/7 Cost | With Scheduling | With Spot | Final Cost |
-|-------------|-----------|-----------------|-----------|------------|
-| Dev         | $30       | $10             | $3        | **$3**     |
-| Staging     | $35       | $12             | N/A       | **$12**    |
-| Prod        | $35       | $35             | N/A       | **$35**    |
-
-## Security
-
-### Current Measures
-- ✅ State encrypted in S3
-- ✅ State locking with DynamoDB
-- ✅ S3 bucket versioning
-- ✅ Public access blocked
-- ✅ Read-only credential mounting
-
-### Best Practices
-- Never commit credentials
-- Use IAM roles when possible
-- Enable MFA on accounts
-- Regularly rotate keys
-- Minimize IAM permissions
-
-## Troubleshooting
-
-### Common Issues
-
-**Backend initialization error**
+**Preview Changes**
 ```bash
-make infra-reinit  # Clean cache and reinitialize
+# See exactly what will change before applying
+make infra-plan
 ```
 
-**AWS credentials error**
+**Import Existing Resources**
 ```bash
-make infra-check-aws  # Verify credentials
-AWS_PROFILE=myprofile make infra-check-aws
+# Bring manually created resources under Terraform control
+make infra-import RESOURCE=aws_s3_bucket.legacy ID=my-bucket
 ```
 
-**State lock error**
-- Wait for other operations to complete
-- Check DynamoDB table for locks
+**Destroy and Recreate**
+```bash
+# Complete environment refresh
+make infra-down && make infra-up
+```
 
-**Docker permission error**
-- Ensure Docker is running
-- Check user has Docker permissions
+**Cost Optimization**
+```bash
+# Schedule automatic shutdown
+make infra-schedule-shutdown
+```
 
-## Integration
+### What Gets Deployed
 
-The infrastructure management integrates with:
+See `.ai/docs/INFRASTRUCTURE_PRINCIPLES.md` for architectural decisions and component details.
 
-- Main Makefile via `-include Makefile.infra`
-- GitHub Actions for CI/CD (future)
-- Development environment via Docker Compose
-- Application deployment pipelines
+## Development Workflow
+
+### 1. Local Development
+```bash
+# Start local environment
+make dev
+
+# Make infrastructure changes
+vim infra/terraform/something.tf
+
+# Validate changes
+make infra-validate
+```
+
+### 2. Test in Isolation
+```bash
+# Create feature environment
+ENV=feature-123 make infra-up
+
+# Test your changes
+# ...
+
+# Tear down when done
+ENV=feature-123 make infra-down
+```
+
+### 3. Deploy to Shared Environments
+```bash
+# Plan production changes
+ENV=prod make infra-plan
+
+# Apply with approval
+ENV=prod make infra-up
+```
+
+## Safety Features
+
+### Plan Before Apply
+Never blindly apply changes. Always review the plan to understand impact.
+
+### Automated Backups
+State files are versioned. Infrastructure can be restored to any previous state.
+
+### Resource Protection
+Production resources have deletion protection. Critical resources require additional confirmation.
+
+### Rollback Capability
+```bash
+# If something goes wrong
+make infra-rollback
+```
+
+## Integration Points
+
+### CI/CD Pipeline
+Infrastructure changes flow through the same pipeline as application code:
+1. Branch protection requires PR review
+2. Automated plan on PR creation
+3. Apply on merge to main
+4. Automatic rollback on failure
+
+### Monitoring
+Infrastructure changes trigger alerts:
+- Cost anomaly detection
+- Resource creation/deletion
+- Configuration drift
+- Compliance violations
+
+### Documentation
+Infrastructure is self-documenting:
+- Terraform generates dependency graphs
+- Resources are tagged with purpose
+- Changes are logged in git history
+
+## Best Practices
+
+### Keep It Simple
+Don't over-engineer. Start simple and evolve as needed.
+
+### Version Everything
+Infrastructure code, variables, and even Make targets are versioned.
+
+### Test Destructively
+Regularly destroy and recreate development environments to ensure reproducibility.
+
+### Cost as a Metric
+Every PR shows cost impact. Reviews consider cost alongside functionality.
+
+## Common Operations
+
+### Check AWS Credentials
+```bash
+make infra-check-aws
+```
+
+### Format Terraform Code
+```bash
+make infra-fmt
+```
+
+### Clean Terraform Cache
+```bash
+make infra-clean-cache
+```
+
+### Generate Resource Graph
+```bash
+make infra-graph
+```
+
+### Show Current State
+```bash
+make infra-state-list
+```
+
+## Extending the System
+
+### Adding New Resources
+1. Write Terraform configuration
+2. Add appropriate tags
+3. Update outputs if needed
+4. Document in PR
+
+### Adding New Environments
+1. Create new tfvars file
+2. Update Make targets if needed
+3. Configure backend
+4. Deploy
+
+### Adding New Regions
+1. Update provider configuration
+2. Adjust resource availability
+3. Update variables
+4. Test thoroughly
+
+## Philosophy
+
+Infrastructure as Code is about applying software engineering discipline to infrastructure:
+
+- **Reproducibility**: Same code produces same infrastructure
+- **Versioning**: Every change is tracked and revertible
+- **Testing**: Changes can be validated before production
+- **Collaboration**: Team members can review and improve
+- **Automation**: Machines do the work, humans make decisions
+
+This isn't just about automation - it's about treating infrastructure with the same rigor, care, and craftsmanship we apply to application code.

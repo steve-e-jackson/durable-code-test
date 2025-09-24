@@ -77,6 +77,18 @@ variable "create_route53_zone" {
   default     = false # Set to true after domain registration
 }
 
+variable "enable_https" {
+  description = "Enable HTTPS on the ALB (requires valid certificate)"
+  type        = bool
+  default     = false # Set to true when certificate is available
+}
+
+variable "certificate_arn" {
+  description = "ARN of the ACM certificate for HTTPS"
+  type        = string
+  default     = "" # Will be set after certificate validation
+}
+
 # ============================================================================
 # Cost Optimization Variables
 # ============================================================================
