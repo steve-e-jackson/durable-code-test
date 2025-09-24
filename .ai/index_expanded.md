@@ -1,6 +1,6 @@
 # AI Agent Expanded Documentation
 
-> **Note**: This file provides detailed information referenced by `index.json`. Read the JSON file first for quick navigation.
+> **Note**: This file provides detailed information referenced by `index.yaml`. Read the YAML file first for quick navigation.
 
 ## Templates
 
@@ -40,8 +40,8 @@ All templates use `{{PLACEHOLDER}}` variables that must be replaced with project
 #### web-tab.tsx.template
 
 **Purpose**: Add new tabs to the web application
-**Location**: Place in `durable-code-app/frontend/src/components/tabs/`
-**Example**: `durable-code-app/frontend/src/components/tabs/RepositoryTab.tsx`
+**Location**: For simple tabs: `durable-code-app/frontend/src/components/tabs/` or for complex features: `durable-code-app/frontend/src/features/[feature-name]/components/`
+**Example**: `durable-code-app/frontend/src/features/repository/components/RepositoryTab/RepositoryTab.tsx`
 
 **Integration Steps**:
 1. Create component using template
@@ -82,14 +82,14 @@ All templates use `{{PLACEHOLDER}}` variables that must be replaced with project
 
 ### design-linters
 
-**File**: `features/design-linters.md`
+**File**: `.ai/features/design-linters.md`
 
 **Core Components**:
 - **Framework**: `tools/design_linters/framework/` - Rule engine, interfaces, reporters
 - **CLI**: `tools/design_linters/cli.py` - Unified command-line interface
 - **Rules**: `tools/design_linters/rules/` - SOLID, style, literals, logging rules
 
-**Configuration**: `.design-lint.yml` for rule customization
+**Configuration**: Custom rules can be configured programmatically in the linting framework
 
 **Usage Examples**:
 ```bash
@@ -105,7 +105,7 @@ design-linter src/ --format json --output report.json
 
 ### web-application
 
-**File**: `features/web-application.md`
+**File**: `.ai/features/web-application.md`
 
 **Architecture**:
 - **Frontend**: React 18 + TypeScript + Vite (`durable-code-app/frontend/`)
@@ -126,7 +126,7 @@ make build    # Production build
 
 ### development-tooling
 
-**File**: `features/development-tooling.md`
+**File**: `.ai/features/development-tooling.md`
 
 **Build System**:
 - **Core Makefile**: Container lifecycle, environment setup
@@ -147,12 +147,14 @@ make lint-all     # Run all linting rules
 
 ### claude-integration
 
-**File**: `features/claude-integration.md`
+**File**: `.ai/features/claude-integration.md`
 
 **Command System**:
-- **`/new-code`**: Enhanced code generation with template integration
 - **`/ask`**: AI-powered Q&A system
 - **`/solid`**: SOLID principles guidance
+- **`/fix`**: Code fixing assistance
+- **`/done`**: Task completion workflow
+- **Code Generation**: See `.ai/howto/create-new-code-files.md` for template-based generation
 
 **Integration Features**:
 - Automatic standards reference
@@ -162,7 +164,7 @@ make lint-all     # Run all linting rules
 
 ### testing-framework
 
-**File**: `features/testing-framework.md`
+**File**: `.ai/features/testing-framework.md`
 
 **Test Organization**:
 - **Unit Tests**: `test/unit_test/tools/design_linters/`
@@ -173,9 +175,10 @@ make lint-all     # Run all linting rules
 **Execution Strategy**:
 ```bash
 make test              # Complete test suite
-make test-unit         # Unit tests only
-make test-integration  # Integration tests
-make test-coverage     # Coverage analysis
+make test-backend      # Backend tests only
+make test-frontend     # Frontend tests only
+make test-playwright   # Playwright integration tests
+make test-all          # All tests with coverage
 ```
 
 ## Howto Guides
@@ -189,8 +192,9 @@ The `.ai/howto/` directory contains step-by-step guides for common development t
 **Key Commands**:
 - `make help` / `make help-full` - Always check available commands first
 - `make test` - Complete test suite
-- `make test-unit` - Unit tests only
-- `make test-coverage` - Coverage analysis
+- `make test-backend` - Backend tests only
+- `make test-frontend` - Frontend tests only
+- `make test-all` - All tests with coverage
 
 **Important**: Always use Make targets, never run tests locally per `CLAUDE.md`
 
@@ -293,7 +297,7 @@ Implementation: [Implementation approach and patterns]
 2. **Choose Category**: Place in appropriate `tools/design_linters/rules/[category]/`
 3. **Configure Rule**: Set rule ID, severity, parameters
 4. **Add Tests**: Create comprehensive test coverage
-5. **Update Config**: Add to `.design-lint.yml` if needed
+5. **Integration**: Rule is automatically discovered by the framework
 
 **Example Placement**:
 - SOLID rules: `tools/design_linters/rules/solid/`
@@ -303,7 +307,7 @@ Implementation: [Implementation approach and patterns]
 ### Adding Web Tabs
 
 1. **Use Template**: `web-tab.tsx.template`
-2. **Create Component**: Place in `durable-code-app/frontend/src/components/tabs/`
+2. **Create Component**: For simple tabs: place in `durable-code-app/frontend/src/components/tabs/` or for complex features: place in `durable-code-app/frontend/src/features/[feature-name]/components/`
 3. **Update App.tsx**: Add to tab configuration and navigation
 4. **Add Styling**: Create corresponding CSS module
 5. **Test Integration**: Ensure proper navigation and state management
@@ -333,7 +337,7 @@ Implementation: [Implementation approach and patterns]
 1. **Initial Setup**: `make init` - Complete project initialization
 2. **Development**: `make dev` - Start development environment
 3. **Testing**: `make test` - Run quality assurance
-4. **Code Generation**: Use `/new-code` with templates
+4. **Code Generation**: Follow `.ai/howto/create-new-code-files.md` guide with templates
 
 ### Environment Commands
 
@@ -358,7 +362,7 @@ make clean        # Clean environment
 
 - **Environment**: `.env.example` - Template for environment variables
 - **Docker**: `docker-compose.yml`, `docker-compose.dev.yml`
-- **Linting**: `.design-lint.yml`, `tools/.flake8`
+- **Linting**: `tools/.flake8`, `Makefile.lint`
 - **Testing**: `pytest` configuration in `pyproject.toml`
 - **Pre-commit**: `.pre-commit-config.yaml`
 
@@ -374,10 +378,10 @@ make clean        # Clean environment
 
 ### Feature Integration
 
-1. **Document Feature**: Add to `features/` directory
+1. **Document Feature**: Add to `.ai/features/` directory
 2. **Create Templates**: Add supporting templates
-3. **Update Index**: Add references to `index.json`
+3. **Update Index**: Add references to `index.yaml`
 4. **Add Tests**: Comprehensive test coverage
 5. **Update Standards**: Modify standards if needed
 
-This expanded documentation provides comprehensive guidance for AI agents while maintaining efficient structure and clear cross-references to the compact `index.json` navigation file.
+This expanded documentation provides comprehensive guidance for AI agents while maintaining efficient structure and clear cross-references to the compact `index.yaml` navigation file.

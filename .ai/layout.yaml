@@ -38,12 +38,25 @@ ai_guidance:
         integration_test: "→ test/integration_test/"
         performance_test: "→ test/performance_test/"
 
+    infrastructure_placement:
+      question: "Where should this infrastructure file go?"
+      criteria:
+        terraform_module: "→ infra/terraform/"
+        environment_config: "→ infra/environments/"
+        deployment_script: "→ infra/scripts/"
+        terraform_state: "→ infra/terraform/.terraform/ (auto-managed)"
+        aws_credentials: "→ Never commit! Use environment variables"
+
   common_mistakes:
     test_in_source: "Never put test files in source directories"
     debug_in_root: "Don't leave debug files in project root"
     complex_in_components: "Don't put complex features in components/"
     scripts_scattered: "Don't scatter scripts - organize by scope"
     tools_root_files: "Don't place Python files in tools root - use subdirectories"
+    terraform_in_wrong_dir: "Don't put .tf files outside infra/terraform/"
+    env_vars_in_terraform: "Don't hardcode environment-specific values in .tf files - use .tfvars"
+    credentials_in_code: "Never commit AWS credentials or secrets - use environment variables"
+    state_files_committed: "Don't commit terraform.tfstate files - use remote backend"
 
 linter_rules:
   description: "Machine-readable rules for file placement validation"
@@ -262,6 +275,54 @@ linter_rules:
         - '\\.(ts|tsx)$'
         - '\\.css$'
         - 'test'
+
+    infra/:
+      description: "Infrastructure as Code - Terraform and deployment scripts"
+      allow:
+        - '^infra/terraform/[^/]+\\.tf$'
+        - '^infra/terraform/[^/]+\\.tfvars$'
+        - '^infra/terraform/\\.terraform\\.lock\\.hcl$'
+        - '^infra/terraform/.*\\.md$'
+        - '^infra/terraform/\\.terraform/'
+        - '^infra/environments/[^/]+\\.tfvars$'
+        - '^infra/scripts/[^/]+\\.sh$'
+        - '^infra/scripts/[^/]+\\.py$'
+      deny:
+        - '\\.(ts|tsx|js|jsx)$'
+        - 'test_'
+        - '_test\\.'
+        - '\\.spec\\.'
+
+    infra/terraform/:
+      allow:
+        - '/terraform/[^/]+\\.tf$'
+        - '/terraform/[^/]+\\.tfvars$'
+        - '/terraform/\\.terraform\\.lock\\.hcl$'
+        - '/terraform/.*\\.md$'
+        - '/terraform/\\.terraform/'
+      deny:
+        - '\\.(py|js|ts|tsx)$'
+        - 'test'
+        - '\\.sh$'
+
+    infra/environments/:
+      allow:
+        - '/environments/[^/]+\\.tfvars$'
+        - '/environments/[^/]+\\.json$'
+        - '/environments/[^/]+\\.yaml$'
+      deny:
+        - '\\.tf$'
+        - '\\.(py|js|ts|tsx|sh)$'
+        - 'test'
+
+    infra/scripts/:
+      allow:
+        - '/scripts/[^/]+\\.sh$'
+        - '/scripts/[^/]+\\.py$'
+      deny:
+        - '\\.tf$'
+        - '\\.(ts|tsx|js|jsx)$'
+        - '\\.tfvars$'
 
     .:
       description: "Root directory rules"
