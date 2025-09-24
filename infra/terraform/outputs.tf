@@ -94,25 +94,73 @@ output "fargate_spot_enabled" {
 # Future Infrastructure Outputs (to be added in subsequent PRs)
 # ============================================================================
 
-# ECR Repository URLs (PR2)
-# output "ecr_frontend_url" {
-#   description = "URL of the frontend ECR repository"
-#   value       = aws_ecr_repository.frontend.repository_url
-#   sensitive   = false
-# }
+# ECR Repository URLs (PR2 - Complete)
+output "ecr_frontend_url" {
+  description = "URL of the frontend ECR repository"
+  value       = aws_ecr_repository.frontend.repository_url
+  sensitive   = false
+}
 
-# output "ecr_backend_url" {
-#   description = "URL of the backend ECR repository"
-#   value       = aws_ecr_repository.backend.repository_url
-#   sensitive   = false
-# }
+output "ecr_backend_url" {
+  description = "URL of the backend ECR repository"
+  value       = aws_ecr_repository.backend.repository_url
+  sensitive   = false
+}
 
-# ECS Cluster (PR3)
-# output "ecs_cluster_name" {
-#   description = "Name of the ECS cluster"
-#   value       = aws_ecs_cluster.main.name
-#   sensitive   = false
-# }
+# ECS Cluster (PR3 - In Progress)
+output "ecs_cluster_name" {
+  description = "Name of the ECS cluster"
+  value       = aws_ecs_cluster.main.name
+  sensitive   = false
+}
+
+output "ecs_cluster_id" {
+  description = "ID of the ECS cluster"
+  value       = aws_ecs_cluster.main.id
+  sensitive   = false
+}
+
+output "backend_service_name" {
+  description = "Name of the backend ECS service"
+  value       = aws_ecs_service.backend.name
+  sensitive   = false
+}
+
+output "frontend_service_name" {
+  description = "Name of the frontend ECS service"
+  value       = aws_ecs_service.frontend.name
+  sensitive   = false
+}
+
+output "backend_task_definition" {
+  description = "ARN of the backend task definition"
+  value       = aws_ecs_task_definition.backend.arn
+  sensitive   = false
+}
+
+output "frontend_task_definition" {
+  description = "ARN of the frontend task definition"
+  value       = aws_ecs_task_definition.frontend.arn
+  sensitive   = false
+}
+
+output "service_discovery_namespace" {
+  description = "Service discovery namespace for internal communication"
+  value       = aws_service_discovery_private_dns_namespace.main.name
+  sensitive   = false
+}
+
+output "backend_internal_dns" {
+  description = "Internal DNS name for backend service"
+  value       = "backend.${aws_service_discovery_private_dns_namespace.main.name}"
+  sensitive   = false
+}
+
+output "frontend_internal_dns" {
+  description = "Internal DNS name for frontend service"
+  value       = "frontend.${aws_service_discovery_private_dns_namespace.main.name}"
+  sensitive   = false
+}
 
 # ALB URL (PR4)
 # output "alb_url" {
