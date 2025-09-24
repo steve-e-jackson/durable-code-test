@@ -18,6 +18,8 @@ TERRAFORM_VERSION = 1.9.8
 AWS_REGION ?= us-west-2
 # Default to terraform-deploy profile - you can override with AWS_PROFILE=other-profile make ...
 AWS_PROFILE ?= terraform-deploy
+# Environment selection (dev, staging, prod)
+ENV ?= dev
 
 # Docker volume for persistent .terraform directory
 TERRAFORM_VOLUME = terraform-cache-$(shell echo $(PWD) | md5sum | cut -d' ' -f1)
@@ -183,16 +185,18 @@ infra-fmt: ## Format Terraform files to canonical style
 
 infra-plan: check-terraform-init ## Show what changes will be made (dry run)
 	@echo "$(CYAN)Planning infrastructure changes...$(NC)"
+	@echo "$(YELLOW)Environment: $(ENV)$(NC)"
 	@echo "$(YELLOW)AWS Profile: $(AWS_PROFILE)$(NC)"
 	@echo "$(YELLOW)AWS Region: $(AWS_REGION)$(NC)"
-	@$(TERRAFORM_DOCKER_RUN) plan
+	@$(TERRAFORM_DOCKER_RUN) plan -var-file=../environments/$(ENV).tfvars
 	@echo "$(GREEN)✓ Plan complete!$(NC)"
 
 
 
 infra-refresh: check-terraform-init ## Update state file with real infrastructure
 	@echo "$(CYAN)Refreshing Terraform state...$(NC)"
-	@$(TERRAFORM_DOCKER_RUN) refresh
+	@echo "$(YELLOW)Environment: $(ENV)$(NC)"
+	@$(TERRAFORM_DOCKER_RUN) refresh -var-file=../environments/$(ENV).tfvars
 	@echo "$(GREEN)✓ State refreshed!$(NC)"
 
 infra-output: check-terraform-init ## Show outputs from Terraform state (use FORMAT=json for JSON output)
@@ -279,16 +283,17 @@ infra-check: infra-fmt infra-validate ## Format and validate configuration
 
 infra-up: check-terraform-init ## Deploy infrastructure (use AUTO=true for auto-approve)
 	@echo "$(CYAN)Deploying infrastructure...$(NC)"
+	@echo "$(YELLOW)Environment: $(ENV)$(NC)"
 	@echo "$(YELLOW)AWS Profile: $(AWS_PROFILE)$(NC)"
 	@echo "$(YELLOW)AWS Region: $(AWS_REGION)$(NC)"
 	@if [ "$(AUTO)" = "true" ]; then \
 		echo "$(YELLOW)Auto-approve mode enabled$(NC)"; \
-		$(TERRAFORM_DOCKER_RUN) apply -auto-approve; \
+		$(TERRAFORM_DOCKER_RUN) apply -var-file=../environments/$(ENV).tfvars -auto-approve; \
 	else \
 		echo "$(RED)⚠️  This will create/modify real AWS resources!$(NC)"; \
 		echo "$(YELLOW)Press Ctrl+C to cancel, or wait 5 seconds to continue...$(NC)"; \
 		sleep 5; \
-		$(TERRAFORM_DOCKER_RUN_IT) apply; \
+		$(TERRAFORM_DOCKER_RUN_IT) apply -var-file=../environments/$(ENV).tfvars; \
 	fi
 	@echo "$(GREEN)✓ Infrastructure deployed successfully!$(NC)"
 
@@ -296,15 +301,16 @@ infra-down: check-terraform-init ## Destroy infrastructure (use AUTO=true for au
 	@echo "$(RED)╔════════════════════════════════════════════════════════════╗$(NC)"
 	@echo "$(RED)║  ⚠️  WARNING: This will DESTROY all infrastructure! ⚠️     ║$(NC)"
 	@echo "$(RED)╚════════════════════════════════════════════════════════════╝$(NC)"
+	@echo "$(YELLOW)Environment: $(ENV)$(NC)"
 	@echo "$(YELLOW)AWS Profile: $(AWS_PROFILE)$(NC)"
 	@echo "$(YELLOW)AWS Region: $(AWS_REGION)$(NC)"
 	@if [ "$(AUTO)" = "true" ]; then \
 		echo "$(RED)Auto-approve mode enabled - destroying immediately!$(NC)"; \
-		$(TERRAFORM_DOCKER_RUN) destroy -auto-approve; \
+		$(TERRAFORM_DOCKER_RUN) destroy -var-file=../environments/$(ENV).tfvars -auto-approve; \
 	else \
 		echo "$(RED)Press Ctrl+C to cancel, or wait 10 seconds to continue...$(NC)"; \
 		sleep 10; \
-		$(TERRAFORM_DOCKER_RUN_IT) destroy; \
+		$(TERRAFORM_DOCKER_RUN_IT) destroy -var-file=../environments/$(ENV).tfvars; \
 	fi
 	@echo "$(GREEN)✓ Infrastructure destroyed!$(NC)"
 
