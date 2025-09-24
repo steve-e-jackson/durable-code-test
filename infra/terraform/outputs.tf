@@ -49,27 +49,26 @@ output "project_name" {
 }
 
 # ============================================================================
-# Domain and DNS Outputs (will be populated after domain registration)
+# Domain and DNS Outputs
 # ============================================================================
 
 output "domain_name" {
   description = "Primary domain name for the application"
-  value       = var.domain_name
+  value       = var.domain_name != "" ? var.domain_name : "Not configured"
   sensitive   = false
 }
 
-# Uncomment after Route53 zone is created
-# output "route53_zone_id" {
-#   description = "Route53 hosted zone ID"
-#   value       = aws_route53_zone.main[0].zone_id
-#   sensitive   = false
-# }
+output "route53_zone_id" {
+  description = "Route53 hosted zone ID"
+  value       = var.create_route53_zone && var.domain_name != "" ? aws_route53_zone.main[0].zone_id : "Not created"
+  sensitive   = false
+}
 
-# output "name_servers" {
-#   description = "Name servers for the Route53 hosted zone"
-#   value       = try(aws_route53_zone.main[0].name_servers, [])
-#   sensitive   = false
-# }
+output "name_servers" {
+  description = "Name servers for the Route53 hosted zone"
+  value       = var.create_route53_zone && var.domain_name != "" ? aws_route53_zone.main[0].name_servers : []
+  sensitive   = false
+}
 
 # ============================================================================
 # Cost Management Outputs
@@ -162,15 +161,69 @@ output "frontend_internal_dns" {
   sensitive   = false
 }
 
-# ALB URL (PR4)
-# output "alb_url" {
-#   description = "URL of the Application Load Balancer"
-#   value       = "https://${aws_lb.main.dns_name}"
-#   sensitive   = false
-# }
+# ============================================================================
+# Application Load Balancer Outputs (PR4)
+# ============================================================================
 
-# output "application_url" {
-#   description = "Primary application URL"
-#   value       = var.domain_name != "" ? "https://${var.domain_name}" : "https://${aws_lb.main.dns_name}"
-#   sensitive   = false
-# }
+output "alb_dns_name" {
+  description = "DNS name of the Application Load Balancer"
+  value       = aws_lb.main.dns_name
+  sensitive   = false
+}
+
+output "alb_zone_id" {
+  description = "Zone ID of the Application Load Balancer"
+  value       = aws_lb.main.zone_id
+  sensitive   = false
+}
+
+output "alb_arn" {
+  description = "ARN of the Application Load Balancer"
+  value       = aws_lb.main.arn
+  sensitive   = false
+}
+
+output "alb_url" {
+  description = "URL to access the application via ALB"
+  value       = var.enable_https && var.certificate_arn != "" ? "https://${aws_lb.main.dns_name}" : "http://${aws_lb.main.dns_name}"
+  sensitive   = false
+}
+
+# Target Group Outputs
+output "frontend_target_group_arn" {
+  description = "ARN of the frontend target group"
+  value       = aws_lb_target_group.frontend.arn
+  sensitive   = false
+}
+
+output "backend_target_group_arn" {
+  description = "ARN of the backend target group"
+  value       = aws_lb_target_group.backend.arn
+  sensitive   = false
+}
+
+# Application URLs
+output "application_urls" {
+  description = "URLs to access the application"
+  value = {
+    alb_direct    = var.enable_https && var.certificate_arn != "" ? "https://${aws_lb.main.dns_name}" : "http://${aws_lb.main.dns_name}"
+    custom_domain = var.domain_name != "" ? (var.enable_https ? "https://${var.domain_name}" : "http://${var.domain_name}") : "Not configured"
+    www_domain    = var.domain_name != "" ? (var.enable_https ? "https://www.${var.domain_name}" : "http://www.${var.domain_name}") : "Not configured"
+    api_domain    = var.domain_name != "" ? (var.enable_https ? "https://api.${var.domain_name}" : "http://api.${var.domain_name}") : "Not configured"
+    environment   = var.environment != "prod" && var.domain_name != "" ? (var.enable_https ? "https://${var.environment}.${var.domain_name}" : "http://${var.environment}.${var.domain_name}") : "N/A"
+  }
+  sensitive = false
+}
+
+# Certificate Output (when configured)
+output "certificate_arn" {
+  description = "ARN of the ACM certificate"
+  value       = var.domain_name != "" && var.create_route53_zone ? aws_acm_certificate.main[0].arn : "Not created"
+  sensitive   = false
+}
+
+output "certificate_status" {
+  description = "Status of the ACM certificate"
+  value       = var.domain_name != "" && var.create_route53_zone ? aws_acm_certificate.main[0].status : "Not created"
+  sensitive   = false
+}

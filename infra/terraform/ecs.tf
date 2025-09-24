@@ -395,6 +395,13 @@ resource "aws_ecs_service" "backend" {
     registry_arn = aws_service_discovery_service.backend.arn
   }
 
+  # Load balancer configuration
+  load_balancer {
+    target_group_arn = aws_lb_target_group.backend.arn
+    container_name   = "backend"
+    container_port   = 8000
+  }
+
   # Enable auto-scaling for production
   deployment_maximum_percent         = 200
   deployment_minimum_healthy_percent = var.environment == "prod" ? 100 : 50
@@ -440,6 +447,13 @@ resource "aws_ecs_service" "frontend" {
 
   service_registries {
     registry_arn = aws_service_discovery_service.frontend.arn
+  }
+
+  # Load balancer configuration
+  load_balancer {
+    target_group_arn = aws_lb_target_group.frontend.arn
+    container_name   = "frontend"
+    container_port   = 3000
   }
 
   deployment_maximum_percent         = 200
