@@ -22,6 +22,10 @@ create_route53_zone = true  # Create hosted zone for dev subdomain
 # Cost Optimization Settings
 enable_auto_shutdown = true
 use_fargate_spot    = true  # 70% cost savings for dev environment
+enable_nat_gateway  = true  # Keep NAT Gateway enabled, use scheduled start/stop for cost savings
+
+# Networking (cost optimized for dev)
+az_count = 1  # Single AZ for dev to reduce NAT Gateway costs
 
 # Minimal resource sizing for dev
 fargate_cpu    = 256  # Minimum CPU

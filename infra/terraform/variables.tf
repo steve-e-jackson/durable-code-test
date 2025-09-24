@@ -200,6 +200,33 @@ variable "github_branches" {
 }
 
 # ============================================================================
+# Networking Variables
+# ============================================================================
+
+variable "vpc_cidr" {
+  description = "CIDR block for the VPC"
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
+variable "az_count" {
+  description = "Number of availability zones to use"
+  type        = number
+  default     = 2
+
+  validation {
+    condition     = var.az_count >= 1 && var.az_count <= 6
+    error_message = "AZ count must be between 1 and 6."
+  }
+}
+
+variable "enable_nat_gateway" {
+  description = "Whether to create NAT Gateways for private subnets (set to false for cost savings in dev)"
+  type        = bool
+  default     = true
+}
+
+# ============================================================================
 # Tags
 # ============================================================================
 

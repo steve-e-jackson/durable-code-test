@@ -18,11 +18,13 @@ locals {
 
   # Common tags applied to all resources (in addition to provider default tags)
   common_tags = {
-    ProductDomain = var.product_domain
-    Product       = var.project_name
-    Environment   = var.environment
-    ManagedBy     = "terraform"
-    CostCenter    = "engineering"
+    ProductDomain       = var.product_domain
+    Product             = var.project_name
+    Environment         = var.environment
+    ManagedBy           = "terraform"
+    CostCenter          = "engineering"
+    DeploymentTimestamp = formatdate("YYYY-MM-DD-hhmm", timestamp())
+    DeploymentDate      = formatdate("YYYY-MM-DD", timestamp())
   }
 
   # Environment-specific flags

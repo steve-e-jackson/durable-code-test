@@ -1,4 +1,4 @@
-2#!/bin/bash
+#!/bin/bash
 
 # Setup script for Terraform backend infrastructure
 # This script creates the S3 bucket and DynamoDB table required for Terraform state management
