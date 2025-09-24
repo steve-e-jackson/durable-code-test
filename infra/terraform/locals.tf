@@ -49,4 +49,7 @@ locals {
 
   # Security configuration
   enable_enhanced_security = local.is_production && (var.enable_waf || var.enable_guardduty || var.enable_security_hub)
+
+  # ECS configuration
+  ecs_cluster_name = "${var.product_domain}-${var.environment}-cluster"
 }
