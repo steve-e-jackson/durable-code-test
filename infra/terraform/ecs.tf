@@ -21,6 +21,19 @@ resource "aws_ecs_cluster" "main" {
   )
 }
 
+# ECS Cluster Capacity Providers
+resource "aws_ecs_cluster_capacity_providers" "main" {
+  cluster_name = aws_ecs_cluster.main.name
+
+  capacity_providers = ["FARGATE", "FARGATE_SPOT"]
+
+  default_capacity_provider_strategy {
+    capacity_provider = var.environment == "prod" ? "FARGATE" : "FARGATE_SPOT"
+    weight            = 100
+    base              = 1
+  }
+}
+
 # CloudWatch Log Groups for ECS Tasks
 resource "aws_cloudwatch_log_group" "backend" {
   name              = "/ecs/${var.project_name}-${var.environment}/backend"
@@ -365,7 +378,6 @@ resource "aws_ecs_service" "backend" {
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.backend.arn
   desired_count   = var.environment == "prod" ? 2 : 1 # Cost optimization: 1 for dev
-  launch_type     = "FARGATE"
 
   # Enable Fargate Spot for dev environment (70% cost savings)
   capacity_provider_strategy {
@@ -413,7 +425,6 @@ resource "aws_ecs_service" "frontend" {
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.frontend.arn
   desired_count   = var.environment == "prod" ? 2 : 1 # Cost optimization: 1 for dev
-  launch_type     = "FARGATE"
 
   # Enable Fargate Spot for dev environment (70% cost savings)
   capacity_provider_strategy {
