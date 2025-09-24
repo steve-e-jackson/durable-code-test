@@ -28,7 +28,7 @@ terraform {
     bucket = "durable-code-terraform-state"
 
     # Key path within the bucket for the state file
-    key    = "infrastructure/terraform.tfstate"
+    key = "infrastructure/terraform.tfstate"
 
     # AWS region where the bucket exists
     region = "us-west-2"

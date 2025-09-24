@@ -28,16 +28,16 @@ locals {
   }
 
   # Environment-specific flags
-  is_production = var.environment == "prod"
-  is_development = var.environment == "dev"
+  is_production            = var.environment == "prod"
+  is_development           = var.environment == "dev"
   enable_cost_optimization = !local.is_production
 
   # Cost optimization settings
   enable_spot_instances = local.enable_cost_optimization && var.use_fargate_spot
-  enable_auto_shutdown = local.enable_cost_optimization && var.enable_auto_shutdown
+  enable_auto_shutdown  = local.enable_cost_optimization && var.enable_auto_shutdown
 
   # Resource sizing based on environment
-  task_cpu = local.is_production ? max(512, var.fargate_cpu) : var.fargate_cpu
+  task_cpu    = local.is_production ? max(512, var.fargate_cpu) : var.fargate_cpu
   task_memory = local.is_production ? max(1024, var.fargate_memory) : var.fargate_memory
 
   # Scaling configuration
