@@ -1,138 +1,26 @@
-# Makefile.gh - GitHub Integration Targets
-# Purpose: Provide GitHub CLI-based targets for PR management and CI/CD monitoring
-# Scope: GitHub Actions integration, PR workflows, check monitoring
-# Overview: Dashboard-style monitoring and automated GitHub workflows
-# Dependencies: GitHub CLI (gh), watch, jq
-# Exports: Targets for GitHub integration
-# Interfaces: Makefile include system
-# Implementation: Uses gh CLI for all GitHub operations
+# Makefile.gh - GitHub Integration Targets (Required by /done command)
 
-.PHONY: gh-help gh-watch-checks gh-pr-status gh-pr-create gh-pr-merge gh-check-details gh-workflow-run gh-pr-approve gh-pr-review gh-run-list gh-pr-checks-raw
+.PHONY: gh-watch-checks gh-check-details
 
 # Variables
 GH_PR_NUMBER := $(shell gh pr view --json number -q .number 2>/dev/null)
 GH_CURRENT_BRANCH := $(shell git branch --show-current)
-GH_BASE_BRANCH := main
-GH_CHECK_INTERVAL := 5
 
-# Colors for GitHub status display
+# Colors
 GH_GREEN = \033[0;32m
 GH_YELLOW = \033[0;33m
 GH_RED = \033[0;31m
-GH_BLUE = \033[0;34m
 GH_CYAN = \033[0;36m
-GH_MAGENTA = \033[0;35m
-GH_BOLD = \033[1m
 GH_NC = \033[0m
-GH_CLEAR = \033[2J\033[H
 
-# GitHub Help
-gh-help: ## Show GitHub integration targets
-	@echo "$(GH_CYAN)╔════════════════════════════════════════════════════════════╗$(GH_NC)"
-	@echo "$(GH_CYAN)║              GitHub Integration Targets                    ║$(GH_NC)"
-	@echo "$(GH_CYAN)╚════════════════════════════════════════════════════════════╝$(GH_NC)"
-	@echo ""
-	@echo "$(GH_GREEN)Available GitHub targets:$(GH_NC)"
-	@echo ""
-	@echo "  $(GH_YELLOW)make gh-watch-checks$(GH_NC)  - Dashboard monitor for CI/CD checks"
-	@echo "  $(GH_YELLOW)make gh-pr-status$(GH_NC)     - Quick PR status overview"
-	@echo "  $(GH_YELLOW)make gh-pr-create$(GH_NC)     - Create PR with template"
-	@echo "  $(GH_YELLOW)make gh-pr-merge$(GH_NC)      - Auto-merge after checks pass"
-	@echo "  $(GH_YELLOW)make gh-check-details$(GH_NC) - Show detailed failure logs"
-	@echo "  $(GH_YELLOW)make gh-workflow-run$(GH_NC)  - Trigger workflow manually"
-	@echo "  $(GH_YELLOW)make gh-run-list$(GH_NC)      - List recent workflow runs"
-	@echo ""
-	@echo "$(GH_CYAN)Dashboard Controls:$(GH_NC)"
-	@echo "  $(GH_BOLD)Ctrl+C$(GH_NC) - Exit dashboard"
-	@echo "  $(GH_BOLD)Auto-refresh$(GH_NC) - Every $(GH_CHECK_INTERVAL) seconds"
-	@echo ""
-
-# Main dashboard-style check watcher
-gh-watch-checks: ## Watch GitHub checks with dashboard display
+# Required by /done command - Watch GitHub checks
+gh-watch-checks: ## Watch GitHub checks (required by /done command)
 	@echo "$(GH_YELLOW)⏱️  NOTE: GitHub checks may take up to 3 minutes to start$(GH_NC)"
-	@GH_CHECK_INTERVAL=$(GH_CHECK_INTERVAL) GH_BASE_BRANCH=$(GH_BASE_BRANCH) \
+	@GH_CHECK_INTERVAL=5 GH_BASE_BRANCH=main \
 		./scripts/gh-watch-checks.sh $(GH_PR_NUMBER)
 
-# Quick PR status check
-gh-pr-status: ## Show quick PR status overview
-	@if [ -z "$(GH_PR_NUMBER)" ]; then \
-		echo "$(GH_RED)❌ No PR found for current branch$(GH_NC)"; \
-		echo "$(GH_YELLOW)Current branch: $(GH_CURRENT_BRANCH)$(GH_NC)"; \
-		echo ""; \
-		echo "$(GH_CYAN)Recent PRs:$(GH_NC)"; \
-		gh pr list --limit 5; \
-		exit 1; \
-	fi
-	@echo "$(GH_CYAN)PR #$(GH_PR_NUMBER) Status:$(GH_NC)"
-	@gh pr view $(GH_PR_NUMBER) --json state,mergeable,mergeStateStatus,reviews,statusCheckRollup | \
-		jq -r '. | "State: " + .state + "\nMergeable: " + (.mergeable // "unknown") + "\nMerge Status: " + .mergeStateStatus'
-	@echo ""
-	@echo "$(GH_CYAN)Check Summary:$(GH_NC)"
-	@gh pr checks $(GH_PR_NUMBER) || echo "$(GH_YELLOW)No checks found$(GH_NC)"
-
-# Create PR with template
-gh-pr-create: ## Create PR with comprehensive template
-	@if [ -n "$(GH_PR_NUMBER)" ]; then \
-		echo "$(GH_YELLOW)⚠️  PR #$(GH_PR_NUMBER) already exists for this branch$(GH_NC)"; \
-		echo "View it at: $$(gh pr view $(GH_PR_NUMBER) --json url -q .url)"; \
-		exit 0; \
-	fi
-	@echo "$(GH_CYAN)Creating PR for branch: $(GH_CURRENT_BRANCH)$(GH_NC)"
-	@git push -u origin $(GH_CURRENT_BRANCH) 2>/dev/null || true
-	@gh pr create \
-		--base $(GH_BASE_BRANCH) \
-		--fill \
-		--body "$$(cat <<'EOF'\
-## Summary\n\
-- [ ] Describe primary changes\n\
-- [ ] List key features/fixes\n\
-- [ ] Note any breaking changes\n\
-\n\
-## Test Plan\n\
-- [ ] Unit tests pass\n\
-- [ ] Integration tests pass\n\
-- [ ] Manual testing completed\n\
-- [ ] Coverage requirements met\n\
-\n\
-## Quality Checks\n\
-- [ ] Linting passes\n\
-- [ ] Type checking passes\n\
-- [ ] SOLID principles compliance\n\
-- [ ] Security scan clean\n\
-\n\
-🤖 Generated with Claude Code\n\
-EOF\
-	)"
-	@echo "$(GH_GREEN)✅ PR created successfully!$(GH_NC)"
-	@echo "$(GH_YELLOW)Monitor checks with: make gh-watch-checks$(GH_NC)"
-
-# Auto-merge PR after checks pass
-gh-pr-merge: ## Auto-merge PR after all checks pass
-	@if [ -z "$(GH_PR_NUMBER)" ]; then \
-		echo "$(GH_RED)❌ No PR found for current branch$(GH_NC)"; \
-		exit 1; \
-	fi
-	@echo "$(GH_CYAN)Checking PR #$(GH_PR_NUMBER) merge readiness...$(GH_NC)"
-	@checks_status=$$(gh pr checks $(GH_PR_NUMBER) --json name,conclusion); \
-	failed=$$(echo $$checks_status | jq '[.[] | select(.conclusion != "success")] | length'); \
-	if [ "$$failed" -gt 0 ]; then \
-		echo "$(GH_RED)❌ Cannot merge - $$failed checks not passing$(GH_NC)"; \
-		echo "$(GH_YELLOW)Run 'make gh-check-details' for more information$(GH_NC)"; \
-		exit 1; \
-	fi
-	@echo "$(GH_GREEN)✅ All checks passed!$(GH_NC)"
-	@echo "$(GH_CYAN)Merging PR #$(GH_PR_NUMBER)...$(GH_NC)"
-	@gh pr merge $(GH_PR_NUMBER) \
-		--squash \
-		--delete-branch \
-		--body "✅ All CI/CD checks passed\n🤖 Auto-merged via make gh-pr-merge"
-	@echo "$(GH_GREEN)✅ PR merged successfully!$(GH_NC)"
-	@echo "$(GH_CYAN)Updating local repository...$(GH_NC)"
-	@git checkout $(GH_BASE_BRANCH) && git pull origin $(GH_BASE_BRANCH)
-	@echo "$(GH_GREEN)✅ Local repository updated$(GH_NC)"
-
-# Show detailed check failure logs
-gh-check-details: ## Show detailed logs for failed checks
+# Required by /done command - Show check failures
+gh-check-details: ## Show detailed logs for failed checks (used by /done)
 	@if [ -z "$(GH_PR_NUMBER)" ]; then \
 		echo "$(GH_RED)❌ No PR found for current branch$(GH_NC)"; \
 		exit 1; \
@@ -157,56 +45,3 @@ gh-check-details: ## Show detailed logs for failed checks
 			echo "────────────────────────────────────────"; \
 		done; \
 	fi
-
-# Trigger specific workflow manually
-gh-workflow-run: ## Trigger a workflow manually (WORKFLOW=name)
-	@if [ -z "$(WORKFLOW)" ]; then \
-		echo "$(GH_RED)❌ WORKFLOW parameter required$(GH_NC)"; \
-		echo "$(GH_YELLOW)Usage: make gh-workflow-run WORKFLOW=test$(GH_NC)"; \
-		echo ""; \
-		echo "$(GH_CYAN)Available workflows:$(GH_NC)"; \
-		gh workflow list; \
-		exit 1; \
-	fi
-	@echo "$(GH_CYAN)Triggering workflow: $(WORKFLOW)$(GH_NC)"
-	@gh workflow run $(WORKFLOW) --ref $(GH_CURRENT_BRANCH)
-	@echo "$(GH_GREEN)✅ Workflow triggered$(GH_NC)"
-	@echo "$(GH_YELLOW)Monitor with: make gh-run-list$(GH_NC)"
-
-# List recent workflow runs
-gh-run-list: ## List recent workflow runs for current branch
-	@echo "$(GH_CYAN)Recent workflow runs for branch: $(GH_CURRENT_BRANCH)$(GH_NC)"
-	@echo ""
-	@gh run list --branch $(GH_CURRENT_BRANCH) --limit 10
-
-# Raw PR checks output (for scripts/automation)
-gh-pr-checks-raw: ## Get raw JSON output of PR checks
-	@if [ -z "$(GH_PR_NUMBER)" ]; then \
-		echo "[]"; \
-		exit 0; \
-	fi
-	@gh pr checks $(GH_PR_NUMBER) --json name,status,conclusion,startedAt,completedAt 2>/dev/null || echo "[]"
-
-# PR review helpers
-gh-pr-approve: ## Approve the current PR
-	@if [ -z "$(GH_PR_NUMBER)" ]; then \
-		echo "$(GH_RED)❌ No PR found for current branch$(GH_NC)"; \
-		exit 1; \
-	fi
-	@echo "$(GH_CYAN)Approving PR #$(GH_PR_NUMBER)...$(GH_NC)"
-	@gh pr review $(GH_PR_NUMBER) --approve --body "✅ LGTM!\n\n🤖 Approved via make gh-pr-approve"
-	@echo "$(GH_GREEN)✅ PR approved$(GH_NC)"
-
-gh-pr-review: ## Add review comment to current PR (COMMENT="your comment")
-	@if [ -z "$(GH_PR_NUMBER)" ]; then \
-		echo "$(GH_RED)❌ No PR found for current branch$(GH_NC)"; \
-		exit 1; \
-	fi
-	@if [ -z "$(COMMENT)" ]; then \
-		echo "$(GH_RED)❌ COMMENT parameter required$(GH_NC)"; \
-		echo "$(GH_YELLOW)Usage: make gh-pr-review COMMENT=\"Your review comment\"$(GH_NC)"; \
-		exit 1; \
-	fi
-	@echo "$(GH_CYAN)Adding review comment to PR #$(GH_PR_NUMBER)...$(GH_NC)"
-	@gh pr review $(GH_PR_NUMBER) --comment --body "$(COMMENT)\n\n🤖 Via make gh-pr-review"
-	@echo "$(GH_GREEN)✅ Review comment added$(GH_NC)"
