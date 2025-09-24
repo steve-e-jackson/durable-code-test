@@ -24,26 +24,26 @@ This is the **PRIMARY HANDOFF DOCUMENT** for AI agents working on the AWS deploy
 
 ## 🎯 Next PR to Implement
 
-### ➡️ START HERE: PR3 - ECS Cluster and Fargate Service Configuration
+### ➡️ START HERE: PR4.5 - Dual-Architecture Terraform Refactor (Base/Runtime Separation)
 
 **Quick Summary**:
-- Create ECS cluster for container orchestration
-- Configure task definitions for frontend and backend
-- Deploy Fargate services with cost optimization
-- Set up service discovery and internal networking
+- Refactor Terraform into base (persistent) and runtime (ephemeral) resources
+- Solve 30+ minute certificate validation delays
+- Enable fast infrastructure recovery (<5 minutes)
+- Separate slow-provisioning resources from frequently-cycled ones
 
 **Pre-flight Checklist**:
-- [x] PR2 Complete - ECR repositories ready
-- [x] Read AI_CONTEXT.md for AWS architecture overview
-- [x] Read PR3 section below for detailed steps
-- [x] Ensure AWS credentials are configured
-- [x] Verify Terraform can create ECS resources
+- [x] PR4 Complete - ALB and DNS configuration ready
+- [x] Understand certificate validation delay issue
+- [x] Read PR4.5 section in PR_BREAKDOWN.md
+- [x] Plan base vs runtime resource separation
+- [x] Ensure Terraform state migration strategy ready
 
 **Prerequisites Complete**:
-- ✅ VPC with public/private subnets across AZs
-- ✅ Security groups for ALB and ECS tasks
-- ✅ NAT Gateway and Internet Gateway configured
-- ✅ Cost-optimized networking with scheduled destroy/recreate capability
+- ✅ ALB configuration tested and working
+- ✅ ACM certificates created (with long validation time identified)
+- ✅ Route53 zones configured
+- ✅ Need identified for faster dev environment cycling
 
 ---
 
@@ -64,7 +64,8 @@ This is the **PRIMARY HANDOFF DOCUMENT** for AI agents working on the AWS deploy
 | PR1 | Terraform Foundation | 🟢 Complete | 100% | +$45/month | AI Agent | 2025-09-24 | **VPC, subnets, NAT deployed** |
 | PR2 | ECR Setup | 🟢 Complete | 100% | +$1/month | AI Agent | 2025-09-23 | **ECR repos deployed** |
 | PR3 | ECS Configuration | 🟢 Complete | 100% | +$4/month | AI Agent | 2025-09-24 | **Deployed to AWS successfully** |
-| PR4 | ALB and DNS | 🟡 In Progress | 85% | +$18/month | AI Agent | 2025-09-24 | Ready for PR creation |
+| PR4 | ALB and DNS | 🟢 Complete | 100% | +$18/month | AI Agent | 2025-09-24 | **PR #18 created** |
+| PR4.5 | Dual-Architecture TF | 🔴 Not Started | 0% | -$60/month | - | - | **NEXT: Solve cert delays** |
 | PR5 | CI/CD Pipeline | 🔴 Not Started | 0% | +$0/month | - | - | GitHub permissions needed |
 | PR6 | Monitoring | 🔴 Not Started | 0% | +$2/month | - | - | - |
 | PR7 | Security | 🔴 Not Started | 0% | +$1/month | - | - | - |
