@@ -74,6 +74,22 @@ Infrastructure can be destroyed and recreated at will. No manual configuration o
 - Weekend shutdowns for dev environments
 - On-demand wake capability
 
+### Selective Resource Management
+- **Preserve Low-Cost, Slow-Provision Resources**:
+  - ACM certificates (free, 30+ min validation)
+  - Route53 hosted zones ($0.50/month)
+  - ECR repositories (pay per GB stored)
+  - Target groups and security groups (free)
+- **Destroy High-Cost Resources When Idle**:
+  - NAT Gateway ($45/month, provisions in seconds)
+  - ALB ($18/month, provisions quickly)
+  - Running ECS tasks (pay per hour)
+  - EIP when unattached ($3.60/month)
+- **Smart Shutdown Strategy**:
+  - `make infra-down-expensive`: Removes NAT, ALB, ECS services
+  - `make infra-up`: Quickly restores from preserved base
+  - Total restart time: <5 minutes vs 30+ minutes full rebuild
+
 ## Monitoring Philosophy
 
 ### What We Monitor
