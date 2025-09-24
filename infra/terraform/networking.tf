@@ -86,7 +86,7 @@ resource "aws_subnet" "private" {
 resource "aws_eip" "nat" {
   count = var.enable_nat_gateway ? var.az_count : 0
 
-  domain = "vpc"
+  domain     = "vpc"
   depends_on = [aws_internet_gateway.main]
 
   tags = merge(var.additional_tags, {
@@ -208,8 +208,8 @@ resource "aws_security_group" "alb" {
   }
 
   tags = merge(var.additional_tags, {
-    Name = "${var.project_name}-${var.environment}-alb-sg"
-    Type = "security-group"
+    Name      = "${var.project_name}-${var.environment}-alb-sg"
+    Type      = "security-group"
     Component = "load-balancer"
   })
 }
@@ -245,8 +245,8 @@ resource "aws_security_group" "ecs_tasks" {
   }
 
   tags = merge(var.additional_tags, {
-    Name = "${var.project_name}-${var.environment}-ecs-tasks-sg"
-    Type = "security-group"
+    Name      = "${var.project_name}-${var.environment}-ecs-tasks-sg"
+    Type      = "security-group"
     Component = "ecs-tasks"
   })
 }
@@ -276,8 +276,8 @@ resource "aws_security_group" "vpc_endpoints" {
   }
 
   tags = merge(var.additional_tags, {
-    Name = "${var.project_name}-${var.environment}-vpc-endpoints-sg"
-    Type = "security-group"
+    Name      = "${var.project_name}-${var.environment}-vpc-endpoints-sg"
+    Type      = "security-group"
     Component = "vpc-endpoints"
   })
 }
@@ -290,14 +290,14 @@ resource "aws_security_group" "vpc_endpoints" {
 resource "aws_vpc_endpoint" "s3" {
   count = var.enable_nat_gateway ? 0 : 1
 
-  vpc_id              = aws_vpc.main.id
-  service_name        = "com.amazonaws.${data.aws_region.current.name}.s3"
-  vpc_endpoint_type   = "Gateway"
-  route_table_ids     = aws_route_table.private[*].id
+  vpc_id            = aws_vpc.main.id
+  service_name      = "com.amazonaws.${data.aws_region.current.name}.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = aws_route_table.private[*].id
 
   tags = merge(var.additional_tags, {
-    Name = "${var.project_name}-${var.environment}-s3-endpoint"
-    Type = "vpc-endpoint"
+    Name    = "${var.project_name}-${var.environment}-s3-endpoint"
+    Type    = "vpc-endpoint"
     Service = "s3"
   })
 }
@@ -314,8 +314,8 @@ resource "aws_vpc_endpoint" "ecr_api" {
   private_dns_enabled = true
 
   tags = merge(var.additional_tags, {
-    Name = "${var.project_name}-${var.environment}-ecr-api-endpoint"
-    Type = "vpc-endpoint"
+    Name    = "${var.project_name}-${var.environment}-ecr-api-endpoint"
+    Type    = "vpc-endpoint"
     Service = "ecr-api"
   })
 }
@@ -332,8 +332,8 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
   private_dns_enabled = true
 
   tags = merge(var.additional_tags, {
-    Name = "${var.project_name}-${var.environment}-ecr-dkr-endpoint"
-    Type = "vpc-endpoint"
+    Name    = "${var.project_name}-${var.environment}-ecr-dkr-endpoint"
+    Type    = "vpc-endpoint"
     Service = "ecr-dkr"
   })
 }
@@ -350,8 +350,8 @@ resource "aws_vpc_endpoint" "logs" {
   private_dns_enabled = true
 
   tags = merge(var.additional_tags, {
-    Name = "${var.project_name}-${var.environment}-logs-endpoint"
-    Type = "vpc-endpoint"
+    Name    = "${var.project_name}-${var.environment}-logs-endpoint"
+    Type    = "vpc-endpoint"
     Service = "cloudwatch-logs"
   })
 }

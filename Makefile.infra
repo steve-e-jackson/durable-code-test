@@ -1,0 +1,309 @@
+# Makefile.infra - Infrastructure Management with Terraform
+# Purpose: Provide Docker-based Terraform commands without requiring local AWS configuration
+# This file is included by the main Makefile
+
+.PHONY: infra-help infra-init infra-plan infra-refresh infra-output infra-validate infra-fmt infra-state-list infra-state-show infra-import infra-workspace-list infra-workspace-new infra-workspace-select infra-backend-setup infra-check-aws infra-console infra-graph infra-cost infra-check infra-up infra-down infra-clean-cache infra-reinit check-terraform-init
+
+# Variables
+TERRAFORM_DIR = infra/terraform
+TERRAFORM_VERSION = 1.9.8
+AWS_REGION ?= us-west-2
+# Default to terraform-deploy profile - you can override with AWS_PROFILE=other-profile make ...
+AWS_PROFILE ?= terraform-deploy
+
+# Docker volume for persistent .terraform directory
+TERRAFORM_VOLUME = terraform-cache-$(shell echo $(PWD) | md5sum | cut -d' ' -f1)
+
+# Docker image for Terraform with AWS CLI
+TERRAFORM_IMAGE = hashicorp/terraform:$(TERRAFORM_VERSION)
+
+# Docker run command with AWS credentials and terraform directory mounted
+# Use -it flag only for interactive commands
+# Create volume for .terraform directory to persist between runs
+# Pass AWS credentials from environment if available (for SSO/temporary credentials)
+TERRAFORM_DOCKER_RUN_BASE = docker run --rm \
+	-v $(PWD)/$(TERRAFORM_DIR):/terraform \
+	-v $(TERRAFORM_VOLUME):/terraform/.terraform \
+	-v $(HOME)/.aws:/root/.aws:ro \
+	-w /terraform \
+	-e AWS_PROFILE=$(AWS_PROFILE) \
+	-e AWS_REGION=$(AWS_REGION) \
+	-e AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID) \
+	-e AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY) \
+	-e AWS_SESSION_TOKEN=$(AWS_SESSION_TOKEN) \
+	$(TERRAFORM_IMAGE)
+
+# Interactive version for commands that need user input
+TERRAFORM_DOCKER_RUN = $(TERRAFORM_DOCKER_RUN_BASE)
+TERRAFORM_DOCKER_RUN_IT = docker run --rm -it \
+	-v $(PWD)/$(TERRAFORM_DIR):/terraform \
+	-v $(TERRAFORM_VOLUME):/terraform/.terraform \
+	-v $(HOME)/.aws:/root/.aws:ro \
+	-w /terraform \
+	-e AWS_PROFILE=$(AWS_PROFILE) \
+	-e AWS_REGION=$(AWS_REGION) \
+	-e AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID) \
+	-e AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY) \
+	-e AWS_SESSION_TOKEN=$(AWS_SESSION_TOKEN) \
+	$(TERRAFORM_IMAGE)
+
+# Infrastructure Help
+infra-help: ## Show infrastructure management commands
+	@echo "$(CYAN)╔════════════════════════════════════════════════════════════╗$(NC)"
+	@echo "$(CYAN)║          Infrastructure Management (Terraform)            ║$(NC)"
+	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
+	@echo ""
+	@echo "$(GREEN)Prerequisites:$(NC)"
+	@echo "  • Docker installed and running"
+	@echo "  • AWS credentials configured in ~/.aws/credentials"
+	@echo "  • Set AWS_PROFILE environment variable if not using 'default'"
+	@echo ""
+	@echo "$(YELLOW)Note:$(NC) Terraform will auto-initialize on first use of any command."
+	@echo "      The .terraform cache is stored in a Docker volume for persistence."
+	@echo ""
+	@echo "$(GREEN)Core Commands:$(NC)"
+	@echo "  $(YELLOW)make infra-plan$(NC)                  # Preview infrastructure changes"
+	@echo "  $(YELLOW)make infra-up$(NC)                    # Deploy infrastructure"
+	@echo "  $(YELLOW)make infra-down$(NC)                  # Destroy infrastructure"
+	@echo "  $(YELLOW)make infra-up AUTO=true$(NC)          # Deploy without confirmation"
+	@echo ""
+	@echo "$(GREEN)Available targets:$(NC)"
+	@grep -E '^infra-[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sed 's/^[^:]*://' | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(YELLOW)%-25s$(NC) %s\n", $$1, $$2}' | sort
+	@echo ""
+	@echo "$(GREEN)Parameters:$(NC)"
+	@echo "  $(YELLOW)AUTO=true$(NC)                # Skip confirmation prompts (up/down)"
+	@echo "  $(YELLOW)FORMAT=json$(NC)              # Output in JSON format (infra-output)"
+	@echo "  $(YELLOW)AWS_PROFILE=<name>$(NC)       # Use specific AWS profile"
+	@echo "  $(YELLOW)AWS_REGION=<region>$(NC)      # Override AWS region"
+	@echo "  $(YELLOW)RESOURCE=<name>$(NC)          # Resource name (state-show/import)"
+	@echo "  $(YELLOW)ID=<id>$(NC)                  # Resource ID (import)"
+	@echo "  $(YELLOW)WORKSPACE=<name>$(NC)         # Workspace name (workspace commands)"
+	@echo ""
+	@echo "$(YELLOW)Example usage:$(NC)"
+	@echo "  AWS_PROFILE=myprofile make infra-plan"
+	@echo "  AWS_REGION=eu-west-1 make infra-up"
+	@echo "  AUTO=true make infra-up                 # Deploy without confirmation"
+	@echo "  FORMAT=json make infra-output           # Output in JSON format"
+	@echo "  AUTO=true make infra-down               # Destroy without confirmation"
+	@echo ""
+	@echo "$(YELLOW)Troubleshooting:$(NC)"
+	@echo "  • Backend changed error: run 'make infra-reinit'"
+	@echo "  • AWS credentials error: check ~/.aws/credentials and AWS_PROFILE"
+	@echo "  • Clear all cache: run 'make infra-clean-cache'"
+	@echo ""
+
+# AWS Credentials Check
+infra-check-aws: ## Verify AWS credentials are configured correctly
+	@echo "$(CYAN)Checking AWS credentials...$(NC)"
+	@echo "$(YELLOW)AWS Profile: $(AWS_PROFILE)$(NC)"
+	@echo "$(YELLOW)AWS Region: $(AWS_REGION)$(NC)"
+	@if docker run --rm \
+		-v $(HOME)/.aws:/root/.aws:ro \
+		-e AWS_PROFILE=$(AWS_PROFILE) \
+		-e AWS_REGION=$(AWS_REGION) \
+		amazon/aws-cli:latest sts get-caller-identity >/dev/null 2>&1; then \
+		echo "$(GREEN)✓ AWS credentials are valid!$(NC)"; \
+		docker run --rm \
+			-v $(HOME)/.aws:/root/.aws:ro \
+			-e AWS_PROFILE=$(AWS_PROFILE) \
+			-e AWS_REGION=$(AWS_REGION) \
+			amazon/aws-cli:latest sts get-caller-identity --output table; \
+	else \
+		echo "$(RED)❌ AWS credentials check failed!$(NC)"; \
+		echo "$(YELLOW)Please check:$(NC)"; \
+		echo "  • File ~/.aws/credentials exists"; \
+		echo "  • Profile [$(AWS_PROFILE)] exists in credentials file"; \
+		echo "  • Access key and secret key are valid"; \
+		echo ""; \
+		echo "$(YELLOW)To use a different profile:$(NC)"; \
+		echo "  AWS_PROFILE=your-profile make infra-check-aws"; \
+		exit 1; \
+	fi
+
+# Backend Setup
+infra-backend-setup: ## Set up S3 backend for Terraform state (run once)
+	@echo "$(CYAN)Setting up Terraform backend...$(NC)"
+	@if [ -f $(TERRAFORM_DIR)/../scripts/setup-terraform-backend.sh ]; then \
+		docker run --rm -it \
+			-v $(PWD)/infra:/infra \
+			-v $(HOME)/.aws:/root/.aws:ro \
+			-e AWS_PROFILE=$(AWS_PROFILE) \
+			-e AWS_REGION=$(AWS_REGION) \
+			amazon/aws-cli:latest \
+			bash /infra/scripts/setup-terraform-backend.sh; \
+	else \
+		echo "$(RED)Backend setup script not found at infra/scripts/setup-terraform-backend.sh$(NC)"; \
+		exit 1; \
+	fi
+
+# Helper to check if terraform is initialized
+.PHONY: check-terraform-init
+check-terraform-init:
+	@# Check if initialization is needed by trying to run terraform providers
+	@if ! $(TERRAFORM_DOCKER_RUN) providers >/dev/null 2>&1; then \
+		echo "$(YELLOW)⚠️  Terraform not initialized. Running 'make infra-init' first...$(NC)"; \
+		$(MAKE) infra-init; \
+	fi
+
+# Terraform Commands
+infra-init: ## Initialize Terraform (download providers, configure backend)
+	@echo "$(CYAN)Initializing Terraform...$(NC)"
+	@echo "$(YELLOW)Creating Docker volume for .terraform cache: $(TERRAFORM_VOLUME)$(NC)"
+	@docker volume create $(TERRAFORM_VOLUME) >/dev/null 2>&1 || true
+	@echo "$(YELLOW)Using AWS Profile: $(AWS_PROFILE)$(NC)"
+	@if ! $(TERRAFORM_DOCKER_RUN) init; then \
+		echo "$(RED)❌ Initialization failed!$(NC)"; \
+		echo "$(YELLOW)Common issues:$(NC)"; \
+		echo "  • Check AWS credentials in ~/.aws/credentials"; \
+		echo "  • Verify AWS_PROFILE is set correctly (current: $(AWS_PROFILE))"; \
+		echo "  • Ensure S3 backend bucket exists (run: make infra-backend-setup)"; \
+		echo "  • Try: AWS_PROFILE=your-profile make infra-init"; \
+		exit 1; \
+	fi
+	@echo "$(GREEN)✓ Terraform initialized!$(NC)"
+	@echo "$(YELLOW)Tip: The .terraform directory is cached in Docker volume '$(TERRAFORM_VOLUME)'$(NC)"
+
+infra-validate: check-terraform-init ## Validate Terraform configuration
+	@echo "$(CYAN)Validating Terraform configuration...$(NC)"
+	@$(TERRAFORM_DOCKER_RUN) validate
+	@echo "$(GREEN)✓ Configuration is valid!$(NC)"
+
+infra-fmt: ## Format Terraform files to canonical style
+	@echo "$(CYAN)Formatting Terraform files...$(NC)"
+	@$(TERRAFORM_DOCKER_RUN) fmt -recursive
+	@echo "$(GREEN)✓ Terraform files formatted!$(NC)"
+
+infra-plan: check-terraform-init ## Show what changes will be made (dry run)
+	@echo "$(CYAN)Planning infrastructure changes...$(NC)"
+	@echo "$(YELLOW)AWS Profile: $(AWS_PROFILE)$(NC)"
+	@echo "$(YELLOW)AWS Region: $(AWS_REGION)$(NC)"
+	@$(TERRAFORM_DOCKER_RUN) plan
+	@echo "$(GREEN)✓ Plan complete!$(NC)"
+
+
+
+infra-refresh: check-terraform-init ## Update state file with real infrastructure
+	@echo "$(CYAN)Refreshing Terraform state...$(NC)"
+	@$(TERRAFORM_DOCKER_RUN) refresh
+	@echo "$(GREEN)✓ State refreshed!$(NC)"
+
+infra-output: check-terraform-init ## Show outputs from Terraform state (use FORMAT=json for JSON output)
+	@if [ "$(FORMAT)" = "json" ]; then \
+		$(TERRAFORM_DOCKER_RUN) output -json; \
+	else \
+		echo "$(CYAN)Terraform Outputs:$(NC)"; \
+		$(TERRAFORM_DOCKER_RUN) output; \
+	fi
+
+# State Management
+infra-state-list: check-terraform-init ## List resources in Terraform state
+	@echo "$(CYAN)Resources in Terraform state:$(NC)"
+	@$(TERRAFORM_DOCKER_RUN) state list
+
+infra-state-show: check-terraform-init ## Show details of a resource (use with RESOURCE=<resource_name>)
+	@if [ -z "$(RESOURCE)" ]; then \
+		echo "$(RED)Error: RESOURCE variable not set$(NC)"; \
+		echo "$(YELLOW)Usage: RESOURCE=aws_instance.example make infra-state-show$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(CYAN)Details for resource: $(RESOURCE)$(NC)"
+	@$(TERRAFORM_DOCKER_RUN) state show $(RESOURCE)
+
+infra-import: ## Import existing resource into state (use with RESOURCE=<resource_name> ID=<resource_id>)
+	@if [ -z "$(RESOURCE)" ] || [ -z "$(ID)" ]; then \
+		echo "$(RED)Error: RESOURCE and ID variables must be set$(NC)"; \
+		echo "$(YELLOW)Usage: RESOURCE=aws_instance.example ID=i-1234567890 make infra-import$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(CYAN)Importing resource $(RESOURCE) with ID $(ID)...$(NC)"
+	@$(TERRAFORM_DOCKER_RUN_IT) import $(RESOURCE) $(ID)
+	@echo "$(GREEN)✓ Resource imported!$(NC)"
+
+# Workspace Management
+infra-workspace-list: ## List available workspaces
+	@echo "$(CYAN)Available workspaces:$(NC)"
+	@$(TERRAFORM_DOCKER_RUN) workspace list
+
+infra-workspace-new: ## Create new workspace (use with WORKSPACE=<name>)
+	@if [ -z "$(WORKSPACE)" ]; then \
+		echo "$(RED)Error: WORKSPACE variable not set$(NC)"; \
+		echo "$(YELLOW)Usage: WORKSPACE=staging make infra-workspace-new$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(CYAN)Creating workspace: $(WORKSPACE)$(NC)"
+	@$(TERRAFORM_DOCKER_RUN) workspace new $(WORKSPACE)
+	@echo "$(GREEN)✓ Workspace created!$(NC)"
+
+infra-workspace-select: ## Select a workspace (use with WORKSPACE=<name>)
+	@if [ -z "$(WORKSPACE)" ]; then \
+		echo "$(RED)Error: WORKSPACE variable not set$(NC)"; \
+		echo "$(YELLOW)Usage: WORKSPACE=production make infra-workspace-select$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(CYAN)Selecting workspace: $(WORKSPACE)$(NC)"
+	@$(TERRAFORM_DOCKER_RUN) workspace select $(WORKSPACE)
+	@echo "$(GREEN)✓ Workspace selected!$(NC)"
+
+# Utility Commands
+infra-console: ## Open Terraform console for testing expressions
+	@echo "$(CYAN)Opening Terraform console...$(NC)"
+	@echo "$(YELLOW)Type 'exit' to quit$(NC)"
+	@$(TERRAFORM_DOCKER_RUN_IT) console
+
+infra-graph: ## Generate visual graph of infrastructure
+	@echo "$(CYAN)Generating infrastructure graph...$(NC)"
+	@$(TERRAFORM_DOCKER_RUN) graph | docker run --rm -i nshine/dot dot -Tpng > infrastructure-graph.png
+	@echo "$(GREEN)✓ Graph saved to infrastructure-graph.png$(NC)"
+
+infra-cost: ## Estimate monthly costs (requires Infracost)
+	@echo "$(CYAN)Estimating infrastructure costs...$(NC)"
+	@docker run --rm -it \
+		-v $(PWD)/$(TERRAFORM_DIR):/terraform \
+		-v $(HOME)/.aws:/root/.aws:ro \
+		-e AWS_PROFILE=$(AWS_PROFILE) \
+		-e AWS_REGION=$(AWS_REGION) \
+		-e INFRACOST_API_KEY=$(INFRACOST_API_KEY) \
+		infracost/infracost:latest breakdown --path /terraform
+	@echo "$(GREEN)✓ Cost estimation complete!$(NC)"
+
+# Quick Commands
+infra-check: infra-fmt infra-validate ## Format and validate configuration
+
+infra-up: check-terraform-init ## Deploy infrastructure (use AUTO=true for auto-approve)
+	@echo "$(CYAN)Deploying infrastructure...$(NC)"
+	@echo "$(YELLOW)AWS Profile: $(AWS_PROFILE)$(NC)"
+	@echo "$(YELLOW)AWS Region: $(AWS_REGION)$(NC)"
+	@if [ "$(AUTO)" = "true" ]; then \
+		echo "$(YELLOW)Auto-approve mode enabled$(NC)"; \
+		$(TERRAFORM_DOCKER_RUN) apply -auto-approve; \
+	else \
+		echo "$(RED)⚠️  This will create/modify real AWS resources!$(NC)"; \
+		echo "$(YELLOW)Press Ctrl+C to cancel, or wait 5 seconds to continue...$(NC)"; \
+		sleep 5; \
+		$(TERRAFORM_DOCKER_RUN_IT) apply; \
+	fi
+	@echo "$(GREEN)✓ Infrastructure deployed successfully!$(NC)"
+
+infra-down: check-terraform-init ## Destroy infrastructure (use AUTO=true for auto-approve - DANGEROUS!)
+	@echo "$(RED)╔════════════════════════════════════════════════════════════╗$(NC)"
+	@echo "$(RED)║  ⚠️  WARNING: This will DESTROY all infrastructure! ⚠️     ║$(NC)"
+	@echo "$(RED)╚════════════════════════════════════════════════════════════╝$(NC)"
+	@echo "$(YELLOW)AWS Profile: $(AWS_PROFILE)$(NC)"
+	@echo "$(YELLOW)AWS Region: $(AWS_REGION)$(NC)"
+	@if [ "$(AUTO)" = "true" ]; then \
+		echo "$(RED)Auto-approve mode enabled - destroying immediately!$(NC)"; \
+		$(TERRAFORM_DOCKER_RUN) destroy -auto-approve; \
+	else \
+		echo "$(RED)Press Ctrl+C to cancel, or wait 10 seconds to continue...$(NC)"; \
+		sleep 10; \
+		$(TERRAFORM_DOCKER_RUN_IT) destroy; \
+	fi
+	@echo "$(GREEN)✓ Infrastructure destroyed!$(NC)"
+
+# Clean Commands
+infra-clean-cache: ## Remove Terraform cache (forces re-init)
+	@echo "$(CYAN)Removing Terraform cache volume...$(NC)"
+	@docker volume rm $(TERRAFORM_VOLUME) 2>/dev/null || echo "$(YELLOW)No cache to remove$(NC)"
+	@echo "$(GREEN)✓ Cache removed. Run 'make infra-init' to reinitialize.$(NC)"
+
+infra-reinit: infra-clean-cache infra-init ## Remove cache and reinitialize (for backend changes)

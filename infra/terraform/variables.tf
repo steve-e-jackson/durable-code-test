@@ -68,13 +68,13 @@ variable "terraform_version" {
 variable "domain_name" {
   description = "Primary domain name for the application"
   type        = string
-  default     = ""  # Will be set after domain registration
+  default     = "" # Will be set after domain registration
 }
 
 variable "create_route53_zone" {
   description = "Whether to create a Route53 hosted zone"
   type        = bool
-  default     = false  # Set to true after domain registration
+  default     = false # Set to true after domain registration
 }
 
 # ============================================================================
@@ -90,19 +90,19 @@ variable "enable_auto_shutdown" {
 variable "shutdown_schedule" {
   description = "Cron expression for shutdown schedule (UTC)"
   type        = string
-  default     = "0 4 ? * MON-FRI *"  # 8 PM PST on weekdays
+  default     = "0 4 ? * MON-FRI *" # 8 PM PST on weekdays
 }
 
 variable "startup_schedule" {
   description = "Cron expression for startup schedule (UTC)"
   type        = string
-  default     = "0 16 ? * MON-FRI *"  # 8 AM PST on weekdays
+  default     = "0 16 ? * MON-FRI *" # 8 AM PST on weekdays
 }
 
 variable "use_fargate_spot" {
   description = "Use Fargate Spot for cost savings (non-production only)"
   type        = bool
-  default     = false  # Will be true for dev/staging
+  default     = false # Will be true for dev/staging
 }
 
 # ============================================================================
@@ -112,31 +112,31 @@ variable "use_fargate_spot" {
 variable "fargate_cpu" {
   description = "CPU units for Fargate tasks (256, 512, 1024, 2048, 4096)"
   type        = number
-  default     = 256  # Minimum for cost optimization
+  default     = 256 # Minimum for cost optimization
 }
 
 variable "fargate_memory" {
   description = "Memory in MB for Fargate tasks"
   type        = number
-  default     = 512  # Minimum for cost optimization
+  default     = 512 # Minimum for cost optimization
 }
 
 variable "desired_count" {
   description = "Desired number of running tasks"
   type        = number
-  default     = 1  # Minimum for dev environment
+  default     = 1 # Minimum for dev environment
 }
 
 variable "max_capacity" {
   description = "Maximum number of tasks for auto-scaling"
   type        = number
-  default     = 3  # Conservative limit for cost control
+  default     = 3 # Conservative limit for cost control
 }
 
 variable "min_capacity" {
   description = "Minimum number of tasks for auto-scaling"
   type        = number
-  default     = 0  # Allow scale to zero during off-hours
+  default     = 0 # Allow scale to zero during off-hours
 }
 
 # ============================================================================
@@ -152,13 +152,13 @@ variable "budget_amount" {
 variable "alert_email" {
   description = "Email address for receiving alerts"
   type        = string
-  default     = ""  # Must be provided via environment-specific tfvars
+  default     = "" # Must be provided via environment-specific tfvars
 }
 
 variable "enable_container_insights" {
   description = "Enable CloudWatch Container Insights for detailed monitoring"
   type        = bool
-  default     = false  # Disabled by default for cost savings
+  default     = false # Disabled by default for cost savings
 }
 
 # ============================================================================
@@ -174,13 +174,13 @@ variable "enable_waf" {
 variable "enable_guardduty" {
   description = "Enable AWS GuardDuty for threat detection"
   type        = bool
-  default     = false  # Can be enabled later if needed
+  default     = false # Can be enabled later if needed
 }
 
 variable "enable_security_hub" {
   description = "Enable AWS Security Hub for compliance monitoring"
   type        = bool
-  default     = false  # Can be enabled later if needed
+  default     = false # Can be enabled later if needed
 }
 
 # ============================================================================
