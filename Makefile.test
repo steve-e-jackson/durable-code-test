@@ -1,79 +1,45 @@
 ################################################################################
-# Comprehensive Testing Makefile Extension
+# Simplified Testing Makefile Extension
 ################################################################################
 #
-# This Makefile provides a comprehensive suite of testing capabilities for:
-#
-# BACKEND TESTING:
-# ────────────────
-#   Unit Tests:
-#     • pytest        - Python test framework
-#     • coverage      - Code coverage reporting
-#     • pytest-cov    - Coverage integration with pytest
-#
-#   Test Categories:
-#     • app/          - Application logic tests
-#     • tools/        - Tool and utility tests
-#     • framework/    - Design linter framework tests
-#     • rules/        - Linting rule tests
-#     • integration/  - Integration tests
-#
-# FRONTEND TESTING:
-# ─────────────────
-#   Test Runners:
-#     • Jest          - JavaScript testing framework
-#     • Vitest        - Fast unit test runner
-#     • React Testing Library - Component testing
-#
-#   Test Types:
-#     • Unit tests    - Component and function tests
-#     • Coverage      - Code coverage analysis
-#     • Link tests    - Validate links and routes
-#     • Watch mode    - Continuous testing
-#
-# USAGE:
-# ──────
-#   make test-all              # Run all tests with coverage
-#   make test-quick            # Run all tests without coverage
-#   make test-backend          # Run backend tests only
-#   make test-frontend         # Run frontend tests only
-#   make test-watch            # Run tests in watch mode
-#   grep "^test-" Makefile.test | cut -d: -f1  # List all test targets
+# Essential testing targets:
+#   make test-all         - Run all tests with coverage (REQUIRED BY CI)
+#   make test             - Quick tests without coverage
+#   make test-playwright  - Integration tests (REQUIRED BY CI)
 #
 ################################################################################
 
-.PHONY: test-all test-quick test-backend test-backend-coverage test-backend-quick test-frontend test-frontend-coverage test-frontend-watch test-framework test-integration test-rules test-solid test-logging test-links test-watch test-ci test-playwright-build test-playwright test-playwright-oscilloscope test-playwright-interactive test-e2e
+.PHONY: test-all test test-backend test-frontend test-playwright-build test-playwright test-playwright-oscilloscope
 
-# Main testing targets
+# Main testing targets - REQUIRED BY GITHUB ACTIONS
 test-all: dev-start test-backend-coverage test-frontend-coverage test-playwright ## Run all tests with coverage (backend + frontend + integration)
 	@echo "$(GREEN)✅ All tests completed with coverage!$(NC)"
 
-test-quick: dev-start test-backend-quick test-frontend ## Run all tests without coverage (faster)
-	@echo "$(GREEN)✅ All quick tests completed!$(NC)"
+# Quick testing without coverage
+test: dev-start ## Run all tests quickly (no coverage)
+	@echo "$(CYAN)╔════════════════════════════════════════════════════════════╗$(NC)"
+	@echo "$(CYAN)║                    Quick Test Suite                       ║$(NC)"
+	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
+	@echo "$(YELLOW)Running backend tests...$(NC)"
+	@docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "cd /app && PYTHONPATH=/app:/app/tools poetry run pytest test/ -v" || echo "$(YELLOW)Backend tests completed with some failures$(NC)"
+	@echo "$(YELLOW)Running frontend tests...$(NC)"
+	@docker exec durable-code-frontend-$(BRANCH_NAME)-dev npm run test:run
+	@echo "$(GREEN)✓ Quick tests complete$(NC)"
 
-# Backend Python tests with coverage (pytest + coverage)
-test-backend-coverage: dev-start ## Run backend tests with coverage (pytest --cov)
+# Backend Python tests
+test-backend: dev-start ## Run backend tests with coverage
 	@echo "$(CYAN)╔════════════════════════════════════════════════════════════╗$(NC)"
 	@echo "$(CYAN)║              Backend Tests with Coverage                  ║$(NC)"
 	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
 	@echo "$(YELLOW)Running backend and framework tests with coverage...$(NC)"
 	@docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "cd /app && PYTHONPATH=/app:/app/tools COVERAGE_FILE=/tmp/.coverage poetry run pytest test/ --cov=app --cov=tools/design_linters --cov-report=term --cov-report=term:skip-covered --tb=short -v" || echo "$(YELLOW)Tests completed with some failures$(NC)"
-	@echo "$(GREEN)✓ Backend coverage tests complete$(NC)"
+	@echo "$(GREEN)✓ Backend tests complete$(NC)"
 
-# Backend Python tests without coverage (pytest)
-test-backend-quick: dev-start ## Run backend tests without coverage (pytest)
-	@echo "$(CYAN)╔════════════════════════════════════════════════════════════╗$(NC)"
-	@echo "$(CYAN)║              Backend Tests (Quick Mode)                   ║$(NC)"
-	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
-	@echo "$(YELLOW)Running all backend and framework tests...$(NC)"
-	@docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "cd /app && PYTHONPATH=/app:/app/tools poetry run pytest test/ -v" || echo "$(YELLOW)Tests completed with some failures$(NC)"
-	@echo "$(GREEN)✓ Backend quick tests complete$(NC)"
+# Internal target for CI
+test-backend-coverage: test-backend
 
-# Alias for backward compatibility
-test-backend: test-backend-quick ## Run backend tests (alias for test-backend-quick)
-
-# Frontend JavaScript/TypeScript tests (Jest/Vitest)
-test-frontend: dev-start ## Run frontend tests (Jest/Vitest)
+# Frontend JavaScript/TypeScript tests
+test-frontend: dev-start ## Run frontend tests
 	@echo "$(CYAN)╔════════════════════════════════════════════════════════════╗$(NC)"
 	@echo "$(CYAN)║                    Frontend Tests                         ║$(NC)"
 	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
@@ -81,8 +47,8 @@ test-frontend: dev-start ## Run frontend tests (Jest/Vitest)
 	@docker exec durable-code-frontend-$(BRANCH_NAME)-dev npm run test:run
 	@echo "$(GREEN)✓ Frontend tests complete$(NC)"
 
-# Frontend tests with coverage (Jest/Vitest --coverage)
-test-frontend-coverage: dev-start ## Run frontend tests with coverage (Jest/Vitest --coverage)
+# Frontend tests with coverage
+test-frontend-coverage: dev-start ## Run frontend tests with coverage
 	@echo "$(CYAN)╔════════════════════════════════════════════════════════════╗$(NC)"
 	@echo "$(CYAN)║            Frontend Tests with Coverage                   ║$(NC)"
 	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
@@ -90,114 +56,7 @@ test-frontend-coverage: dev-start ## Run frontend tests with coverage (Jest/Vite
 	@docker exec durable-code-frontend-$(BRANCH_NAME)-dev npm run test:coverage
 	@echo "$(GREEN)✓ Frontend coverage tests complete$(NC)"
 
-# Frontend tests in watch mode (Jest/Vitest --watch)
-test-frontend-watch: dev-start ## Run frontend tests in watch mode (Jest/Vitest --watch)
-	@echo "$(CYAN)Running frontend tests in watch mode...$(NC)"
-	@docker exec -it durable-code-frontend-dev npm run test:watch
-
-# Design linter framework tests (pytest test/unit_test/tools/design_linters)
-test-framework: dev-start ## Run design linter framework tests (pytest)
-	@echo "$(CYAN)╔════════════════════════════════════════════════════════════╗$(NC)"
-	@echo "$(CYAN)║           Design Linter Framework Tests                   ║$(NC)"
-	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
-	@echo "$(YELLOW)Running design linter framework tests...$(NC)"
-	@docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "cd /app && PYTHONPATH=/app/tools pytest test/unit_test/tools/design_linters -v --cov=tools/design_linters --cov-report=term" || echo "$(YELLOW)Framework tests have some failures (expected during development)$(NC)"
-	@echo "$(GREEN)✓ Framework tests complete$(NC)"
-
-# Integration tests (pytest test/unit_test/tools/design_linters/test_cli_integration.py)
-test-integration: dev-start ## Run integration tests for design linters (pytest)
-	@echo "$(CYAN)╔════════════════════════════════════════════════════════════╗$(NC)"
-	@echo "$(CYAN)║                  Integration Tests                        ║$(NC)"
-	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
-	@echo "$(YELLOW)Running integration tests...$(NC)"
-	@docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "cd /app && PYTHONPATH=/app/tools pytest test/unit_test/tools/design_linters/test_cli_integration.py -v" || echo "$(YELLOW)Integration tests have some failures$(NC)"
-	@echo "$(GREEN)✓ Integration tests complete$(NC)"
-
-# Linting rule tests (pytest test/unit_test/tools/design_linters/rules)
-test-rules: dev-start ## Run tests for all linting rules (pytest)
-	@echo "$(CYAN)╔════════════════════════════════════════════════════════════╗$(NC)"
-	@echo "$(CYAN)║                 Linting Rule Tests                        ║$(NC)"
-	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
-	@echo "$(YELLOW)Running rule tests...$(NC)"
-	@docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "cd /app && PYTHONPATH=/app/tools pytest test/unit_test/tools/design_linters/rules -v" || echo "$(YELLOW)Rule tests have some failures$(NC)"
-	@echo "$(GREEN)✓ Rule tests complete$(NC)"
-
-# SOLID principle rule tests (pytest test/unit_test/tools/design_linters/rules/test_solid_rules.py)
-test-solid: dev-start ## Run tests for SOLID principle rules (pytest)
-	@echo "$(CYAN)╔════════════════════════════════════════════════════════════╗$(NC)"
-	@echo "$(CYAN)║              SOLID Principle Rule Tests                   ║$(NC)"
-	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
-	@echo "$(YELLOW)Running SOLID rule tests...$(NC)"
-	@docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "cd /app && PYTHONPATH=/app/tools pytest test/unit_test/tools/design_linters/rules/test_solid_rules.py -v" || echo "$(YELLOW)SOLID tests have some failures$(NC)"
-	@echo "$(GREEN)✓ SOLID tests complete$(NC)"
-
-# Logging rule tests (pytest test/unit_test/tools/design_linters/rules/test_logging_rules.py)
-test-logging: dev-start ## Run tests for logging rules (pytest)
-	@echo "$(CYAN)╔════════════════════════════════════════════════════════════╗$(NC)"
-	@echo "$(CYAN)║                Logging Rule Tests                         ║$(NC)"
-	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
-	@echo "$(YELLOW)Running logging rule tests...$(NC)"
-	@docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "cd /app && PYTHONPATH=/app/tools pytest test/unit_test/tools/design_linters/rules/test_logging_rules.py -v" || echo "$(YELLOW)Logging tests have some failures$(NC)"
-	@echo "$(GREEN)✓ Logging tests complete$(NC)"
-
-# Link validation tests (frontend)
-test-links: dev-start ## Run link validation tests (frontend)
-	@echo "$(CYAN)╔════════════════════════════════════════════════════════════╗$(NC)"
-	@echo "$(CYAN)║                Link Validation Tests                      ║$(NC)"
-	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
-	@echo "$(YELLOW)Running link validation tests...$(NC)"
-	@docker exec durable-code-frontend-$(BRANCH_NAME)-dev npm run test:links
-	@echo "$(GREEN)✓ Link tests complete$(NC)"
-
-# Watch mode for continuous testing
-test-watch: dev-start ## Run all tests in watch mode (continuous testing)
-	@echo "$(CYAN)Starting continuous test monitoring...$(NC)"
-	@echo "$(YELLOW)Backend tests will run on file changes$(NC)"
-	@docker exec -it durable-code-backend-dev bash -c "cd /app && PYTHONPATH=/app:/app/tools pytest-watch test/ --runner 'pytest -v'"
-
-# CI-specific test target (fails fast, returns error codes)
-test-ci: ## Run all tests for CI/CD (strict mode, fails on error)
-	@echo "$(CYAN)╔════════════════════════════════════════════════════════════╗$(NC)"
-	@echo "$(CYAN)║                    CI/CD Test Suite                       ║$(NC)"
-	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
-	@docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "cd /tmp && PYTHONPATH=/app:/app/tools COVERAGE_FILE=/tmp/.coverage pytest /app/test/ --cov=/app/app --cov=/app/tools/design_linters --cov-report=term --cov-report=xml --tb=short -v"
-	@docker exec durable-code-frontend-$(BRANCH_NAME)-dev npm run test:coverage
-	@echo "$(GREEN)✅ CI tests passed!$(NC)"
-
-# Generate test report
-test-report: dev-start ## Generate comprehensive test report
-	@echo "$(CYAN)Generating test report...$(NC)"
-	@echo "# Test Report" > test-report.md
-	@echo "Generated: $$(date)" >> test-report.md
-	@echo "" >> test-report.md
-	@echo "## Backend Test Results" >> test-report.md
-	@docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "cd /tmp && PYTHONPATH=/app:/app/tools pytest /app/test/ --junit-xml=/tmp/junit.xml --cov=/app/app --cov=/app/tools/design_linters --cov-report=term" >> test-report.md 2>&1 || true
-	@echo "" >> test-report.md
-	@echo "## Frontend Test Results" >> test-report.md
-	@docker exec durable-code-frontend-$(BRANCH_NAME)-dev npm run test:coverage >> test-report.md 2>&1 || true
-	@echo "$(GREEN)✓ Report generated: test-report.md$(NC)"
-
-# Test specific components or modules
-test-component: dev-start ## Test a specific component (use COMPONENT=path/to/test)
-	@if [ -z "$(COMPONENT)" ]; then \
-		echo "$(RED)Please specify COMPONENT=path/to/test$(NC)"; \
-		exit 1; \
-	fi
-	@echo "$(CYAN)Testing component: $(COMPONENT)$(NC)"
-	@docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "cd /app && PYTHONPATH=/app:/app/tools pytest $(COMPONENT) -v"
-
-# List all available test files
-test-list: dev-start ## List all available test files
-	@echo "$(CYAN)╔════════════════════════════════════════════════════════════╗$(NC)"
-	@echo "$(CYAN)║                 Available Test Files                      ║$(NC)"
-	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
-	@echo "$(YELLOW)Backend test files:$(NC)"
-	@docker exec durable-code-backend-$(BRANCH_NAME)-dev find test/ -name "test_*.py" -o -name "*_test.py" | sort
-	@echo ""
-	@echo "$(YELLOW)Frontend test files:$(NC)"
-	@docker exec durable-code-frontend-$(BRANCH_NAME)-dev find src/ -name "*.test.ts" -o -name "*.test.tsx" -o -name "*.spec.ts" -o -name "*.spec.tsx" | sort
-
-# Playwright integration tests
+# Playwright integration tests - REQUIRED BY GITHUB ACTIONS
 test-playwright-build: ## Build Playwright test container
 	@echo "$(CYAN)Building Playwright test container...$(NC)"
 	@docker build -f test/integration_test/Dockerfile.playwright -t playwright-tests test/integration_test/
@@ -224,7 +83,7 @@ test-playwright: dev-start test-playwright-build ## Run Playwright integration t
 	fi
 	@echo "$(GREEN)✓ Playwright tests complete$(NC)"
 
-test-playwright-oscilloscope: dev-start test-playwright-build ## Run oscilloscope Playwright tests
+test-playwright-oscilloscope: dev-start test-playwright-build ## Run oscilloscope Playwright tests (REQUIRED BY CI)
 	@echo "$(CYAN)Running oscilloscope integration tests...$(NC)"
 	@if [ "$(CI)" = "true" ]; then \
 		docker run --rm --network durable-code-test_durable-network-dev \
@@ -244,26 +103,3 @@ test-playwright-oscilloscope: dev-start test-playwright-build ## Run oscilloscop
 			playwright-tests pytest -v test_oscilloscope_playwright.py; \
 	fi
 	@echo "$(GREEN)✓ Oscilloscope tests complete$(NC)"
-
-test-playwright-interactive: dev-start test-playwright-build ## Run Playwright tests interactively
-	@echo "$(CYAN)Starting interactive Playwright test session...$(NC)"
-	@if [ "$(CI)" = "true" ]; then \
-		docker run --rm -it --network durable-code-test_durable-network-dev \
-			-e PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
-			-e BRANCH_NAME="$(BRANCH_NAME)" \
-			-e FRONTEND_PORT="$(FRONTEND_PORT)" \
-			-e BACKEND_PORT="$(BACKEND_PORT)" \
-			-e USE_HOST_NETWORK=false \
-			playwright-tests /bin/bash; \
-	else \
-		docker run --rm -it --network host \
-			-e PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
-			-e BRANCH_NAME="$(BRANCH_NAME)" \
-			-e FRONTEND_PORT="$(FRONTEND_PORT)" \
-			-e BACKEND_PORT="$(BACKEND_PORT)" \
-			-e USE_HOST_NETWORK=true \
-			playwright-tests /bin/bash; \
-	fi
-	@echo "$(GREEN)✓ Interactive session ended$(NC)"
-
-test-e2e: test-playwright ## Alias for Playwright tests (end-to-end)
