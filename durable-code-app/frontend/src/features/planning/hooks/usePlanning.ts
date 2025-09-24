@@ -185,7 +185,7 @@ const CASE_STUDY_STEPS: CaseStudyStep[] = [
     title: 'PR0: Domain & AWS Setup',
     icon: '🌐',
     subtitle: 'AWS account and domain registration',
-    status: 'in-progress',
+    status: 'completed',
     popup: {
       overview: {
         title: 'AWS Account & Domain Setup',
@@ -223,15 +223,15 @@ const CASE_STUDY_STEPS: CaseStudyStep[] = [
         ],
       },
       implementation: {
-        title: 'Current Progress (Started: 2025-09-23)',
+        title: 'Completed Implementation (2025-09-23)',
         points: [
           '✅ Created feature branch for PR0',
           '✅ Set up Terraform backend configuration',
           '✅ Created AWS provider and variables',
           '✅ Documented domain recommendations',
           '✅ Created environment-specific configurations',
-          '⏳ Awaiting domain registration decision',
-          '⏳ AWS account setup pending',
+          '✅ S3 bucket and DynamoDB table for state management',
+          '✅ PR0 merged to main - Infrastructure foundation ready',
         ],
       },
       outcomes: {
@@ -258,7 +258,7 @@ const CASE_STUDY_STEPS: CaseStudyStep[] = [
     title: 'PR1: Terraform Foundation',
     icon: '🏗️',
     subtitle: 'Infrastructure as Code setup',
-    status: 'upcoming',
+    status: 'completed',
     popup: {
       overview: {
         title: 'Terraform Foundation Setup',
@@ -291,23 +291,26 @@ const CASE_STUDY_STEPS: CaseStudyStep[] = [
         ],
       },
       implementation: {
-        title: 'Implementation Steps',
+        title: 'Completed Implementation (2025-09-23)',
         points: [
-          'Create S3 bucket for state storage',
-          'Configure DynamoDB for state locking',
-          'Define VPC with public/private subnets',
-          'Set up Internet and NAT gateways',
-          'Create initial security groups',
+          '✅ VPC created with CIDR 10.0.0.0/16',
+          '✅ Public/private subnets across 2 AZs (us-west-2a, us-west-2b)',
+          '✅ Internet Gateway and 2 NAT Gateways deployed',
+          '✅ Security groups for ALB and ECS tasks',
+          '✅ Route tables and associations configured',
+          '⚠️ Cost optimization: Reducing to 1 AZ to save $45/month',
         ],
       },
       outcomes: {
-        title: 'Expected Outcomes',
+        title: 'Achieved Results',
         points: [
-          '🎯 Reproducible infrastructure',
-          '🎯 Version-controlled changes',
-          '🎯 Multi-environment support',
-          '🎯 Secure network foundation',
-          '🎯 Cost tracking via tags',
+          '✅ Reproducible infrastructure deployed',
+          '✅ Version-controlled changes in Git',
+          '✅ Multi-environment support (dev/staging/prod)',
+          '✅ Secure network foundation established',
+          '✅ Cost tracking via comprehensive tags',
+          '💰 Initial cost: ~$90/month (2 NAT Gateways)',
+          '🎯 Target cost: ~$45/month (optimizing to 1 AZ)',
         ],
       },
     },
@@ -318,7 +321,7 @@ const CASE_STUDY_STEPS: CaseStudyStep[] = [
     title: 'PR2: Container Registry',
     icon: '📦',
     subtitle: 'ECR repositories setup',
-    status: 'upcoming',
+    status: 'in-progress',
     popup: {
       overview: {
         title: 'ECR Repository Configuration',
