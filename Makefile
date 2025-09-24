@@ -128,3 +128,4 @@ install-hooks: ## Install pre-commit hooks
 -include Makefile.lint
 -include Makefile.test
 -include Makefile.gh
+-include Makefile.infra

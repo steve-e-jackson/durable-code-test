@@ -184,6 +184,15 @@ features:
       - "docker-compose.yml"
     usage: "make help, make build, make test"
 
+  infrastructure-management:
+    file: "features/infrastructure-management.md"
+    summary: "Docker-based Terraform infrastructure management for AWS deployment"
+    key_files:
+      - "Makefile.infra"
+      - "infra/terraform/"
+      - "infra/scripts/"
+    usage: "make infra-plan, make infra-apply, make infra-destroy"
+
   claude-integration:
     file: "features/claude-integration.md"
     summary: "AI-powered development workflows with custom commands"
@@ -264,6 +273,10 @@ howto:
   deploy-application.md:
     purpose: "Production deployment and monitoring"
     key_commands: ["make build", "make start", "make status"]
+
+  manage-infrastructure.md:
+    purpose: "Manage AWS infrastructure using Terraform Make targets"
+    key_commands: ["make infra-plan", "make infra-apply", "make infra-destroy", "make infra-check-aws"]
 
   debug-issues.md:
     purpose: "Systematic debugging and troubleshooting"
@@ -430,3 +443,12 @@ common_workflows:
       - "Test script execution in container"
       - "Remove any local execution references"
     details_in: ".ai/docs/DOCKER_EXECUTION_STANDARDS.md"
+
+  deploy_infrastructure:
+    steps:
+      - "Check AWS credentials with make infra-check-aws"
+      - "Initialize Terraform with make infra-init (auto-runs)"
+      - "Plan changes with make infra-plan"
+      - "Apply infrastructure with make infra-apply"
+      - "Monitor costs and destroy when not needed"
+    details_in: ".ai/howto/manage-infrastructure.md"
