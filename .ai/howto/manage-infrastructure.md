@@ -1,6 +1,9 @@
 # How to Manage Infrastructure
 
-Step-by-step guide for managing AWS infrastructure using Terraform Make targets.
+**Purpose**: Provide step-by-step instructions for managing AWS infrastructure using Docker-based Terraform Make targets
+**Scope**: Infrastructure deployment, state management, cost control, and troubleshooting procedures
+
+---
 
 ## Prerequisites
 
@@ -94,13 +97,13 @@ AWS_PROFILE=staging make infra-plan
 
 ```bash
 # Interactive - will ask for confirmation
-make infra-apply
+make infra-up
 
 # Non-interactive - for CI/CD
-AUTO=true make infra-apply
+AUTO=true make infra-up
 
 # With specific profile
-AWS_PROFILE=production make infra-apply
+AWS_PROFILE=production make infra-up
 ```
 
 ### Checking Current State
@@ -116,7 +119,7 @@ RESOURCE=aws_instance.web make infra-state-show
 make infra-output
 
 # Show outputs as JSON (for scripts)
-make infra-output-json
+FORMAT=json make infra-output
 ```
 
 ## Environment Management
@@ -147,7 +150,7 @@ WORKSPACE=staging make infra-workspace-new
 WORKSPACE=production make infra-workspace-select
 
 # Apply in current workspace
-make infra-apply
+make infra-up
 ```
 
 ## Cost Management
@@ -156,13 +159,10 @@ make infra-apply
 
 ```bash
 # Interactive destroy
-make infra-destroy
+make infra-down
 
 # Non-interactive (careful!)
-AUTO=true make infra-destroy
-
-# Quick alias
-make infra-down
+AUTO=true make infra-down
 ```
 
 ### Check Costs Before Applying
@@ -294,7 +294,7 @@ export AWS_REGION=eu-west-1
 
 # Now commands use these defaults
 make infra-plan
-make infra-apply
+make infra-up
 ```
 
 ## CI/CD Integration
@@ -304,13 +304,13 @@ make infra-apply
 ```yaml
 - name: Deploy Infrastructure
   run: |
-    AWS_PROFILE=production AUTO=true make infra-apply
+    AWS_PROFILE=production AUTO=true make infra-up
 ```
 
 ### Jenkins Example
 
 ```groovy
-sh 'AWS_PROFILE=production AUTO=true make infra-apply'
+sh 'AWS_PROFILE=production AUTO=true make infra-up'
 ```
 
 ## Best Practices
@@ -319,13 +319,13 @@ sh 'AWS_PROFILE=production AUTO=true make infra-apply'
    ```bash
    make infra-plan
    # Review changes
-   make infra-apply
+   make infra-up
    ```
 
 2. **Use workspaces for environments**
    ```bash
    WORKSPACE=staging make infra-workspace-select
-   make infra-apply
+   make infra-up
    ```
 
 3. **Tag resources appropriately**
@@ -336,7 +336,7 @@ sh 'AWS_PROFILE=production AUTO=true make infra-apply'
 4. **Destroy unused infrastructure**
    ```bash
    # Dev environment after work
-   AWS_PROFILE=dev make infra-destroy
+   AWS_PROFILE=dev make infra-down
    ```
 
 5. **Keep state secure**
@@ -363,7 +363,7 @@ make infra-plan
 
 ```bash
 # Destroy dev environment to save costs
-AWS_PROFILE=dev AUTO=true make infra-destroy
+AWS_PROFILE=dev AUTO=true make infra-down
 ```
 
 ### Deploy New Feature
@@ -376,7 +376,7 @@ git checkout feature/new-service
 make infra-plan
 
 # Apply if looks good
-make infra-apply
+make infra-up
 
 # Check outputs
 make infra-output
@@ -386,11 +386,11 @@ make infra-output
 
 ```bash
 # Quick destroy if something goes wrong
-AUTO=true make infra-destroy
+AUTO=true make infra-down
 
 # Or revert to previous state
 git checkout main
-make infra-apply
+make infra-up
 ```
 
 ## Domain Registration

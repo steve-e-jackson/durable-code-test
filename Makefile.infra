@@ -1,6 +1,14 @@
-# Makefile.infra - Infrastructure Management with Terraform
-# Purpose: Provide Docker-based Terraform commands without requiring local AWS configuration
-# This file is included by the main Makefile
+# Purpose: Provide Docker-based Terraform infrastructure management without local tool installation
+# Scope: AWS infrastructure deployment via Make targets that run Terraform in Docker containers
+# Overview: This Makefile extension provides comprehensive infrastructure-as-code management through
+#     Docker-containerized Terraform execution. All commands run in isolated containers with AWS
+#     credentials mounted read-only, eliminating the need for local Terraform or AWS CLI installations.
+#     The system supports auto-initialization, persistent caching via Docker volumes, and parameter-based
+#     customization for CI/CD integration. Commands follow standard IaC terminology (up/down) for
+#     consistency with other infrastructure tools.
+# Dependencies: Docker, AWS credentials in ~/.aws/credentials
+# Integration: Included by main Makefile via -include directive
+# Key Features: Auto-init on first use, Docker volume caching, AWS profile support, CI/CD parameters
 
 .PHONY: infra-help infra-init infra-plan infra-refresh infra-output infra-validate infra-fmt infra-state-list infra-state-show infra-import infra-workspace-list infra-workspace-new infra-workspace-select infra-backend-setup infra-check-aws infra-console infra-graph infra-cost infra-check infra-up infra-down infra-clean-cache infra-reinit check-terraform-init
 

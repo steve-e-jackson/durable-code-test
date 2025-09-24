@@ -1,6 +1,9 @@
 # Infrastructure Management
 
-Docker-based Terraform infrastructure management without local tool installation.
+**Purpose**: Provide comprehensive infrastructure-as-code management using Docker-based Terraform execution
+**Scope**: AWS infrastructure deployment, state management, and workspace operations for all environments
+
+---
 
 ## Overview
 
@@ -53,15 +56,14 @@ infra/
 - `make infra-help` - Show all infrastructure management commands
 - `make infra-init` - Initialize Terraform (auto-runs on first use)
 - `make infra-plan` - Preview infrastructure changes
-- `make infra-apply` - Apply infrastructure changes
-- `make infra-destroy` - Destroy all infrastructure
+- `make infra-up` - Deploy infrastructure
+- `make infra-down` - Destroy infrastructure
 
 ### State Management
 - `make infra-state-list` - List resources in state
 - `make infra-state-show RESOURCE=<name>` - Show resource details
 - `make infra-refresh` - Update state from real infrastructure
-- `make infra-output` - Show Terraform outputs
-- `make infra-output-json` - Show outputs in JSON format
+- `make infra-output` - Show Terraform outputs (use FORMAT=json for JSON)
 
 ### Workspace Management
 - `make infra-workspace-list` - List workspaces
@@ -80,7 +82,7 @@ infra/
 
 ### Quick Commands
 - `make infra-check` - Format and validate
-- `make infra-up` - Initialize and apply
+- `make infra-up` - Deploy infrastructure (auto-initializes)
 - `make infra-down` - Destroy infrastructure
 
 ## Configuration
@@ -98,13 +100,13 @@ infra/
 AWS_PROFILE=production make infra-plan
 
 # Use different region
-AWS_REGION=eu-west-1 make infra-apply
+AWS_REGION=eu-west-1 make infra-up
 
 # Skip confirmation
-AUTO=true make infra-apply
+AUTO=true make infra-up
 
 # Combine options
-AWS_PROFILE=staging AUTO=true make infra-destroy
+AWS_PROFILE=staging AUTO=true make infra-down
 ```
 
 ## Auto-Initialization
