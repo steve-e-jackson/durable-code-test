@@ -57,6 +57,9 @@ lint-all: dev-start ## Run ALL linters (Python, JS/TS, and custom design rules)
 		fi
 	@echo "$(GREEN)✓ Custom design linting passed$(NC)"
 	@echo ""
+	@echo "$(YELLOW)━━━ Infrastructure Linters ━━━$(NC)"
+	@$(MAKE) -s lint-infra || (echo "$(RED)✗ Infrastructure linting failed$(NC)" && exit 1)
+	@echo ""
 	@echo "$(GREEN)✅ ALL linting checks passed!$(NC)"
 
 # Auto-fix formatting issues
@@ -82,6 +85,32 @@ lint-custom: dev-start ## Run custom design linters with all categories
 	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
 	@docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "cd /app && PYTHONPATH=/app/tools python -m design_linters --format text --recursive app"
 	@echo "$(GREEN)✓ Custom linting complete$(NC)"
+
+# Lint infrastructure files (Terraform and shell scripts)
+lint-infra: dev-start ## Lint infrastructure files (Terraform format/validate and shell scripts)
+	@echo "$(CYAN)╔════════════════════════════════════════════════════════════╗$(NC)"
+	@echo "$(CYAN)║              Infrastructure Linting                       ║$(NC)"
+	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
+	@echo ""
+	@echo "$(YELLOW)• Terraform format check...$(NC)"
+	@$(MAKE) -s infra-fmt 2>&1 | grep -v "Terraform files formatted" || true
+	@echo "$(YELLOW)• Terraform validation...$(NC)"
+	@$(MAKE) -s infra-validate 2>&1 | grep -v "Configuration is valid" || true
+	@echo ""
+	@echo "$(YELLOW)• Shell scripts...$(NC)"
+	@docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "\
+		if command -v shellcheck >/dev/null 2>&1; then \
+			for script in infra/scripts/*.sh scripts/*.sh; do \
+				if [ -f \"\$$script\" ]; then \
+					echo \"  Checking \$$script...\"; \
+					shellcheck \"\$$script\" || exit 1; \
+				fi; \
+			done; \
+			echo '$(GREEN)  ✓ Shell scripts passed linting$(NC)'; \
+		else \
+			echo '$(YELLOW)  ⚠ shellcheck not installed in container - rebuild with make build$(NC)'; \
+		fi" || (echo "$(RED)✗ Shell script linting failed$(NC)" && exit 1)
+	@echo "$(GREEN)✓ Infrastructure linting passed$(NC)"
 
 # List all custom rule categories
 lint-categories: dev-start ## List all custom rule categories with descriptions

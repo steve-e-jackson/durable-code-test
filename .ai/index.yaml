@@ -23,8 +23,8 @@ quick_actions:
     purpose: "Verify correct location for any file type"
     note: "MUST be checked before creating or moving files"
   generate_code:
-    command: "/new-code [filename] [description]"
-    process: "1. Check layout.yaml 2. Select template 3. Read template details in index_expanded.md 4. Use /new-code command"
+    guide: ".ai/howto/create-new-code-files.md"
+    process: "1. Check layout.yaml 2. Select template 3. Read template details in index_expanded.md 4. Follow code creation guide"
   ask_questions:
     command: "/ask [your question]"
     note: "Automatically references index, layout, and expanded documentation"
@@ -56,7 +56,7 @@ templates:
     purpose: "Add new tabs to the web application interface"
     location: "durable-code-app/frontend/src/components/tabs/ or features/[feature-name]/"
     example_files:
-      - "durable-code-app/frontend/src/components/tabs/PlanningTab.tsx"
+      - "durable-code-app/frontend/src/features/planning/components/PlanningTab/PlanningTab.tsx"
       - "durable-code-app/frontend/src/features/repository/"
 
   fastapi-endpoint.py.template:
@@ -199,7 +199,7 @@ features:
     key_files:
       - ".claude/commands/"
       - ".ai/templates/"
-    usage: "/new-code, /ask, /solid commands"
+    usage: "/ask, /solid, /fix, /done commands"
 
   testing-framework:
     file: "features/testing-framework.md"
@@ -309,18 +309,9 @@ howto:
     purpose: "Verify React app renders correctly using various testing tools"
     key_commands: ["make check-page", "make check-page-full", "make check-page-watch"]
 
-file_structure:
-  _note: "Key directories and their purposes"
-  tools/design_linters/: "Linting framework implementation"
-  durable-code-app/: "Full-stack web application"
-  durable-code-app/frontend/src/features/: "Feature-based architecture for complex components"
-  durable-code-app/frontend/src/components/: "Simple reusable components and basic tabs"
-  durable-code-app/frontend/src/core/errors/: "Error boundary repository and global error handling"
-  durable-code-app/frontend/scripts/: "Page content verification and testing tools"
-  test/: "Comprehensive test suites"
-  .ai/: "AI agent documentation and templates"
-  .claude/commands/: "Claude AI command definitions"
-  scripts/: "Development automation scripts"
+  create-new-code-files.md:
+    purpose: "Step-by-step guide for creating production-ready code files"
+    key_commands: ["Follow 9-step process", "Check layout.yaml first", "Use templates"]
 
 common_workflows:
   add_linting_rule:
