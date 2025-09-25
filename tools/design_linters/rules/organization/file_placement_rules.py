@@ -25,10 +25,12 @@ from typing import Any
 
 import yaml
 from design_linters.framework.interfaces import ASTLintRule, LintContext, LintViolation, Severity
+
 try:
     from loguru import logger
 except ImportError:
     import logging
+
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
 
