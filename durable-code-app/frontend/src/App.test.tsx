@@ -100,7 +100,7 @@ describe('App Component', () => {
         ).toBeInTheDocument();
       });
       await waitFor(() => {
-        expect(screen.getByText('Project Layout')).toBeInTheDocument();
+        expect(screen.getByText('Tell AI Where to Put Things')).toBeInTheDocument();
       });
     });
   });
@@ -116,10 +116,10 @@ describe('App Component', () => {
         ).toBeInTheDocument();
       });
       await waitFor(() => {
-        expect(screen.getByText('Project Layout')).toBeInTheDocument();
+        expect(screen.getByText('Tell AI Where to Put Things')).toBeInTheDocument();
       });
       await waitFor(() => {
-        expect(screen.getByText('Custom Linters')).toBeInTheDocument();
+        expect(screen.getByText('Gate Everything You Care About')).toBeInTheDocument();
       });
     });
 
