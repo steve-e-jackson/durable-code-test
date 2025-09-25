@@ -1,5 +1,29 @@
 # AWS Deployment Infrastructure - PR Breakdown
 
+## 🚀 PROGRESS TRACKER - MUST BE UPDATED AFTER EACH PR!
+
+### ✅ Completed PRs
+- ✅ **PR1**: Terraform Foundation and AWS Provider Setup - MERGED
+- ✅ **PR2**: ECR Repositories and Container Registry Setup - MERGED
+- ✅ **PR3**: ECS Cluster and Fargate Service Configuration - MERGED #16
+- ✅ **PR4**: Application Load Balancer and DNS Configuration - CREATED #18
+
+### 🎯 NEXT PR TO IMPLEMENT
+➡️ **START HERE: PR4.5** - Dual-Architecture Terraform Refactor (Base/Runtime Separation)
+
+### 📋 Remaining PRs
+- ⬜ **PR4.5**: Dual-Architecture Terraform (Base/Runtime) - NEW!
+- ⬜ **PR5**: GitHub Actions CI/CD Pipeline
+- ⬜ **PR6**: Monitoring, Alerting, and Observability
+- ⬜ **PR7**: Security Hardening and Compliance
+- ⬜ **PR8**: Cost Optimization with Scheduled Infrastructure
+- ⬜ **PR9**: Backup, Disaster Recovery, and Rollback
+- ⬜ **PR10**: Production Readiness and Documentation
+
+**Progress**: 36% Complete (4/11 PRs)
+
+---
+
 ## Overview
 This document breaks down the AWS deployment setup into manageable, atomic PRs. Each PR is designed to be:
 - Self-contained and testable
@@ -232,6 +256,82 @@ infra/terraform/
 - [ ] HTTPS working with valid certificate
 - [ ] Target groups healthy
 - [ ] DNS resolution working (if configured)
+
+---
+
+## PR4.5: Dual-Architecture Terraform Refactor (Base/Runtime Separation)
+
+### Context
+Refactor Terraform into a dual-architecture approach to solve the 30+ minute certificate validation delays discovered in PR4. Separate persistent "base" resources (certificates, Route53 zones) from ephemeral "runtime" resources (ALB, ECS, NAT Gateway) to enable fast infrastructure recovery (<5 minutes) while avoiding lengthy certificate re-validation.
+
+### Problem Being Solved
+- ACM certificate DNS validation takes 30+ minutes
+- Full infrastructure destroy/create cycles are painful for developers
+- Need ability to quickly tear down expensive resources while preserving slow-to-provision ones
+
+### Files to Create/Modify
+```
+infra/
+├── terraform-base/           # Persistent resources (rarely destroyed)
+│   ├── main.tf
+│   ├── variables.tf
+│   ├── outputs.tf
+│   ├── acm.tf              # Move from terraform/
+│   ├── route53.tf          # Move from terraform/
+│   └── ecr.tf              # Move from terraform/
+├── terraform-runtime/       # Ephemeral resources (frequently cycled)
+│   ├── main.tf
+│   ├── variables.tf
+│   ├── data.tf            # Reference base outputs
+│   ├── alb.tf             # Move from terraform/
+│   ├── ecs.tf             # Keep in runtime
+│   └── networking.tf      # NAT Gateway, etc.
+└── Makefile               # Update with new paths
+```
+
+### Implementation Steps
+1. **Split resources by provisioning time and cost**:
+   - Base (keep): ACM certs, Route53 zones, ECR repos, VPC, subnets
+   - Runtime (cycle): NAT Gateway, ALB, ECS services, tasks
+
+2. **Create data sources in runtime to reference base**:
+   ```hcl
+   # terraform-runtime/data.tf
+   data "terraform_remote_state" "base" {
+     backend = "s3"
+     config = {
+       bucket = "durable-code-terraform-state"
+       key    = "infrastructure/base/terraform.tfstate"
+       region = "us-west-2"
+     }
+   }
+   ```
+
+3. **Update Makefile targets**:
+   ```makefile
+   infra-base-up:
+       cd infra/terraform-base && terraform apply
+
+   infra-runtime-up:
+       cd infra/terraform-runtime && terraform apply
+
+   infra-runtime-down:
+       cd infra/terraform-runtime && terraform destroy
+   ```
+
+### Testing
+- Deploy base infrastructure (should include certs)
+- Deploy runtime infrastructure
+- Destroy runtime only
+- Redeploy runtime (should be <5 minutes)
+- Verify certificate still valid
+
+### Success Criteria
+- [ ] Base resources persist through runtime cycles
+- [ ] Runtime can be destroyed/created in <5 minutes
+- [ ] Certificate validation not required on runtime redeploy
+- [ ] Cost savings of ~$60/month from scheduled runtime teardown
+- [ ] Clear separation of concerns
 
 ---
 

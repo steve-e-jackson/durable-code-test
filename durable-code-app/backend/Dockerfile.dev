@@ -22,7 +22,16 @@ RUN apt-get update && apt-get install -y \
     libxfixes3 libxrandr2 libgbm1 libxcb1 \
     libxkbcommon0 libpango-1.0-0 libcairo2 libasound2 \
     shellcheck \
+    curl \
     && rm -rf /var/lib/apt/lists/*
+
+# Install TFLint for Terraform linting
+RUN curl -sSfL https://github.com/terraform-linters/tflint/releases/download/v0.55.0/tflint_linux_amd64.zip -o /tmp/tflint.zip && \
+    apt-get update && apt-get install -y unzip && \
+    unzip /tmp/tflint.zip -d /usr/local/bin && \
+    rm /tmp/tflint.zip && \
+    chmod +x /usr/local/bin/tflint && \
+    apt-get remove -y unzip && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
 # Copy application code
 COPY . .

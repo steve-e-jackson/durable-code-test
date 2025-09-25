@@ -87,7 +87,7 @@ lint-custom: dev-start ## Run custom design linters with all categories
 	@echo "$(GREEN)✓ Custom linting complete$(NC)"
 
 # Lint infrastructure files (Terraform and shell scripts)
-lint-infra: dev-start ## Lint infrastructure files (Terraform format/validate and shell scripts)
+lint-infra: dev-start ## Lint infrastructure files (Terraform format/validate, TFLint, and shell scripts)
 	@echo "$(CYAN)╔════════════════════════════════════════════════════════════╗$(NC)"
 	@echo "$(CYAN)║              Infrastructure Linting                       ║$(NC)"
 	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
@@ -96,6 +96,20 @@ lint-infra: dev-start ## Lint infrastructure files (Terraform format/validate an
 	@$(MAKE) -s infra-fmt 2>&1 | grep -v "Terraform files formatted" || true
 	@echo "$(YELLOW)• Terraform validation...$(NC)"
 	@$(MAKE) -s infra-validate 2>&1 | grep -v "Configuration is valid" || true
+	@echo ""
+	@echo "$(YELLOW)• TFLint (Terraform linter)...$(NC)"
+	@docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "\
+		if command -v tflint >/dev/null 2>&1; then \
+			if [ -d /app/infra ]; then \
+				echo '  Running TFLint on /app/infra directory...'; \
+				cd /app/infra && tflint --recursive || exit 1; \
+				echo '$(GREEN)  ✓ TFLint checks passed$(NC)'; \
+			else \
+				echo '$(YELLOW)  ⚠ /app/infra directory not found$(NC)'; \
+			fi; \
+		else \
+			echo '$(YELLOW)  ⚠ tflint not installed in container - rebuild with make init$(NC)'; \
+		fi" || (echo "$(RED)✗ TFLint linting failed$(NC)" && exit 1)
 	@echo ""
 	@echo "$(YELLOW)• Shell scripts...$(NC)"
 	@docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "\
