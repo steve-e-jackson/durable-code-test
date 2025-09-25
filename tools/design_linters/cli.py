@@ -20,7 +20,13 @@ import traceback
 from pathlib import Path
 from typing import Any
 
-from loguru import logger
+try:
+    from loguru import logger
+except ImportError:
+    # Fallback to standard logging if loguru is not available
+    import logging
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
 
 from .framework import LintOrchestrator, LintViolation, create_orchestrator
 from .framework.reporters import ReporterFactory
