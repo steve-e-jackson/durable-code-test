@@ -20,6 +20,11 @@ AWS_REGION ?= us-west-2
 AWS_PROFILE ?= terraform-deploy
 # Environment selection (dev, staging, prod)
 ENV ?= dev
+# Scope selection for infra-up/down (runtime, base, all)
+# runtime = temporal resources (ECS, ALB listeners, etc.)
+# base = persistent resources (VPC, NAT, ECR, Route53)
+# all = everything
+SCOPE ?= runtime
 
 # Docker volume for persistent .terraform directory
 TERRAFORM_VOLUME = terraform-cache-$(shell echo $(PWD) | md5sum | cut -d' ' -f1)
@@ -75,14 +80,17 @@ infra-help: ## Show infrastructure management commands
 	@echo ""
 	@echo "$(GREEN)Core Commands:$(NC)"
 	@echo "  $(YELLOW)make infra-plan$(NC)                  # Preview infrastructure changes"
-	@echo "  $(YELLOW)make infra-up$(NC)                    # Deploy infrastructure"
-	@echo "  $(YELLOW)make infra-down$(NC)                  # Destroy infrastructure"
+	@echo "  $(YELLOW)make infra-up$(NC)                    # Deploy infrastructure (default: runtime only)"
+	@echo "  $(YELLOW)make infra-down$(NC)                  # Destroy infrastructure (default: runtime only)"
+	@echo "  $(YELLOW)make infra-up SCOPE=all$(NC)          # Deploy all infrastructure"
+	@echo "  $(YELLOW)make infra-down SCOPE=all$(NC)        # Destroy all infrastructure"
 	@echo "  $(YELLOW)make infra-up AUTO=true$(NC)          # Deploy without confirmation"
 	@echo ""
 	@echo "$(GREEN)Available targets:$(NC)"
 	@grep -E '^infra-[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sed 's/^[^:]*://' | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(YELLOW)%-25s$(NC) %s\n", $$1, $$2}' | sort
 	@echo ""
 	@echo "$(GREEN)Parameters:$(NC)"
+	@echo "  $(YELLOW)SCOPE=<scope>$(NC)            # Deployment scope (runtime|base|all) - default: runtime"
 	@echo "  $(YELLOW)AUTO=true$(NC)                # Skip confirmation prompts (up/down)"
 	@echo "  $(YELLOW)FORMAT=json$(NC)              # Output in JSON format (infra-output)"
 	@echo "  $(YELLOW)AWS_PROFILE=<name>$(NC)       # Use specific AWS profile"
@@ -93,10 +101,13 @@ infra-help: ## Show infrastructure management commands
 	@echo ""
 	@echo "$(YELLOW)Example usage:$(NC)"
 	@echo "  AWS_PROFILE=myprofile make infra-plan"
-	@echo "  AWS_REGION=eu-west-1 make infra-up"
-	@echo "  AUTO=true make infra-up                 # Deploy without confirmation"
+	@echo "  make infra-up                           # Deploy runtime resources only"
+	@echo "  make infra-down                         # Destroy runtime resources only"
+	@echo "  SCOPE=all make infra-up                 # Deploy all infrastructure"
+	@echo "  SCOPE=all make infra-down               # Destroy everything"
+	@echo "  SCOPE=base make infra-up                # Deploy only base/persistent resources"
+	@echo "  AUTO=true make infra-down               # Destroy runtime without confirmation"
 	@echo "  FORMAT=json make infra-output           # Output in JSON format"
-	@echo "  AUTO=true make infra-down               # Destroy without confirmation"
 	@echo ""
 	@echo "$(YELLOW)Troubleshooting:$(NC)"
 	@echo "  • Backend changed error: run 'make infra-reinit'"
@@ -185,12 +196,22 @@ infra-fmt: ## Format Terraform files to canonical style
 	@$(TERRAFORM_DOCKER_RUN) fmt -recursive
 	@echo "$(GREEN)✓ Terraform files formatted!$(NC)"
 
-infra-plan: check-terraform-init ## Show what changes will be made (dry run)
+infra-plan: check-terraform-init ## Show what changes will be made (dry run, respects SCOPE parameter)
 	@echo "$(CYAN)Planning infrastructure changes...$(NC)"
 	@echo "$(YELLOW)Environment: $(ENV)$(NC)"
 	@echo "$(YELLOW)AWS Profile: $(AWS_PROFILE)$(NC)"
 	@echo "$(YELLOW)AWS Region: $(AWS_REGION)$(NC)"
-	@$(TERRAFORM_DOCKER_RUN) plan -var-file=/environments/$(ENV).tfvars
+	@echo "$(YELLOW)Planning Scope: $(SCOPE)$(NC)"
+	@if [ "$(SCOPE)" = "runtime" ]; then \
+		echo "$(GREEN)Planning runtime resources only (ECS, ALB listeners, etc.)$(NC)"; \
+	elif [ "$(SCOPE)" = "base" ]; then \
+		echo "$(BLUE)Planning base resources only (VPC, NAT, ECR, Route53)$(NC)"; \
+	else \
+		echo "$(YELLOW)Planning all resources$(NC)"; \
+	fi
+	@# Generate target flags based on scope
+	$(eval TARGETS := $(shell bash $(PWD)/infra/scripts/generate-targets.sh $(SCOPE)))
+	@$(TERRAFORM_DOCKER_RUN) plan -var-file=/environments/$(ENV).tfvars -var="deployment_scope=$(SCOPE)" $(TARGETS)
 	@echo "$(GREEN)✓ Plan complete!$(NC)"
 
 
@@ -283,36 +304,96 @@ infra-cost: ## Estimate monthly costs (requires Infracost)
 # Quick Commands
 infra-check: infra-fmt infra-validate ## Format and validate configuration
 
-infra-up: check-terraform-init ## Deploy infrastructure (use AUTO=true for auto-approve)
+# Convenience targets for base/runtime separation
+infra-up-base: ## Deploy only base infrastructure (VPC, NAT, ECR, Route53, ACM certificates)
+	@$(MAKE) infra-up SCOPE=base
+
+infra-up-runtime: ## Deploy only runtime infrastructure (ECS, ALB listeners, etc.)
+	@$(MAKE) infra-up SCOPE=runtime
+
+infra-up-all: ## Deploy all infrastructure (base + runtime)
+	@$(MAKE) infra-up SCOPE=all
+
+infra-down-runtime: ## Destroy only runtime infrastructure (preserves base)
+	@$(MAKE) infra-down SCOPE=runtime
+
+infra-down-all: ## Destroy all infrastructure including base
+	@$(MAKE) infra-down SCOPE=all
+
+infra-up: check-terraform-init ## Deploy infrastructure (use AUTO=true for auto-approve, SCOPE=runtime|base|all)
 	@echo "$(CYAN)Deploying infrastructure...$(NC)"
 	@echo "$(YELLOW)Environment: $(ENV)$(NC)"
 	@echo "$(YELLOW)AWS Profile: $(AWS_PROFILE)$(NC)"
 	@echo "$(YELLOW)AWS Region: $(AWS_REGION)$(NC)"
+	@echo "$(YELLOW)Deployment Scope: $(SCOPE)$(NC)"
+	@if [ "$(SCOPE)" = "runtime" ]; then \
+		echo "$(GREEN)Deploying runtime resources only (ECS, ALB listeners, etc.)$(NC)"; \
+	elif [ "$(SCOPE)" = "base" ]; then \
+		echo "$(BLUE)Deploying base resources only (VPC, NAT, ECR, Route53)$(NC)"; \
+	else \
+		echo "$(YELLOW)Deploying all resources$(NC)"; \
+	fi
+	@# Generate target flags based on scope
+	$(eval TARGETS := $(shell bash $(PWD)/infra/scripts/generate-targets.sh $(SCOPE)))
 	@if [ "$(AUTO)" = "true" ]; then \
 		echo "$(YELLOW)Auto-approve mode enabled$(NC)"; \
-		$(TERRAFORM_DOCKER_RUN) apply -var-file=/environments/$(ENV).tfvars -auto-approve; \
+		$(TERRAFORM_DOCKER_RUN) apply -var-file=/environments/$(ENV).tfvars -var="deployment_scope=$(SCOPE)" $(TARGETS) -auto-approve; \
 	else \
 		echo "$(RED)⚠️  This will create/modify real AWS resources!$(NC)"; \
 		echo "$(YELLOW)Press Ctrl+C to cancel, or wait 5 seconds to continue...$(NC)"; \
 		sleep 5; \
-		$(TERRAFORM_DOCKER_RUN_IT) apply -var-file=/environments/$(ENV).tfvars; \
+		$(TERRAFORM_DOCKER_RUN_IT) apply -var-file=/environments/$(ENV).tfvars -var="deployment_scope=$(SCOPE)" $(TARGETS); \
 	fi
 	@echo "$(GREEN)✓ Infrastructure deployed successfully!$(NC)"
 
-infra-down: check-terraform-init ## Destroy infrastructure (use AUTO=true for auto-approve - DANGEROUS!)
-	@echo "$(RED)╔════════════════════════════════════════════════════════════╗$(NC)"
-	@echo "$(RED)║  ⚠️  WARNING: This will DESTROY all infrastructure! ⚠️     ║$(NC)"
-	@echo "$(RED)╚════════════════════════════════════════════════════════════╝$(NC)"
+infra-down: check-terraform-init ## Destroy infrastructure (use AUTO=true for auto-approve, SCOPE=runtime|base|all)
+	@if [ "$(SCOPE)" = "all" ]; then \
+		echo "$(RED)╔════════════════════════════════════════════════════════════╗$(NC)"; \
+		echo "$(RED)║  ⚠️  WARNING: This will DESTROY ALL infrastructure! ⚠️     ║$(NC)"; \
+		echo "$(RED)║                                                            ║$(NC)"; \
+		echo "$(RED)║  To proceed, you must set CONFIRM=destroy-all             ║$(NC)"; \
+		echo "$(RED)╚════════════════════════════════════════════════════════════╝$(NC)"; \
+		if [ "$(CONFIRM)" != "destroy-all" ]; then \
+			echo "$(RED)ERROR: Full infrastructure destruction requires confirmation.$(NC)"; \
+			echo "$(RED)Run: make infra-down SCOPE=all CONFIRM=destroy-all$(NC)"; \
+			exit 1; \
+		fi; \
+	elif [ "$(SCOPE)" = "base" ]; then \
+		echo "$(RED)╔════════════════════════════════════════════════════════════╗$(NC)"; \
+		echo "$(RED)║  ⚠️  WARNING: Destroying BASE infrastructure! ⚠️           ║$(NC)"; \
+		echo "$(RED)║     This includes VPC, NAT Gateway, ECR, Route53          ║$(NC)"; \
+		echo "$(RED)║                                                            ║$(NC)"; \
+		echo "$(RED)║  To proceed, you must set CONFIRM=destroy-base            ║$(NC)"; \
+		echo "$(RED)╚════════════════════════════════════════════════════════════╝$(NC)"; \
+		if [ "$(CONFIRM)" != "destroy-base" ]; then \
+			echo "$(RED)ERROR: Base infrastructure is protected.$(NC)"; \
+			echo "$(RED)Run: make infra-down SCOPE=base CONFIRM=destroy-base$(NC)"; \
+			exit 1; \
+		fi; \
+	else \
+		echo "$(YELLOW)╔════════════════════════════════════════════════════════════╗$(NC)"; \
+		echo "$(YELLOW)║  Destroying runtime infrastructure (ECS, ALB listeners)   ║$(NC)"; \
+		echo "$(YELLOW)║  Base resources (VPC, NAT, ECR) will be preserved        ║$(NC)"; \
+		echo "$(YELLOW)╚════════════════════════════════════════════════════════════╝$(NC)"; \
+	fi
 	@echo "$(YELLOW)Environment: $(ENV)$(NC)"
 	@echo "$(YELLOW)AWS Profile: $(AWS_PROFILE)$(NC)"
 	@echo "$(YELLOW)AWS Region: $(AWS_REGION)$(NC)"
+	@echo "$(YELLOW)Destroy Scope: $(SCOPE)$(NC)"
+	@# Generate target flags based on scope
+	$(eval TARGETS := $(shell bash $(PWD)/infra/scripts/generate-targets.sh $(SCOPE)))
 	@if [ "$(AUTO)" = "true" ]; then \
 		echo "$(RED)Auto-approve mode enabled - destroying immediately!$(NC)"; \
-		$(TERRAFORM_DOCKER_RUN) destroy -var-file=/environments/$(ENV).tfvars -auto-approve; \
+		$(TERRAFORM_DOCKER_RUN) destroy -var-file=/environments/$(ENV).tfvars -var="deployment_scope=$(SCOPE)" $(TARGETS) -auto-approve; \
 	else \
-		echo "$(RED)Press Ctrl+C to cancel, or wait 10 seconds to continue...$(NC)"; \
-		sleep 10; \
-		$(TERRAFORM_DOCKER_RUN_IT) destroy -var-file=/environments/$(ENV).tfvars; \
+		if [ "$(SCOPE)" = "all" ] || [ "$(SCOPE)" = "base" ]; then \
+			echo "$(RED)Press Ctrl+C to cancel, or wait 10 seconds to continue...$(NC)"; \
+			sleep 10; \
+		else \
+			echo "$(YELLOW)Press Ctrl+C to cancel, or wait 5 seconds to continue...$(NC)"; \
+			sleep 5; \
+		fi; \
+		$(TERRAFORM_DOCKER_RUN_IT) destroy -var-file=/environments/$(ENV).tfvars -var="deployment_scope=$(SCOPE)" $(TARGETS); \
 	fi
 	@echo "$(GREEN)✓ Infrastructure destroyed!$(NC)"
 

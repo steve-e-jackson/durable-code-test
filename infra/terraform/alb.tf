@@ -153,10 +153,10 @@ resource "aws_lb_listener" "http" {
   port              = 80
   protocol          = "HTTP"
 
-  # In production, redirect all HTTP to HTTPS
-  # In dev, forward to frontend for simplicity
+  # Redirect HTTP to HTTPS when HTTPS is enabled
+  # Otherwise forward to frontend
   dynamic "default_action" {
-    for_each = var.environment == "prod" && var.enable_https ? [1] : []
+    for_each = var.enable_https && var.certificate_arn != "" ? [1] : []
     content {
       type = "redirect"
 
@@ -168,9 +168,9 @@ resource "aws_lb_listener" "http" {
     }
   }
 
-  # Dev environment or when HTTPS is disabled
+  # When HTTPS is disabled or no certificate available
   dynamic "default_action" {
-    for_each = var.environment != "prod" || !var.enable_https ? [1] : []
+    for_each = !var.enable_https || var.certificate_arn == "" ? [1] : []
     content {
       type             = "forward"
       target_group_arn = aws_lb_target_group.frontend.arn
@@ -178,9 +178,9 @@ resource "aws_lb_listener" "http" {
   }
 }
 
-# HTTPS Listener (production only, when certificate is available)
+# HTTPS Listener (when certificate is available and HTTPS is enabled)
 resource "aws_lb_listener" "https" {
-  count = var.environment == "prod" && var.enable_https && var.certificate_arn != "" ? 1 : 0
+  count = var.enable_https && var.certificate_arn != "" ? 1 : 0
 
   load_balancer_arn = aws_lb.main.arn
   port              = 443
@@ -206,14 +206,14 @@ resource "aws_lb_listener_rule" "backend_http" {
 
   condition {
     path_pattern {
-      values = ["/api/*", "/health", "/docs", "/redoc", "/openapi.json"]
+      values = ["/api/*", "/health", "/oscilloscope/*"]
     }
   }
 }
 
 # Listener Rule for Backend API (HTTPS)
 resource "aws_lb_listener_rule" "backend_https" {
-  count = var.environment == "prod" && var.enable_https && var.certificate_arn != "" ? 1 : 0
+  count = var.enable_https && var.certificate_arn != "" ? 1 : 0
 
   listener_arn = aws_lb_listener.https[0].arn
   priority     = 100
@@ -225,7 +225,7 @@ resource "aws_lb_listener_rule" "backend_https" {
 
   condition {
     path_pattern {
-      values = ["/api/*", "/health", "/docs", "/redoc", "/openapi.json"]
+      values = ["/api/*", "/health", "/oscilloscope/*"]
     }
   }
 }

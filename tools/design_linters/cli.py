@@ -20,7 +20,14 @@ import traceback
 from pathlib import Path
 from typing import Any
 
-from loguru import logger
+try:
+    from loguru import logger
+except ImportError:
+    # Fallback to standard logging if loguru is not available
+    import logging
+
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
 
 from .framework import LintOrchestrator, LintViolation, create_orchestrator
 from .framework.reporters import ReporterFactory
@@ -135,7 +142,7 @@ class ConfigurationLoader:
                 data = json.load(f)
                 return data if isinstance(data, dict) else {}
         except (FileNotFoundError, json.JSONDecodeError) as e:
-            logger.error("Failed to load config file {}: {}", config_path, e)
+            logger.error("Failed to load config file %s: %s", config_path, e)
             raise ValueError(f"Failed to load config file {config_path}: {e}") from e
 
     def apply_config_file(self, config: dict[str, Any], args: argparse.Namespace) -> None:
@@ -322,9 +329,9 @@ class OutputManager:
         try:
             with open(args.output, "w", encoding="utf-8") as f:
                 f.write(report)
-            logger.info("Report written to {}", args.output)
+            logger.info("Report written to %s", args.output)
         except OSError as e:
-            logger.exception("Error writing to {}: {}", args.output, e)
+            logger.exception("Error writing to %s: %s", args.output, e)
 
 
 class LintingExecutor:
@@ -351,7 +358,7 @@ class LintingExecutor:
         try:
             return create_orchestrator()
         except Exception as e:
-            logger.error("Failed to create orchestrator: {}", e)
+            logger.error("Failed to create orchestrator: %s", e)
             raise
 
     def _lint_all_paths(
@@ -442,7 +449,7 @@ class DesignLinterCLI:  # design-lint: ignore[solid.srp.low-cohesion]
 
     def _handle_cli_error(self, error: Exception, local_vars: dict) -> int:
         """Handle CLI execution errors."""
-        logger.error("❌ Error during linting: {}", error)
+        logger.error("❌ Error during linting: %s", error)
 
         should_show_traceback = self._should_show_traceback(local_vars)
         if should_show_traceback:
@@ -466,7 +473,7 @@ class DesignLinterCLI:  # design-lint: ignore[solid.srp.low-cohesion]
         try:
             return create_orchestrator()
         except Exception as e:
-            logger.error("Failed to create orchestrator: {}", e)
+            logger.error("Failed to create orchestrator: %s", e)
             raise
 
     def _determine_exit_code(self, violations: list[LintViolation], args: argparse.Namespace) -> int:
