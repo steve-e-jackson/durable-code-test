@@ -13,10 +13,47 @@ import { type ReactElement, useCallback, useState } from 'react';
 import type { CaseStudyStep } from '../../types/planning.types';
 import { usePlanning } from '../../hooks/usePlanning';
 import styles from './PlanningTab.module.css';
+import {
+  FaCalendarAlt,
+  FaChartBar,
+  FaCheckCircle,
+  FaCog,
+  FaExchangeAlt,
+  FaFileAlt,
+  FaListUl,
+  FaRocket,
+  FaTasks,
+} from 'react-icons/fa';
 
 export function PlanningTab(): ReactElement {
   const { planningSection, caseStudy } = usePlanning();
   const [selectedStep, setSelectedStep] = useState<string | null>(null);
+
+  // Icon mapping function
+  const getIconForDocument = (docId: string): ReactElement | null => {
+    switch (docId) {
+      case 'feature-index':
+        return <FaListUl />;
+      case 'metadata':
+        return <FaChartBar />;
+      case 'progress':
+        return <FaTasks />;
+      case 'rollout':
+        return <FaRocket />;
+      case 'tech-spec':
+        return <FaCog />;
+      case 'testing':
+        return <FaCheckCircle />;
+      case 'dev-flow':
+        return <FaExchangeAlt />;
+      case 'ai-review':
+        return <FaFileAlt />;
+      case 'implementation':
+        return <FaCalendarAlt />;
+      default:
+        return null;
+    }
+  };
 
   const handleStepClick = useCallback((step: CaseStudyStep) => {
     setSelectedStep(step.id);
@@ -34,7 +71,7 @@ export function PlanningTab(): ReactElement {
       <div className={styles.grid}>
         {planningSection.documents.map((doc) => (
           <div key={doc.id} className={styles.card}>
-            <span className={styles.cardIcon}>{doc.icon}</span>
+            <span className={styles.cardIcon}>{getIconForDocument(doc.id)}</span>
             <h4 className="light-title-on-dark">{doc.title}</h4>
             <p className="light-text-on-dark">{doc.description}</p>
             <a href={doc.href} className={styles.cardLink}>
