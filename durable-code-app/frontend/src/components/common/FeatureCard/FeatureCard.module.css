@@ -1,120 +1,142 @@
 /**
  * Purpose: Styles for reusable FeatureCard component
- * Scope: Common card styling with theme variants
- * Overview: Standardized card styles with color variants for different tabs
+ * Scope: Common card styling with badge system
+ * Overview: Standardized card styles with consistent layout and badge variants
  * Dependencies: CSS Variables from theme system
- * Exports: CSS module classes with variant modifiers
- * Implementation: Base card with color variant system
+ * Exports: CSS module classes with badge variants
+ * Implementation: Base card with badge system for tab standardization
  */
 
-.featureCard {
+.card {
   background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 100%);
-  border: 1px solid var(--color-border-light, rgba(255, 255, 255, 0.2));
-  border-radius: var(--space-3, 12px);
-  padding: var(--space-6, 1.5rem);
+  border: 1px solid rgba(100, 200, 255, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
   transition: all 0.3s ease;
   position: relative;
+  overflow: hidden;
 }
 
-.featureCard:hover {
-  transform: translateY(-2px);
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(100, 200, 255, 0.2);
+  border-color: rgba(100, 200, 255, 0.4);
 }
 
-.icon {
-  font-size: var(--text-2xl, 1.5rem);
-  margin-bottom: var(--space-4, 1rem);
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #64c8ff, transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card:hover::before {
+  opacity: 1;
+}
+
+.cardIcon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
   display: block;
+  color: #64c8ff;
 }
 
-.title {
-  font-size: var(--text-lg, 1.125rem);
-  font-weight: var(--font-weight-semibold, 600);
-  color: var(--color-text-primary, #fff);
-  margin: 0 0 var(--space-3, 0.75rem) 0;
+.cardDescription {
+  color: #999;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
 }
 
-.description {
-  color: var(--color-text-secondary, #999);
-  font-size: var(--text-base, 1rem);
-  line-height: var(--leading-relaxed, 1.625);
-  margin: 0 0 var(--space-4, 1rem) 0;
+.cardLink {
+  color: #64c8ff;
+  text-decoration: none;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: gap 0.2s ease;
 }
 
-.content {
-  margin-top: var(--space-4, 1rem);
+.card:hover .cardLink {
+  gap: 0.5rem;
 }
 
-/* Color Variants */
-.primary {
-  border-color: rgba(52, 152, 219, 0.2);
+/* Badge System */
+.badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
 }
 
-.primary:hover {
-  border-color: rgba(52, 152, 219, 0.4);
-  box-shadow: 0 8px 24px rgba(52, 152, 219, 0.15);
+.badge.essential {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
-.success {
-  border-color: rgba(46, 125, 50, 0.2);
+.badge.active {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
-.success:hover {
-  border-color: rgba(46, 125, 50, 0.4);
-  box-shadow: 0 8px 24px rgba(46, 125, 50, 0.15);
+.badge.strategic {
+  background: rgba(168, 85, 247, 0.1);
+  color: #a855f7;
+  border: 1px solid rgba(168, 85, 247, 0.2);
 }
 
-.warning {
-  border-color: rgba(253, 187, 45, 0.2);
+.badge.technical {
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.2);
 }
 
-.warning:hover {
-  border-color: rgba(253, 187, 45, 0.4);
-  box-shadow: 0 8px 24px rgba(253, 187, 45, 0.15);
+.badge.quality {
+  background: rgba(34, 193, 195, 0.1);
+  color: #22c1c3;
+  border: 1px solid rgba(34, 193, 195, 0.2);
 }
 
-.info {
-  border-color: rgba(52, 152, 219, 0.2);
+.badge.visual {
+  background: rgba(253, 187, 45, 0.1);
+  color: #fdbb2d;
+  border: 1px solid rgba(253, 187, 45, 0.2);
 }
 
-.info:hover {
-  border-color: rgba(52, 152, 219, 0.4);
-  box-shadow: 0 8px 24px rgba(52, 152, 219, 0.15);
+.badge.timeline {
+  background: rgba(212, 175, 55, 0.1);
+  color: #d4af37;
+  border: 1px solid rgba(212, 175, 55, 0.2);
 }
 
-.purple {
-  border-color: rgba(156, 39, 176, 0.2);
-}
-
-.purple:hover {
-  border-color: rgba(156, 39, 176, 0.4);
-  box-shadow: 0 8px 24px rgba(156, 39, 176, 0.15);
-}
-
-.cyan {
-  border-color: rgba(34, 193, 195, 0.2);
-}
-
-.cyan:hover {
-  border-color: rgba(34, 193, 195, 0.4);
-  box-shadow: 0 10px 30px rgba(34, 193, 195, 0.2);
-}
-
-.gold {
-  border-color: rgba(212, 175, 55, 0.2);
-}
-
-.gold:hover {
-  border-color: rgba(212, 175, 55, 0.4);
-  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.15);
+.badge.neutral {
+  background: rgba(156, 163, 175, 0.1);
+  color: #9ca3af;
+  border: 1px solid rgba(156, 163, 175, 0.2);
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .featureCard {
-    padding: var(--space-4, 1rem);
+  .card {
+    padding: 1rem;
   }
 
-  .title {
-    font-size: var(--text-base, 1rem);
+  .badge {
+    position: static;
+    margin-top: 1rem;
+    display: inline-block;
   }
 }
