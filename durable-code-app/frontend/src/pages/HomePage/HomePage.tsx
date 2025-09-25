@@ -14,7 +14,6 @@ import ParticleBackground from '../../components/ParticleBackground';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { TabNavigation, useNavigation } from '../../features/navigation';
 import { tabs } from '../../config/tabs.config';
-import packageJson from '../../../package.json';
 import styles from './HomePage.module.css';
 import { MinimalErrorBoundary } from '../../core/errors/MinimalErrorBoundary';
 
@@ -53,7 +52,7 @@ export default function HomePage(): ReactElement {
               </p>
             </div>
             <div className={styles.projectScope}>
-              <h3>Key Achievements</h3>
+              <h3>Design Goals</h3>
               <ul>
                 <li>AI writes quality code on first attempt with minimal iteration</li>
                 <li>100% AI-authored codebase proving the methodology works</li>
@@ -243,35 +242,24 @@ export default function HomePage(): ReactElement {
             <h4>Resources</h4>
             <ul>
               <li>
-                <a href="https://github.com/stevej-at-benlabs/durable-code-test">
+                <a
+                  href="https://github.com/stevej-at-benlabs/durable-code-test"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   GitHub Repository
                 </a>
               </li>
               <li>
-                <a href="/docs">Documentation</a>
-              </li>
-              <li>
-                <a href="/api">API Reference</a>
-              </li>
-            </ul>
-          </div>
-          <div className={styles.footerSection}>
-            <h4>Community</h4>
-            <ul>
-              <li>
-                <a href="/contributing">Contributing Guide</a>
-              </li>
-              <li>
-                <a href="/code-of-conduct">Code of Conduct</a>
-              </li>
-              <li>
-                <a href="/support">Support</a>
+                <a
+                  href="https://github.com/stevej-at-benlabs/durable-code-test/blob/main/README.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  API Reference
+                </a>
               </li>
             </ul>
-          </div>
-          <div className={styles.footerInfo}>
-            <p>&copy; 2024 Durable Code Project</p>
-            <p>Version {packageJson.version}</p>
           </div>
         </div>
       </footer>

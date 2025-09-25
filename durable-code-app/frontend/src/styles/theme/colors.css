@@ -9,66 +9,72 @@
  */
 
 :root {
-  /* Primary color palette - parchment/gold theme */
-  --color-primary-50: #f4e8d0;
-  --color-primary-100: #e8d5b7;
-  --color-primary-200: #ddc7a0;
-  --color-primary-300: #d4af37;
-  --color-primary-400: #b8860b;
-  --color-primary-500: #8b6341;
-  --color-primary-600: #654321;
-  --color-primary-700: #3c2414;
+  /* Modern Primary Palette - Inspired by JobNimbus */
+  --color-primary-50: #ebf0fa;
+  --color-primary-100: #d6e1f5;
+  --color-primary-200: #a8c3ea;
+  --color-primary-300: #7aa5df;
+  --color-primary-400: #5b8fd7;
+  --color-primary-500: #3968c6;
+  --color-primary-600: #2e54a8;
+  --color-primary-700: #234089;
+  --color-primary-800: #152952;
+  --color-primary-900: #0a1429;
 
-  /* Accent colors */
-  --color-accent-50: #a08555;
-  --color-accent-100: #8b7355;
-  --color-accent-200: #765f45;
+  /* Accent colors - Modern blues and grays */
+  --color-accent-50: #f7f9fc;
+  --color-accent-100: #e8edf5;
+  --color-accent-200: #939db3;
+  --color-accent-300: #6b7795;
+  --color-accent-400: #4a5568;
 
   /* Semantic colors */
-  --color-background: var(--color-primary-50);
+  --color-background: #ffffff;
+  --color-background-alt: #f8fafc;
   --color-surface: #ffffff;
-  --color-surface-elevated: rgba(255, 255, 255, 0.95);
-  --color-overlay: rgba(0, 0, 0, 0.2);
+  --color-surface-elevated: #ffffff;
+  --color-overlay: rgba(21, 41, 82, 0.5);
 
   /* Text colors */
-  --color-text-primary: #3c2414;
-  --color-text-secondary: #654321;
-  --color-text-tertiary: #8b6341;
-  --color-text-inverse: #f4e8d0;
+  --color-text-primary: #1a202c;
+  --color-text-secondary: #4a5568;
+  --color-text-tertiary: #718096;
+  --color-text-inverse: #ffffff;
+  --color-text-link: #3968c6;
 
   /* Border colors */
-  --color-border-light: rgba(196, 181, 155, 0.3);
-  --color-border-medium: rgba(139, 100, 61, 0.4);
-  --color-border-dark: rgba(101, 67, 33, 0.6);
+  --color-border-light: #e2e8f0;
+  --color-border-medium: #cbd5e0;
+  --color-border-dark: #a0aec0;
 
   /* State colors */
-  --color-success: #4ade80;
-  --color-warning: #fbbf24;
-  --color-error: #ef4444;
-  --color-info: #3b82f6;
+  --color-success: #48bb78;
+  --color-warning: #ed8936;
+  --color-error: #f56565;
+  --color-info: #4299e1;
 
   /* Component-specific tokens */
-  --button-bg-primary: var(--color-primary-300);
-  --button-bg-primary-hover: var(--color-primary-400);
-  --button-text-primary: var(--color-text-primary);
+  --button-bg-primary: var(--color-primary-500);
+  --button-bg-primary-hover: var(--color-primary-600);
+  --button-text-primary: #ffffff;
   --card-bg: var(--color-surface);
   --card-border: var(--color-border-light);
-  --card-shadow: rgba(60, 36, 20, 0.1);
-  --tab-bg-active: var(--color-surface-elevated);
+  --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --tab-bg-active: var(--color-primary-50);
   --tab-bg-inactive: transparent;
-  --tab-border-active: var(--color-primary-300);
+  --tab-border-active: var(--color-primary-500);
 
-  /* Gradient backgrounds */
+  /* Modern Gradient backgrounds */
   --gradient-primary: linear-gradient(
     135deg,
-    var(--color-primary-50) 0%,
-    var(--color-primary-100) 50%,
-    var(--color-primary-200) 100%
+    var(--color-primary-500) 0%,
+    var(--color-primary-700) 100%
   );
-  --gradient-accent: linear-gradient(
-    45deg,
-    var(--color-primary-300) 0%,
-    var(--color-primary-400) 100%
+  --gradient-accent: linear-gradient(180deg, #ffffff 0%, var(--color-primary-50) 100%);
+  --gradient-hero: linear-gradient(
+    135deg,
+    var(--color-primary-800) 0%,
+    var(--color-primary-600) 100%
   );
 }
 

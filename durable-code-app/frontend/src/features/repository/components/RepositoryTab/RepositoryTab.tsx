@@ -17,6 +17,19 @@ import { ErrorMessage, LoadingSpinner } from '../../../../components/common';
 import { useRepository } from '../../hooks/useRepository';
 import type { RepositoryItem, RepositoryTabProps } from '../../types/repository.types';
 import styles from './RepositoryTab.module.css';
+import {
+  FaCheckCircle,
+  FaCogs,
+  FaDocker,
+  FaFileAlt,
+  FaFileCode,
+  FaFlask,
+  FaFolder,
+  FaGavel,
+  FaListOl,
+  FaMap,
+  FaShieldAlt,
+} from 'react-icons/fa';
 
 /**
  * RepositoryTab component
@@ -52,6 +65,36 @@ export function RepositoryTab({
       .join(' ');
   }, [className, loading, error]);
 
+  // Icon mapping function
+  const getIconForItem = (itemId: string): ReactElement | null => {
+    switch (itemId) {
+      case 'project-layout':
+        return <FaFolder />;
+      case 'custom-linters':
+        return <FaGavel />;
+      case 'make-targets':
+        return <FaCogs />;
+      case 'docker-everything':
+        return <FaDocker />;
+      case 'quality-gates':
+        return <FaCheckCircle />;
+      case 'step-by-step':
+        return <FaListOl />;
+      case 'file-headers':
+        return <FaFileAlt />;
+      case 'ai-index':
+        return <FaMap />;
+      case 'test-infrastructure':
+        return <FaFlask />;
+      case 'code-templates':
+        return <FaFileCode />;
+      case 'error-resilience':
+        return <FaShieldAlt />;
+      default:
+        return null;
+    }
+  };
+
   // Event handlers
   const handleItemClick = useCallback((item: RepositoryItem) => {
     if (item.popup) {
@@ -65,7 +108,7 @@ export function RepositoryTab({
   }
 
   // Render helpers
-  const renderRepositoryGrid = useCallback(() => {
+  const repositoryGrid = useMemo(() => {
     return (
       <div className={styles.repositoryGrid}>
         {repositoryItems.map((item) => (
@@ -82,7 +125,9 @@ export function RepositoryTab({
             }}
           >
             <div className={styles.cardContent}>
-              <div className={styles.cardIcon}>{item.icon}</div>
+              {getIconForItem(item.id) && (
+                <div className={styles.cardIcon}>{getIconForItem(item.id)}</div>
+              )}
               <h4 className={styles.cardTitle}>{item.title}</h4>
               <span className={styles.clickHint}>Click to explore</span>
             </div>
@@ -129,23 +174,22 @@ export function RepositoryTab({
       {/* Hero section */}
       <div className={styles.repositoryHero}>
         <h3 className="hero-title">
-          <span className={styles.titleIcon}>🏗️</span>
           Why Rigid Repository Structure Matters for AI Development
         </h3>
         <p className="subtitle">
           AI coding assistants are powerful but unpredictable. Without strict repository
           controls, they create inconsistent code, violate conventions, and introduce
-          subtle bugs that compound over time. The solution isn't to restrict AI, but to
-          create <strong>rigid repository structure</strong> that channels its
-          creativity productively. When every file has a defined location, every
-          operation runs identically, and every violation gets caught automatically, AI
-          becomes a reliable engineering partner instead of a source of technical debt.
-          The patterns below show how to build this foundation.
+          subtle bugs that compound over time. The solution is to establish{' '}
+          <strong>rigid boundaries inside which AI can be free to create</strong>. When
+          every file has a defined location, every operation runs identically, and every
+          violation gets caught automatically, AI becomes a reliable engineering partner
+          instead of a source of technical debt. The patterns below show how to build
+          this foundation.
         </p>
       </div>
 
       {/* Repository grid */}
-      {renderRepositoryGrid()}
+      {repositoryGrid}
 
       {/* Popup rendered at component level */}
       {selectedRepoItem && selectedRepoItem.popup && (
@@ -155,7 +199,11 @@ export function RepositoryTab({
             {/* Document Header */}
             <div className={styles.documentHeader}>
               <h2 className={styles.documentTitle}>
-                <span className={styles.documentIcon}>{selectedRepoItem.icon}</span>
+                {getIconForItem(selectedRepoItem.id) && (
+                  <span className={styles.documentIcon}>
+                    {getIconForItem(selectedRepoItem.id)}
+                  </span>
+                )}
                 {selectedRepoItem.title}
               </h2>
               <button

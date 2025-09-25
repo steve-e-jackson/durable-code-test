@@ -29,15 +29,20 @@
 .repositoryHero {
   text-align: center;
   margin-bottom: 3rem;
-  padding: 2rem;
+  padding: 3rem;
   background: linear-gradient(
     135deg,
-    rgba(34, 193, 195, 0.1) 0%,
-    rgba(253, 187, 45, 0.1) 100%
+    var(--color-primary-50) 0%,
+    rgba(255, 255, 255, 0.95) 100%
   );
-  border-radius: 15px;
+  border-radius: 16px;
+  border: 1px solid var(--color-border-light);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   position: relative;
   overflow: hidden;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .repositoryHero::before {
@@ -47,8 +52,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #22c1c3, #fdbb2d, #22c1c3);
-  animation: shimmer 3s ease-in-out infinite;
+  background: var(--gradient-primary);
 }
 
 @keyframes shimmer {
@@ -73,29 +77,74 @@
 /* Infrastructure grid */
 .repositoryGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
   margin-bottom: 3rem;
 }
 
+@media (max-width: 1024px) {
+  .repositoryGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .repositoryGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .repositoryCard {
-  padding: 2rem;
-  background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 100%);
-  border: 1px solid rgba(34, 193, 195, 0.2);
-  border-radius: 12px;
-  transition: all 0.3s ease;
+  padding: 2.5rem;
+  background: linear-gradient(
+    135deg,
+    rgba(30, 30, 30, 0.95) 0%,
+    rgba(42, 42, 42, 0.95) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  backdrop-filter: blur(20px) saturate(180%);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 4px 16px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   cursor: pointer;
   position: relative;
-  min-height: 150px;
+  min-height: 180px;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+}
+
+.repositoryCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(100, 200, 255, 0.3),
+    transparent
+  );
 }
 
 .repositoryCard:hover {
-  transform: translateY(-4px);
-  border-color: rgba(34, 193, 195, 0.4);
-  box-shadow: 0 10px 30px rgba(34, 193, 195, 0.2);
+  transform: translateY(-6px) scale(1.02);
+  border-color: rgba(100, 200, 255, 0.35);
+  background: linear-gradient(
+    135deg,
+    rgba(35, 35, 35, 0.95) 0%,
+    rgba(48, 48, 48, 0.95) 100%
+  );
+  box-shadow:
+    0 12px 48px rgba(100, 200, 255, 0.15),
+    0 8px 24px rgba(0, 0, 0, 0.3),
+    inset 0 2px 0 rgba(100, 200, 255, 0.1);
   z-index: 10;
 }
 
@@ -115,13 +164,24 @@
 }
 
 .cardIcon {
-  font-size: 3rem;
+  font-size: 2.5rem;
   margin-bottom: 1rem;
-  display: block;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #64c8ff;
+  opacity: 0.9;
+  transition: all 0.3s ease;
+}
+
+.repositoryCard:hover .cardIcon {
+  transform: scale(1.1);
+  opacity: 1;
+  color: #8bd4ff;
 }
 
 .cardTitle {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 600;
   color: #ffffff;
   margin: 0;
@@ -131,7 +191,7 @@
 
 .clickHint {
   font-size: 0.85rem;
-  color: #22c1c3;
+  color: #64c8ff;
   opacity: 0.7;
   font-style: italic;
   transition: opacity 0.2s;
@@ -204,12 +264,12 @@
 }
 
 .popupContainer::-webkit-scrollbar-thumb {
-  background-color: rgba(46, 125, 50, 0.2);
+  background-color: var(--color-border-light);
   border-radius: 4px;
 }
 
 .popupContainer::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(46, 125, 50, 0.3);
+  background-color: var(--color-border-medium);
 }
 
 .popupSection {
@@ -234,15 +294,15 @@
 }
 
 .popupSection:first-child .sectionTitle {
-  color: #dc2626; /* Red for problem */
+  color: #ef4444; /* Modern red for problem */
 }
 
 .popupSection:nth-child(2) .sectionTitle {
-  color: #2e7d32; /* Green for solution */
+  color: #48bb78; /* Modern green for solution */
 }
 
 .popupSection:nth-child(3) .sectionTitle {
-  color: #1f2937; /* Dark for example */
+  color: var(--color-primary-600); /* Blue for example */
 }
 
 .sectionIcon {
@@ -281,18 +341,18 @@
   content: '•';
   position: absolute;
   left: 0.75rem;
-  color: #2e7d32;
+  color: var(--color-primary-500);
   font-size: 1.5rem;
   font-weight: bold;
   line-height: 1.3;
 }
 
 .popupSection:first-child .pointsList li:before {
-  color: #dc2626; /* Red bullets for problems */
+  color: #ef4444; /* Modern red bullets for problems */
 }
 
 .popupSection:nth-child(2) .pointsList li:before {
-  color: #2e7d32; /* Green bullets for solutions */
+  color: #48bb78; /* Modern green bullets for solutions */
 }
 
 .exampleHeader {
@@ -301,13 +361,9 @@
   align-items: center;
   margin-bottom: 1.25rem;
   padding: 1rem 1.25rem;
-  background: linear-gradient(
-    to right,
-    rgba(46, 125, 50, 0.05),
-    rgba(46, 125, 50, 0.02)
-  );
-  border-left: 4px solid #2e7d32;
-  border-radius: 4px;
+  background: linear-gradient(to right, var(--color-primary-50), transparent);
+  border-left: 4px solid var(--color-primary-500);
+  border-radius: 8px;
 }
 
 .exampleTitle {
@@ -333,10 +389,10 @@
   padding: 2rem 3rem;
   background: linear-gradient(
     135deg,
-    rgba(46, 125, 50, 0.1) 0%,
-    rgba(46, 125, 50, 0.05) 100%
+    var(--color-primary-50) 0%,
+    rgba(255, 255, 255, 0.9) 100%
   );
-  border-bottom: 2px solid rgba(46, 125, 50, 0.15);
+  border-bottom: 2px solid var(--color-border-light);
 }
 
 .documentTitle {
@@ -350,7 +406,11 @@
 }
 
 .documentIcon {
-  font-size: 2.5rem;
+  font-size: 1.75rem;
+  margin-right: 0.75rem;
+  color: #64c8ff;
+  display: inline-flex;
+  align-items: center;
 }
 
 .closeButton {

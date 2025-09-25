@@ -8,16 +8,20 @@
 .demoHero {
   text-align: center;
   margin-bottom: 3rem;
-  padding: 2rem;
+  padding: 3rem;
   background: linear-gradient(
     135deg,
-    rgba(52, 152, 219, 0.1) 0%,
-    rgba(52, 152, 219, 0.05) 100%
+    var(--color-primary-50) 0%,
+    rgba(255, 255, 255, 0.95) 100%
   );
-  border-radius: 15px;
+  border-radius: 16px;
+  border: 1px solid var(--color-border-light);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(52, 152, 219, 0.2);
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .demoHero::before {
@@ -27,18 +31,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #3498db, #2980b9, #3498db);
-  animation: shimmer 3s ease-in-out infinite;
-}
-
-@keyframes shimmer {
-  0%,
-  100% {
-    opacity: 0.5;
-  }
-  50% {
-    opacity: 1;
-  }
+  background: var(--gradient-primary);
 }
 
 .demoTitle {
@@ -50,10 +43,6 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-}
-
-.titleIcon {
-  font-size: 3rem;
 }
 
 .demoSubtitle {

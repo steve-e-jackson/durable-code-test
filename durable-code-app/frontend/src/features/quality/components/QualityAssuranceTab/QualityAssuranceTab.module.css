@@ -17,15 +17,20 @@
 .hero {
   text-align: center;
   margin-bottom: 3rem;
-  padding: 2rem;
+  padding: 3rem;
   background: linear-gradient(
     135deg,
-    rgba(34, 193, 195, 0.1) 0%,
-    rgba(253, 187, 45, 0.1) 100%
+    var(--color-primary-50) 0%,
+    rgba(255, 255, 255, 0.95) 100%
   );
-  border-radius: 15px;
+  border-radius: 16px;
+  border: 1px solid var(--color-border-light);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   position: relative;
   overflow: hidden;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .hero::before {
@@ -35,23 +40,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #22c1c3, #fdbb2d, #22c1c3);
-  animation: shimmer 3s ease-in-out infinite;
-}
-
-@keyframes shimmer {
-  0%,
-  100% {
-    opacity: 0.5;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-.titleIcon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
+  background: var(--gradient-primary);
 }
 
 /* Showcase Section */

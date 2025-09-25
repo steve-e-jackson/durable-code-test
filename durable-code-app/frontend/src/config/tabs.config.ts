@@ -12,39 +12,32 @@ import type { TabContent, TabName } from '../features/navigation';
 
 // Lazy load components normally - error boundaries will be applied at render time
 const RepositoryTab = lazy(() =>
-  import('../features/repository').then((m) => ({
+  import('../features/repository/components/RepositoryTab').then((m) => ({
     default: m.RepositoryTab,
   })),
 );
-
 const PlanningTab = lazy(() =>
-  import('../features/planning').then((m) => ({
+  import('../features/planning/components/PlanningTab').then((m) => ({
     default: m.PlanningTab,
   })),
 );
-
 const BuildingTab = lazy(() =>
-  import('../features/building').then((m) => ({
+  import('../features/building/components/BuildingTab').then((m) => ({
     default: m.BuildingTab,
   })),
 );
-
 const QualityAssuranceTab = lazy(() =>
-  import('../features/quality').then((m) => ({
+  import('../features/quality/components/QualityAssuranceTab').then((m) => ({
     default: m.QualityAssuranceTab,
   })),
 );
-
 const MaintenanceTab = lazy(() =>
-  import('../features/maintenance').then((m) => ({
+  import('../features/maintenance/components/MaintenanceTab').then((m) => ({
     default: m.MaintenanceTab,
   })),
 );
-
 const DemoTab = lazy(() =>
-  import('../features/demo').then((m) => ({
-    default: m.DemoTab,
-  })),
+  import('../features/demo/components/DemoTab').then((m) => ({ default: m.DemoTab })),
 );
 
 export const tabs: Record<TabName, TabContent> = {

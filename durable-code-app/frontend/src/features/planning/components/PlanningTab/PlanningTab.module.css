@@ -17,16 +17,20 @@
 .hero {
   text-align: center;
   margin-bottom: 3rem;
-  padding: 2rem;
+  padding: 3rem;
   background: linear-gradient(
     135deg,
-    rgba(155, 89, 182, 0.1) 0%,
-    rgba(155, 89, 182, 0.05) 100%
+    var(--color-primary-50) 0%,
+    rgba(255, 255, 255, 0.95) 100%
   );
-  border-radius: 15px;
+  border-radius: 16px;
+  border: 1px solid var(--color-border-light);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(155, 89, 182, 0.2);
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .hero::before {
@@ -36,8 +40,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #9b59b6, #8e44ad, #9b59b6);
-  animation: shimmer 3s ease-in-out infinite;
+  background: var(--gradient-primary);
 }
 
 @keyframes shimmer {
@@ -63,7 +66,7 @@
 
 .card {
   background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 100%);
-  border: 1px solid rgba(212, 175, 55, 0.2);
+  border: 1px solid rgba(100, 200, 255, 0.2);
   border-radius: 12px;
   padding: 1.5rem;
   transition: all 0.3s ease;
@@ -73,8 +76,8 @@
 
 .card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
-  border-color: rgba(212, 175, 55, 0.4);
+  box-shadow: 0 10px 30px rgba(100, 200, 255, 0.2);
+  border-color: rgba(100, 200, 255, 0.4);
 }
 
 .card::before {
@@ -84,7 +87,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, #d4af37, transparent);
+  background: linear-gradient(90deg, transparent, #64c8ff, transparent);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -97,6 +100,7 @@
   font-size: 2rem;
   margin-bottom: 1rem;
   display: block;
+  color: #64c8ff;
 }
 
 .cardDescription {
@@ -107,7 +111,7 @@
 }
 
 .cardLink {
-  color: #d4af37;
+  color: #64c8ff;
   text-decoration: none;
   font-weight: 500;
   display: inline-flex;
