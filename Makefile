@@ -1,7 +1,7 @@
 # Makefile for Durable Code Test Project
 # Docker-based development and deployment automation
 
-.PHONY: help init dev-start dev-stop dev-restart dev-logs dev status clean shell-backend shell-frontend install-hooks
+.PHONY: help init dev-start dev-stop dev-restart dev-logs dev status clean shell-backend shell-frontend install-hooks deploy deploy-check
 
 # Default target
 .DEFAULT_GOAL := help
@@ -47,6 +47,7 @@ help: ## Show this help message
 	@echo "$(GREEN)Core Commands:$(NC)"
 	@echo "  $(YELLOW)make dev$(NC)          # Start development environment and open browser"
 	@echo "  $(YELLOW)make dev-stop$(NC)     # Stop development environment"
+	@echo "  $(YELLOW)make deploy$(NC)       # Deploy application to dev environment (requires infra)"
 	@echo "  $(YELLOW)make status$(NC)       # Check container status"
 	@echo ""
 	@echo "$(GREEN)Available targets:$(NC)"
@@ -123,6 +124,33 @@ install-hooks: ## Install pre-commit hooks
 	@pre-commit install
 	@echo "$(GREEN)✓ Pre-commit hooks installed!$(NC)"
 	@echo "$(YELLOW)Hooks will run automatically on git commit$(NC)"
+
+# Deployment targets
+deploy: ## Deploy application to dev environment (assumes infrastructure is up)
+	@echo "$(CYAN)Deploying application to development environment...$(NC)"
+	@echo "$(YELLOW)Environment: dev$(NC)"
+	@echo "$(YELLOW)This assumes infrastructure has been deployed via 'make infra-up'$(NC)"
+	@echo ""
+	@echo "$(YELLOW)Running deployment script...$(NC)"
+	@export AWS_PROFILE=terraform-deploy && ENV=dev ./infra/scripts/deploy-app.sh
+	@echo ""
+	@echo "$(GREEN)✓ Deployment complete!$(NC)"
+	@echo "$(YELLOW)Checking application URL...$(NC)"
+	@echo "Your application should be available at:"
+	@aws elbv2 describe-load-balancers --names durable-code-dev-alb --query 'LoadBalancers[0].DNSName' --output text 2>/dev/null | sed 's/^/  https:\/\//' || echo "  $(RED)Unable to retrieve ALB URL - check AWS credentials$(NC)"
+
+deploy-check: ## Check if infrastructure is deployed and ready
+	@echo "$(CYAN)Checking infrastructure status...$(NC)"
+	@export AWS_PROFILE=terraform-deploy && \
+	if aws elbv2 describe-load-balancers --names durable-code-dev-alb >/dev/null 2>&1; then \
+		echo "$(GREEN)✓ Infrastructure appears to be deployed$(NC)"; \
+		echo "$(YELLOW)ALB DNS:$(NC)"; \
+		aws elbv2 describe-load-balancers --names durable-code-dev-alb --query 'LoadBalancers[0].DNSName' --output text | sed 's/^/  https:\/\//'; \
+	else \
+		echo "$(RED)❌ Infrastructure not found!$(NC)"; \
+		echo "$(YELLOW)Please run: make infra-up$(NC)"; \
+		exit 1; \
+	fi
 
 # Include comprehensive linting and testing targets
 -include Makefile.lint
