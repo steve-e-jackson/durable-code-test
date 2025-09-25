@@ -129,7 +129,6 @@ export function RepositoryTab({
       {/* Hero section */}
       <div className={styles.repositoryHero}>
         <h3 className="hero-title">
-          <span className={styles.titleIcon}>🏗️</span>
           Why Rigid Repository Structure Matters for AI Development
         </h3>
         <p className="subtitle">

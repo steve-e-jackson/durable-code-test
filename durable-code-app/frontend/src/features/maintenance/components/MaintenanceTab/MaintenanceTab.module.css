@@ -17,13 +17,15 @@
 .hero {
   text-align: center;
   margin-bottom: 3rem;
-  padding: 2rem;
+  padding: 3rem;
   background: linear-gradient(
     135deg,
-    rgba(156, 39, 176, 0.1) 0%,
-    rgba(103, 58, 183, 0.1) 100%
+    var(--color-primary-50) 0%,
+    rgba(255, 255, 255, 0.95) 100%
   );
-  border-radius: 15px;
+  border-radius: 16px;
+  border: 1px solid var(--color-border-light);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   position: relative;
   overflow: hidden;
 }
@@ -35,22 +37,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #9c27b0, #673ab7, #9c27b0);
-  animation: shimmer 3s ease-in-out infinite;
-}
-
-@keyframes shimmer {
-  0%,
-  100% {
-    opacity: 0.5;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-.titleIcon {
-  font-size: 2rem;
+  background: var(--gradient-primary);
 }
 
 /* AI Index Showcase */
