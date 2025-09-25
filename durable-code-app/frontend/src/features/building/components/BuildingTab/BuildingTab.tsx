@@ -21,10 +21,7 @@ export function BuildingTab(): ReactElement {
     <div className={styles.container}>
       {/* Hero Section */}
       <div className={styles.hero}>
-        <h3 className="hero-title">
-          <span className={styles.heroIcon}>⚡</span>
-          AI-Powered Code Generation
-        </h3>
+        <h3 className="hero-title">AI-Powered Code Generation</h3>
         <p className="subtitle">
           Build complete applications without writing a single line of code - powered by
           AI-driven development and intelligent automation

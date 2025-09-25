@@ -52,7 +52,7 @@ export default function HomePage(): ReactElement {
               </p>
             </div>
             <div className={styles.projectScope}>
-              <h3>Key Achievements</h3>
+              <h3>Design Goals</h3>
               <ul>
                 <li>AI writes quality code on first attempt with minimal iteration</li>
                 <li>100% AI-authored codebase proving the methodology works</li>

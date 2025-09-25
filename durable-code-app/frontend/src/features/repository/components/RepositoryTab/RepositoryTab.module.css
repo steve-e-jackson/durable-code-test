@@ -40,6 +40,9 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   position: relative;
   overflow: hidden;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .repositoryHero::before {
@@ -92,23 +95,56 @@
 }
 
 .repositoryCard {
-  padding: 2rem;
-  background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 100%);
-  border: 1px solid rgba(212, 175, 55, 0.2);
-  border-radius: 12px;
-  transition: all 0.3s ease;
+  padding: 2.5rem;
+  background: linear-gradient(
+    135deg,
+    rgba(30, 30, 30, 0.95) 0%,
+    rgba(42, 42, 42, 0.95) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  backdrop-filter: blur(20px) saturate(180%);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 4px 16px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   cursor: pointer;
   position: relative;
   min-height: 180px;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+}
+
+.repositoryCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(100, 200, 255, 0.3),
+    transparent
+  );
 }
 
 .repositoryCard:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
-  border-color: rgba(212, 175, 55, 0.4);
+  transform: translateY(-6px) scale(1.02);
+  border-color: rgba(100, 200, 255, 0.35);
+  background: linear-gradient(
+    135deg,
+    rgba(35, 35, 35, 0.95) 0%,
+    rgba(48, 48, 48, 0.95) 100%
+  );
+  box-shadow:
+    0 12px 48px rgba(100, 200, 255, 0.15),
+    0 8px 24px rgba(0, 0, 0, 0.3),
+    inset 0 2px 0 rgba(100, 200, 255, 0.1);
   z-index: 10;
 }
 
@@ -130,8 +166,18 @@
 .cardIcon {
   font-size: 2.5rem;
   margin-bottom: 1rem;
-  display: block;
-  opacity: 0.8;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #64c8ff;
+  opacity: 0.9;
+  transition: all 0.3s ease;
+}
+
+.repositoryCard:hover .cardIcon {
+  transform: scale(1.1);
+  opacity: 1;
+  color: #8bd4ff;
 }
 
 .cardTitle {
@@ -145,7 +191,7 @@
 
 .clickHint {
   font-size: 0.85rem;
-  color: #d4af37;
+  color: #64c8ff;
   opacity: 0.7;
   font-style: italic;
   transition: opacity 0.2s;
@@ -360,7 +406,11 @@
 }
 
 .documentIcon {
-  font-size: 2.5rem;
+  font-size: 1.75rem;
+  margin-right: 0.75rem;
+  color: #64c8ff;
+  display: inline-flex;
+  align-items: center;
 }
 
 .closeButton {

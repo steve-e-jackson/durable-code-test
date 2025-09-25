@@ -16,10 +16,7 @@ export function QualityAssuranceTab(): ReactElement {
   return (
     <div className={styles.container}>
       <div className={styles.hero}>
-        <h3 className="hero-title">
-          <span className={styles.titleIcon}>🛡️</span>
-          Bulletproof Code Quality
-        </h3>
+        <h3 className="hero-title">Bulletproof Code Quality</h3>
         <p className="subtitle">
           Comprehensive automated testing, custom linting, and AI-powered validation to
           ensure your code meets the highest standards

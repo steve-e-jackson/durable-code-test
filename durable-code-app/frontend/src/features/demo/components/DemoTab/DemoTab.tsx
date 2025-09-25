@@ -62,10 +62,7 @@ export function DemoTab(): ReactElement {
     <div className="tab-content demo-content">
       {/* Hero Section */}
       <div className={styles.demoHero}>
-        <h3 className={styles.demoTitle}>
-          <span className={styles.titleIcon}>🎭</span>
-          Oscilloscope Demo
-        </h3>
+        <h3 className={styles.demoTitle}>Oscilloscope Demo</h3>
         <p className={styles.demoSubtitle}>
           Built entirely by AI while the human went to dinner! Less than 10 minutes to
           build, followed by 15 minutes of human review. Fully linted and tested.

@@ -136,43 +136,65 @@ describe('DemoTab Component', () => {
       ).toBeInTheDocument();
     });
 
-    it('should render control buttons', () => {
-      render(<DemoTab />);
-      expect(screen.getByText('▶ Start')).toBeInTheDocument();
-      expect(screen.getByText('⏹ Stop')).toBeInTheDocument();
-      expect(screen.getByText('⏸ Pause')).toBeInTheDocument();
-      expect(screen.getByText('🗑️ Clear')).toBeInTheDocument();
+    it('should render control buttons', async () => {
+      await act(async () => {
+        render(<DemoTab />);
+      });
+      await waitFor(() => {
+        expect(screen.getByText('▶ Start')).toBeInTheDocument();
+        expect(screen.getByText('⏹ Stop')).toBeInTheDocument();
+        expect(screen.getByText('⏸ Pause')).toBeInTheDocument();
+        expect(screen.getByText('🗑️ Clear')).toBeInTheDocument();
+      });
     });
 
-    it('should render waveform selection buttons', () => {
-      render(<DemoTab />);
-      expect(screen.getByText('∿ Sine Wave')).toBeInTheDocument();
-      expect(screen.getByText('⊓ Square Wave')).toBeInTheDocument();
-      expect(screen.getByText('≋ White Noise')).toBeInTheDocument();
+    it('should render waveform selection buttons', async () => {
+      await act(async () => {
+        render(<DemoTab />);
+      });
+      await waitFor(() => {
+        expect(screen.getByText('∿ Sine Wave')).toBeInTheDocument();
+        expect(screen.getByText('⊓ Square Wave')).toBeInTheDocument();
+        expect(screen.getByText('≋ White Noise')).toBeInTheDocument();
+      });
     });
 
-    it('should render parameter controls', () => {
-      render(<DemoTab />);
-      expect(screen.getByText(/Frequency \(Hz\)/)).toBeInTheDocument();
-      expect(screen.getByText(/Amplitude \(\)/)).toBeInTheDocument();
-      expect(screen.getByText(/Time Scale \(ms\/div\)/)).toBeInTheDocument();
-      expect(screen.getByText(/Voltage Scale \(V\/div\)/)).toBeInTheDocument();
-      expect(screen.getByText(/DC Offset \(\)/)).toBeInTheDocument();
+    it('should render parameter controls', async () => {
+      await act(async () => {
+        render(<DemoTab />);
+      });
+      await waitFor(() => {
+        expect(screen.getByText(/Frequency \(Hz\)/)).toBeInTheDocument();
+        expect(screen.getByText(/Amplitude \(\)/)).toBeInTheDocument();
+        expect(screen.getByText(/Time Scale \(ms\/div\)/)).toBeInTheDocument();
+        expect(screen.getByText(/Voltage Scale \(V\/div\)/)).toBeInTheDocument();
+        expect(screen.getByText(/DC Offset \(\)/)).toBeInTheDocument();
+      });
     });
 
-    it('should render canvas element', () => {
-      const { container } = render(<DemoTab />);
-      const canvas = container.querySelector('canvas');
-      expect(canvas).toBeInTheDocument();
-      // Canvas now uses CSS modules class instead of plain class name
-      expect(canvas).toBeTruthy();
+    it('should render canvas element', async () => {
+      let container: HTMLElement;
+      await act(async () => {
+        const result = render(<DemoTab />);
+        container = result.container;
+      });
+      await waitFor(() => {
+        const canvas = container.querySelector('canvas');
+        expect(canvas).toBeInTheDocument();
+        // Canvas now uses CSS modules class instead of plain class name
+        expect(canvas).toBeTruthy();
+      });
     });
 
-    it('should render documentation section', () => {
-      render(<DemoTab />);
-      expect(screen.getByText('About This Demo')).toBeInTheDocument();
-      expect(screen.getByText('Features')).toBeInTheDocument();
-      expect(screen.getByText('Technical Implementation')).toBeInTheDocument();
+    it('should render documentation section', async () => {
+      await act(async () => {
+        render(<DemoTab />);
+      });
+      await waitFor(() => {
+        expect(screen.getByText('About This Demo')).toBeInTheDocument();
+        expect(screen.getByText('Features')).toBeInTheDocument();
+        expect(screen.getByText('Technical Implementation')).toBeInTheDocument();
+      });
     });
   });
 

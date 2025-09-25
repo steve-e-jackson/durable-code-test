@@ -27,10 +27,7 @@ export function PlanningTab(): ReactElement {
   return (
     <div className={styles.container}>
       <div className={styles.hero}>
-        <h3 className="hero-title">
-          <span className={styles.titleIcon}>{planningSection.icon}</span>
-          {planningSection.title}
-        </h3>
+        <h3 className="hero-title">{planningSection.title}</h3>
         <p className="subtitle">{planningSection.subtitle}</p>
       </div>
 

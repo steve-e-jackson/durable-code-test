@@ -312,9 +312,11 @@
 }
 
 .principlesGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 1.5rem;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 .principleCard {
@@ -527,10 +529,6 @@
 /* Responsive */
 @media (max-width: 768px) {
   .heroInfoGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .principlesGrid {
     grid-template-columns: 1fr;
   }
 

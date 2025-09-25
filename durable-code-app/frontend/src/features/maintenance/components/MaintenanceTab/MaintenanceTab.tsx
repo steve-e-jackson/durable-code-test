@@ -15,10 +15,7 @@ export function MaintenanceTab(): ReactElement {
   return (
     <div className={styles.container}>
       <div className={styles.hero}>
-        <h3 className="hero-title">
-          <span className={styles.titleIcon}>🧠</span>
-          AI-Powered Documentation
-        </h3>
+        <h3 className="hero-title">AI-Powered Documentation</h3>
         <p className="subtitle">
           Self-maintaining documentation that evolves with your codebase, powered by
           AI-driven content generation and automatic synchronization
