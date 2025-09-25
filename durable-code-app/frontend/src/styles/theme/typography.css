@@ -9,11 +9,12 @@
  */
 
 :root {
-  /* Font families */
-  --font-primary: 'Georgia', 'Times New Roman', 'Book Antiqua', serif;
-  --font-secondary: 'Crimson Text', 'Playfair Display', serif;
-  --font-mono: 'Fira Code', 'Monaco', 'Cascadia Code', monospace;
-  --font-sans: 'Inter', 'Helvetica Neue', arial, sans-serif;
+  /* Font families - Modern, clean design */
+  --font-primary:
+    system-ui, -apple-system, 'Segoe UI', roboto, 'Helvetica Neue', arial, sans-serif;
+  --font-secondary: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Code', 'Source Code Pro', menlo, monospace;
+  --font-sans: system-ui, -apple-system, 'Segoe UI', roboto, sans-serif;
 
   /* Font weights */
   --font-weight-light: 300;

@@ -135,12 +135,12 @@ export function RepositoryTab({
         <p className="subtitle">
           AI coding assistants are powerful but unpredictable. Without strict repository
           controls, they create inconsistent code, violate conventions, and introduce
-          subtle bugs that compound over time. The solution isn't to restrict AI, but to
-          create <strong>rigid repository structure</strong> that channels its
-          creativity productively. When every file has a defined location, every
-          operation runs identically, and every violation gets caught automatically, AI
-          becomes a reliable engineering partner instead of a source of technical debt.
-          The patterns below show how to build this foundation.
+          subtle bugs that compound over time. The solution is to establish{' '}
+          <strong>rigid boundaries inside which AI can be free to create</strong>. When
+          every file has a defined location, every operation runs identically, and every
+          violation gets caught automatically, AI becomes a reliable engineering partner
+          instead of a source of technical debt. The patterns below show how to build
+          this foundation.
         </p>
       </div>
 
