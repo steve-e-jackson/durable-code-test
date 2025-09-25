@@ -24,34 +24,34 @@ This is the **PRIMARY HANDOFF DOCUMENT** for AI agents working on the AWS deploy
 
 ## 🎯 Next PR to Implement
 
-### ➡️ START HERE: PR4.5 - Dual-Architecture Terraform Refactor (Base/Runtime Separation)
+### ➡️ START HERE: PR4.6 - Fix Terraform Targeting Issue
 
 **Quick Summary**:
-- Refactor Terraform into base (persistent) and runtime (ephemeral) resources
-- Solve 30+ minute certificate validation delays
-- Enable fast infrastructure recovery (<5 minutes)
-- Separate slow-provisioning resources from frequently-cycled ones
+- Replace `-target` flag usage with proper conditional resource creation
+- Implement `count` conditionals based on `deployment_scope` variable
+- Fix Terraform warning about target usage in routine operations
+- Enable clean selective deployment without breaking dependency graph
 
 **Pre-flight Checklist**:
-- [x] PR4 Complete - ALB and DNS configuration ready
-- [x] Understand certificate validation delay issue
-- [x] Read PR4.5 section in PR_BREAKDOWN.md
-- [x] Plan base vs runtime resource separation
-- [x] Ensure Terraform state migration strategy ready
+- [ ] Terraform state is clean and consistent
+- [ ] All resources properly imported
+- [ ] No tainted resources in state
+- [ ] Backup of current working state created
+- [ ] Test environment available for validation
 
 **Prerequisites Complete**:
-- ✅ ALB configuration tested and working
-- ✅ ACM certificates created (with long validation time identified)
-- ✅ Route53 zones configured
-- ✅ Need identified for faster dev environment cycling
+- ✅ ECR repositories created and tested
+- ✅ ECS cluster and services configured
+- ✅ ALB and DNS routing operational
+- ✅ Dual-architecture enables fast deployments
 
 ---
 
 ## Overall Progress
-**Total Completion**: 36% (4/11 PRs completed)
+**Total Completion**: 41% (4.5/11 PRs completed)
 
 ```
-[■■■■□□□□□□□] 36% Complete
+[■■■■■□□□□□□] 41% Complete
 ```
 
 ---
@@ -65,7 +65,8 @@ This is the **PRIMARY HANDOFF DOCUMENT** for AI agents working on the AWS deploy
 | PR2 | ECR Setup | 🟢 Complete | 100% | +$1/month | AI Agent | 2025-09-23 | **ECR repos deployed** |
 | PR3 | ECS Configuration | 🟢 Complete | 100% | +$4/month | AI Agent | 2025-09-24 | **Deployed to AWS successfully** |
 | PR4 | ALB and DNS | 🟢 Complete | 100% | +$18/month | AI Agent | 2025-09-24 | **PR #18 created** |
-| PR4.5 | Dual-Architecture TF | 🔴 Not Started | 0% | -$60/month | - | - | **NEXT: Solve cert delays** |
+| PR4.5 | Dual-Architecture TF | 🟢 Complete | 100% | -$18/month | AI Agent | 2025-09-24 | **Implemented SCOPE parameter** |
+| PR4.6 | Fix Terraform Targeting | 🔴 Not Started | 0% | +$0/month | - | - | **Replace -target with count/for_each** |
 | PR5 | CI/CD Pipeline | 🔴 Not Started | 0% | +$0/month | - | - | GitHub permissions needed |
 | PR6 | Monitoring | 🔴 Not Started | 0% | +$2/month | - | - | - |
 | PR7 | Security | 🔴 Not Started | 0% | +$1/month | - | - | - |
@@ -251,7 +252,7 @@ This is the **PRIMARY HANDOFF DOCUMENT** for AI agents working on the AWS deploy
 ---
 
 ## PR4: Application Load Balancer and DNS Configuration
-**Status**: 🟡 In Progress | **Completion**: 85%
+**Status**: 🟢 Complete | **Completion**: 100%
 
 ### Checklist
 - [x] ALB created
@@ -278,6 +279,95 @@ This is the **PRIMARY HANDOFF DOCUMENT** for AI agents working on the AWS deploy
 - ACM certificate ready for domain validation when domain is purchased
 - Route53 configuration prepared but disabled until domain is available
 - Estimated cost: ~$18/month for ALB (fixed)
+
+---
+
+## PR4.6: Fix Terraform Targeting - Implement Proper Conditional Resource Creation
+**Status**: 🔴 Not Started | **Completion**: 0% | **Cost**: No additional cost
+
+### Problem Statement
+The current PR4.5 implementation uses `-target` flags for selective resource deployment, which:
+- Terraform explicitly warns against for routine operations
+- Breaks dependency graph management
+- Can cause state inconsistencies
+- Is only intended for error recovery scenarios
+
+### Solution Approach
+Replace `-target` flag usage with Terraform's native conditional resource creation using `count` or `for_each`.
+
+### Checklist
+- [ ] Analyze all resources for scope dependencies
+- [ ] Implement conditional creation logic using `count` based on `deployment_scope`
+- [ ] Update all resource definitions to support conditional creation
+- [ ] Test base-only deployment (VPC, NAT, ECR, Route53)
+- [ ] Test runtime-only deployment (ECS, ALB listeners, services)
+- [ ] Test full deployment (all resources)
+- [ ] Remove `-target` flag generation from `generate-targets.sh`
+- [ ] Update Makefile to pass `deployment_scope` without targets
+- [ ] Verify no resources are orphaned or duplicated
+- [ ] Update documentation with new deployment approach
+- [ ] PR created and reviewed
+- [ ] Merged to main
+
+### Implementation Details
+
+#### Resource Conditionals Pattern
+```hcl
+# Example for runtime resources
+resource "aws_ecs_cluster" "main" {
+  count = var.deployment_scope == "base" ? 0 : 1
+  name  = "${var.project_name}-${var.environment}-cluster"
+  # ... rest of configuration
+}
+
+# Example for base resources
+resource "aws_vpc" "main" {
+  count = var.deployment_scope == "runtime" ? 0 : 1
+  cidr_block = var.vpc_cidr
+  # ... rest of configuration
+}
+
+# Resources that should always exist
+resource "aws_route53_zone" "main" {
+  count = var.deployment_scope != "none" ? 1 : 0  # Always created unless explicitly disabled
+  name  = var.domain_name
+  # ... rest of configuration
+}
+```
+
+#### Updated Makefile Approach
+```makefile
+# No more TARGETS variable or generate-targets.sh needed
+infra-up:
+	terraform apply -var="deployment_scope=$(SCOPE)" -auto-approve
+```
+
+### Benefits
+- **Terraform native approach** - No warnings or state issues
+- **Proper dependency management** - Terraform handles all relationships
+- **Cleaner implementation** - No external script needed
+- **Better state consistency** - Single source of truth
+- **Easier maintenance** - All logic in Terraform files
+
+### Migration Strategy
+1. Start with non-critical resources (CloudWatch logs, etc.)
+2. Test each scope thoroughly before moving to next resource type
+3. Keep backward compatibility during transition
+4. Remove old targeting system only after full validation
+
+### Testing Requirements
+- [ ] `make infra-up SCOPE=base` - Only creates VPC, NAT, ECR, Route53
+- [ ] `make infra-up SCOPE=runtime` - Only creates ECS, services, listeners
+- [ ] `make infra-up SCOPE=all` - Creates everything
+- [ ] `make infra-down SCOPE=runtime` - Only destroys runtime resources
+- [ ] `make infra-down SCOPE=base` - Only destroys base resources
+- [ ] `make infra-down SCOPE=all` - Destroys everything
+
+### Notes
+- This fixes the architectural flaw in PR4.5
+- Aligns with Terraform best practices
+- Enables true selective deployment without warnings
+- Foundation for future multi-environment deployments
 
 ---
 
@@ -576,6 +666,23 @@ resource "aws_cloudwatch_event_rule" "shutdown_weekend" {
 ---
 
 ## Change Log
+
+### 2025-09-24 (PR4.5 Complete - Dual Architecture Implemented)
+- **PR4.5 COMPLETE**: Successfully implemented dual-architecture Terraform configuration
+  - ✅ Separated base (persistent) from runtime (ephemeral) resources
+  - ✅ Implemented SCOPE parameter for make targets (runtime|base|all)
+  - ✅ Default `make infra-down` now preserves base resources
+  - ✅ Solved 30+ minute certificate validation delays
+  - ✅ Enabled <5 minute runtime recreation
+  - ✅ Created generate-targets.sh script for resource targeting
+  - ✅ Updated Makefile.infra with new parameterized targets
+  - ✅ Documented in DUAL_ARCHITECTURE_README.md
+- **Cost optimization**: Save ~$18/month with daily runtime shutdowns
+- **Key benefit**: Can now quickly tear down/recreate runtime resources while preserving NAT Gateway, Route53, and ACM certificates
+- **Usage**:
+  - `make infra-down` - Destroys runtime only (default)
+  - `make infra-down SCOPE=all` - Destroys everything
+  - `make infra-up` - Deploys runtime resources
 
 ### 2025-09-24 (PR3 ECS Complete - Deployed to AWS)
 - **PR3 COMPLETE**: Successfully deployed ECS infrastructure to AWS

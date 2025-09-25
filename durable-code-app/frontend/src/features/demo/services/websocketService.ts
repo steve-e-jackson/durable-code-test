@@ -61,16 +61,16 @@ export class WebSocketService {
         // Both use the same offset from their base
         const portOffset = currentPort - 5173;
         backendPort = 8000 + portOffset;
+        url = `${protocol}//${host}:${backendPort}${WEBSOCKET_CONFIG.ENDPOINT}`;
       } else if (!currentPort || currentPort === 80 || currentPort === 443) {
         // Production mode - no port or standard HTTP/HTTPS ports
-        // Use the configured backend port
-        backendPort = WEBSOCKET_CONFIG.BACKEND_PORT;
+        // Don't specify a port (ALB handles routing)
+        url = `${protocol}//${host}${WEBSOCKET_CONFIG.ENDPOINT}`;
       } else {
         // Use the same port as the page (likely proxied in production)
-        backendPort = currentPort;
+        backendPort = currentPort as 8000;
+        url = `${protocol}//${host}:${backendPort}${WEBSOCKET_CONFIG.ENDPOINT}`;
       }
-
-      url = `${protocol}//${host}:${backendPort}${WEBSOCKET_CONFIG.ENDPOINT}`;
     }
 
     this.url = url;

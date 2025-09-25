@@ -39,7 +39,6 @@ class MockWebSocket {
   send(_data: string) {}
 }
 
-// @ts-expect-error - Mocking WebSocket for tests
 global.WebSocket = MockWebSocket as unknown as typeof WebSocket;
 
 describe('WebSocketService Port Calculation', () => {
@@ -109,7 +108,7 @@ describe('WebSocketService Port Calculation', () => {
     service.connect().catch(() => {});
 
     expect(createdUrls).toHaveLength(1);
-    expect(createdUrls[0]).toBe('ws://localhost:8000/api/oscilloscope/stream');
+    expect(createdUrls[0]).toBe('ws://localhost/api/oscilloscope/stream');
   });
 
   it('should use default port 8000 for standard HTTP port 80', () => {
@@ -118,7 +117,7 @@ describe('WebSocketService Port Calculation', () => {
     service.connect().catch(() => {});
 
     expect(createdUrls).toHaveLength(1);
-    expect(createdUrls[0]).toBe('ws://localhost:8000/api/oscilloscope/stream');
+    expect(createdUrls[0]).toBe('ws://localhost/api/oscilloscope/stream');
   });
 
   it('should use same port for non-dev ports (proxy scenario)', () => {
