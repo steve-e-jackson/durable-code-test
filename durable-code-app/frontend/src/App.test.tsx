@@ -100,7 +100,7 @@ describe('App Component', () => {
         ).toBeInTheDocument();
       });
       await waitFor(() => {
-        expect(screen.getByText('Gate Everything You Care About')).toBeInTheDocument();
+        expect(screen.getByText('Project Layout')).toBeInTheDocument();
       });
     });
   });
@@ -116,12 +116,10 @@ describe('App Component', () => {
         ).toBeInTheDocument();
       });
       await waitFor(() => {
-        expect(screen.getByText('Gate Everything You Care About')).toBeInTheDocument();
+        expect(screen.getByText('Project Layout')).toBeInTheDocument();
       });
       await waitFor(() => {
-        expect(
-          screen.getByText('Make It Work The Same Everywhere'),
-        ).toBeInTheDocument();
+        expect(screen.getByText('Custom Linters')).toBeInTheDocument();
       });
     });
 
@@ -514,8 +512,10 @@ describe('App Component', () => {
       });
 
       // Check that QA links exist (reports and standards)
-      const reportLinks = screen.getAllByRole('link', { name: /View Report/i });
-      expect(reportLinks.length).toBeGreaterThan(0);
+      const linterReportsLink = screen.getByRole('link', {
+        name: /View Linter Reports/i,
+      });
+      expect(linterReportsLink).toBeInTheDocument();
 
       const standardsLink = screen.getByRole('link', { name: /View Standards/i });
       expect(standardsLink.getAttribute('href')).toBe(

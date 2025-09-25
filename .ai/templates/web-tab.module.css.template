@@ -1,0 +1,91 @@
+/**
+ * Purpose: Styles for the {{TAB_COMPONENT_NAME}} component using CSS Modules
+ * Scope: {{TAB_PURPOSE}} tab-specific styling with FeatureCard grid
+ * Overview: Modular styles for {{TAB_SCOPE}} with standardized hero and grid layout
+ * Dependencies: None
+ * Exports: CSS module classes
+ * Implementation: Component-scoped styles following established FeatureCard pattern
+ */
+
+.container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Hero Section */
+.hero {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding: 3rem;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-50) 0%,
+    rgba(255, 255, 255, 0.95) 100%
+  );
+  border-radius: 16px;
+  border: 1px solid var(--color-border-light);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gradient-primary);
+}
+
+/* Feature Grid - CRITICAL for FeatureCard consistency */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .hero {
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .grid {
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+}
+
+/*
+Template usage instructions:
+1. Replace {{TAB_COMPONENT_NAME}} with PascalCase component name (e.g., "TestingTab")
+2. Replace {{TAB_PURPOSE}} with tab's purpose (e.g., "testing strategy")
+3. Replace {{TAB_SCOPE}} with scope (e.g., "comprehensive testing")
+
+This CSS template provides:
+- Container with max-width and centering
+- Hero section with gradient background and top accent line
+- Grid layout specifically designed for FeatureCard components
+- Responsive breakpoints for mobile devices
+
+The .grid class is CRITICAL - it must use exactly these properties to maintain
+visual consistency with other tabs using FeatureCard components:
+- display: grid
+- grid-template-columns: repeat(auto-fill, minmax(320px, 1fr))
+- gap: 1.5rem
+- margin-top: 2rem
+
+This ensures all tabs have "nearly indistinguishable" layouts.
+*/

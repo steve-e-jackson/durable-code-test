@@ -1,178 +1,116 @@
 /**
  * Purpose: Repository tab component showcasing AI-ready project setup and architecture
  * Scope: Feature-based React component for displaying repository best practices
- * Overview: Modern React component demonstrating repository setup for AI-assisted development
- *     including project organization, tooling configuration, CI/CD setup, and development
- *     environment preparation. Modularized with proper separation of concerns, CSS modules,
- *     and comprehensive error handling following established patterns.
- * Dependencies: React, repository hooks, common components, CSS modules
- * Exports: RepositoryTab component (default export), RepositoryTabProps interface
- * Props/Interfaces: Optional className and error handling callback
- * State/Behavior: Fetches repository data via hook, displays modular content sections
+ * Overview: Standardized component using FeatureCard grid layout for consistency
+ * Dependencies: React, FeatureCard component, CSS modules
+ * Exports: RepositoryTab component (default export)
+ * Props/Interfaces: No props - self-contained feature component
+ * Implementation: Feature-based architecture with FeatureCard grid layout
  */
 
-import { useCallback, useMemo, useState } from 'react';
 import type { ReactElement } from 'react';
-import { ErrorMessage, LoadingSpinner } from '../../../../components/common';
-import { useRepository } from '../../hooks/useRepository';
-import type { RepositoryItem, RepositoryTabProps } from '../../types/repository.types';
+import { FeatureCard } from '../../../../components/common/FeatureCard/FeatureCard';
 import styles from './RepositoryTab.module.css';
 import {
   FaCheckCircle,
   FaCogs,
   FaDocker,
   FaFileAlt,
-  FaFileCode,
   FaFlask,
   FaFolder,
   FaGavel,
   FaListOl,
   FaMap,
-  FaShieldAlt,
 } from 'react-icons/fa';
 
-/**
- * RepositoryTab component
- *
- * @param props - Component props
- * @returns Rendered repository tab component
- */
-export function RepositoryTab({
-  className = '',
-  onError,
-}: RepositoryTabProps): ReactElement {
-  const {
-    repositoryItems,
-    folderStructure: _folderStructure,
-    loading,
-    error,
-  } = useRepository();
+export function RepositoryTab(): ReactElement {
+  const repositoryFeatures = [
+    {
+      icon: <FaFolder />,
+      title: 'Project Layout',
+      description:
+        'Rigid file organization with clear boundaries for AI-assisted development, preventing code sprawl and ensuring consistency',
+      linkText: 'View Structure',
+      linkHref: '/layout?return=Repository',
+      badge: { text: 'Essential', variant: 'essential' as const },
+    },
+    {
+      icon: <FaGavel />,
+      title: 'Custom Linters',
+      description:
+        'AI-powered custom linters that enforce architectural patterns, detect violations, and maintain code quality standards',
+      linkText: 'View Linters',
+      linkHref: '/linters?return=Repository',
+      badge: { text: 'Active', variant: 'active' as const },
+    },
+    {
+      icon: <FaCogs />,
+      title: 'Make Targets',
+      description:
+        'Standardized build system with consistent commands across all environments, ensuring reproducible operations',
+      linkText: 'View Targets',
+      linkHref: '/make-targets?return=Repository',
+      badge: { text: 'Technical', variant: 'technical' as const },
+    },
+    {
+      icon: <FaDocker />,
+      title: 'Docker Everything',
+      description:
+        'Complete containerization strategy ensuring identical environments from development to production',
+      linkText: 'View Containers',
+      linkHref: '/docker?return=Repository',
+      badge: { text: 'Technical', variant: 'technical' as const },
+    },
+    {
+      icon: <FaCheckCircle />,
+      title: 'Quality Gates',
+      description:
+        'Automated quality enforcement at every stage, preventing bad code from advancing through the pipeline',
+      linkText: 'View Gates',
+      linkHref: '/quality-gates?return=Repository',
+      badge: { text: 'Quality', variant: 'quality' as const },
+    },
+    {
+      icon: <FaListOl />,
+      title: 'Step-by-Step Guides',
+      description:
+        'Comprehensive documentation and workflows that guide AI and developers through complex processes',
+      linkText: 'View Guides',
+      linkHref: '/guides?return=Repository',
+      badge: { text: 'Active', variant: 'active' as const },
+    },
+    {
+      icon: <FaFileAlt />,
+      title: 'File Headers',
+      description:
+        'Standardized file documentation ensuring every file has clear purpose, scope, and implementation details',
+      linkText: 'View Headers',
+      linkHref: '/file-headers?return=Repository',
+      badge: { text: 'Quality', variant: 'quality' as const },
+    },
+    {
+      icon: <FaMap />,
+      title: 'AI Index',
+      description:
+        'Comprehensive AI navigation system providing context and guidance for intelligent code assistance',
+      linkText: 'View Index',
+      linkHref: '/ai-index?return=Repository',
+      badge: { text: 'Strategic', variant: 'strategic' as const },
+    },
+    {
+      icon: <FaFlask />,
+      title: 'Test Infrastructure',
+      description:
+        'Robust testing framework with comprehensive coverage ensuring reliability and catching regressions',
+      linkText: 'View Tests',
+      linkHref: '/test-infrastructure?return=Repository',
+      badge: { text: 'Quality', variant: 'quality' as const },
+    },
+  ];
 
-  // State for clicked popup
-  const [selectedItem, setSelectedItem] = useState<string | null>(null);
-
-  // Component classes
-  const componentClasses = useMemo(() => {
-    return [
-      styles.repositoryTab,
-      'tab-content',
-      'repository-content',
-      className,
-      loading && styles.loading,
-      error && styles.error,
-    ]
-      .filter(Boolean)
-      .join(' ');
-  }, [className, loading, error]);
-
-  // Icon mapping function
-  const getIconForItem = (itemId: string): ReactElement | null => {
-    switch (itemId) {
-      case 'project-layout':
-        return <FaFolder />;
-      case 'custom-linters':
-        return <FaGavel />;
-      case 'make-targets':
-        return <FaCogs />;
-      case 'docker-everything':
-        return <FaDocker />;
-      case 'quality-gates':
-        return <FaCheckCircle />;
-      case 'step-by-step':
-        return <FaListOl />;
-      case 'file-headers':
-        return <FaFileAlt />;
-      case 'ai-index':
-        return <FaMap />;
-      case 'test-infrastructure':
-        return <FaFlask />;
-      case 'code-templates':
-        return <FaFileCode />;
-      case 'error-resilience':
-        return <FaShieldAlt />;
-      default:
-        return null;
-    }
-  };
-
-  // Event handlers
-  const handleItemClick = useCallback((item: RepositoryItem) => {
-    if (item.popup) {
-      setSelectedItem(item.id);
-    }
-  }, []);
-
-  // Error propagation
-  if (error) {
-    onError?.(error);
-  }
-
-  // Render helpers
-  const repositoryGrid = useMemo(() => {
-    return (
-      <div className={styles.repositoryGrid}>
-        {repositoryItems.map((item) => (
-          <div
-            key={item.id}
-            className={`${styles.repositoryCard} feature-card`}
-            onClick={() => handleItemClick(item)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                handleItemClick(item);
-              }
-            }}
-          >
-            <div className={styles.cardContent}>
-              {getIconForItem(item.id) && (
-                <div className={styles.cardIcon}>{getIconForItem(item.id)}</div>
-              )}
-              <h4 className={styles.cardTitle}>{item.title}</h4>
-              <span className={styles.clickHint}>Click to explore</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }, [repositoryItems, handleItemClick]);
-
-  // Find selected item for popup
-  const selectedRepoItem = useMemo(() => {
-    if (!selectedItem) return null;
-    return repositoryItems.find((item) => item.id === selectedItem);
-  }, [selectedItem, repositoryItems]);
-
-  // Loading state
-  if (loading) {
-    return (
-      <div className={componentClasses}>
-        <LoadingSpinner className={styles.loadingSpinner} />
-        <p>Loading repository data...</p>
-      </div>
-    );
-  }
-
-  // Error state
-  if (error) {
-    return (
-      <div className={componentClasses}>
-        <ErrorMessage
-          message={error.message}
-          title="Error loading repository"
-          variant="error"
-          onDismiss={() => window.location.reload()}
-          className={styles.errorMessage}
-        />
-      </div>
-    );
-  }
-
-  // Main render
   return (
-    <div className={componentClasses}>
-      {/* Hero section */}
-      <div className={styles.repositoryHero}>
+    <div className={styles.container}>
+      <div className={styles.hero}>
         <h3 className="hero-title">
           Why Rigid Repository Structure Matters for AI Development
         </h3>
@@ -188,111 +126,11 @@ export function RepositoryTab({
         </p>
       </div>
 
-      {/* Repository grid */}
-      {repositoryGrid}
-
-      {/* Popup rendered at component level */}
-      {selectedRepoItem && selectedRepoItem.popup && (
-        <>
-          <div className={styles.popupBackdrop} onClick={() => setSelectedItem(null)} />
-          <div className={styles.structuredPopup}>
-            {/* Document Header */}
-            <div className={styles.documentHeader}>
-              <h2 className={styles.documentTitle}>
-                {getIconForItem(selectedRepoItem.id) && (
-                  <span className={styles.documentIcon}>
-                    {getIconForItem(selectedRepoItem.id)}
-                  </span>
-                )}
-                {selectedRepoItem.title}
-              </h2>
-              <button
-                className={styles.closeButton}
-                onClick={() => setSelectedItem(null)}
-                aria-label="Close"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className={styles.popupContainer}>
-              {/* Problem Section */}
-              <div className={styles.popupSection}>
-                <h3 className={styles.sectionTitle}>
-                  <span className={styles.sectionIcon}>🔴</span>
-                  The Problem
-                </h3>
-                <div className={styles.sectionContent}>
-                  <h4>{selectedRepoItem.popup.problem.title}</h4>
-                  <ul className={styles.pointsList}>
-                    {selectedRepoItem.popup.problem.points.map((point, index) => (
-                      <li key={index}>{point}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              {/* Solution Section */}
-              <div className={styles.popupSection}>
-                <h3 className={styles.sectionTitle}>
-                  <span className={styles.sectionIcon}>✅</span>
-                  Our Solution
-                </h3>
-                <div className={styles.sectionContent}>
-                  <h4>{selectedRepoItem.popup.solution.title}</h4>
-                  <ul className={styles.pointsList}>
-                    {selectedRepoItem.popup.solution.points.map((point, index) => (
-                      <li key={index}>{point}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              {/* Example Section */}
-              <div className={styles.popupSection}>
-                <h3 className={styles.sectionTitle}>
-                  <span className={styles.sectionIcon}>💻</span>
-                  Example from Our Code
-                </h3>
-                <div className={styles.exampleHeader}>
-                  <span className={styles.exampleTitle}>
-                    {selectedRepoItem.popup.example.title}
-                  </span>
-                  {selectedRepoItem.popup.example.file && (
-                    <span className={styles.exampleFile}>
-                      {selectedRepoItem.popup.example.file}
-                    </span>
-                  )}
-                </div>
-                <pre className={styles.codeBlock}>
-                  <code
-                    className={`language-${selectedRepoItem.popup.example.language}`}
-                  >
-                    {selectedRepoItem.popup.example.code}
-                  </code>
-                </pre>
-              </div>
-            </div>
-
-            {/* Links Section - Outside scrollable area */}
-            {selectedRepoItem.popup.links && (
-              <div className={styles.popupLinks}>
-                {selectedRepoItem.popup.links.map((link, index) => (
-                  <a
-                    key={index}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={styles.popupLink}
-                  >
-                    {link.text} →
-                  </a>
-                ))}
-              </div>
-            )}
-          </div>
-        </>
-      )}
+      <div className={styles.grid}>
+        {repositoryFeatures.map((feature) => (
+          <FeatureCard key={feature.title} {...feature} />
+        ))}
+      </div>
     </div>
   );
 }
