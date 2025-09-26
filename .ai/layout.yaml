@@ -280,15 +280,6 @@ linter_rules:
         - 'test_'
         - '_test\\.py$'
 
-    durable-code-app/backend/htmlcov/:
-      description: "Coverage HTML reports - auto-generated"
-      allow:
-        - '\\.html$'
-        - '\\.css$'
-        - '\\.js$'
-        - '\\.json$'
-      deny:
-        - '\\.py$'
 
     durable-code-app/backend/test/:
       description: "Backend-specific tests (if needed)"
@@ -345,6 +336,18 @@ linter_rules:
         - '/test/fixtures/.*\\.json$'
       deny:
         - '/test/[^/]+\\.(py|js|ts)$'
+
+    test/htmlcov/:
+      description: "Coverage HTML reports - auto-generated, should be gitignored"
+      allow:
+        - '\\.html$'
+        - '\\.css$'
+        - '\\.js$'
+        - '\\.json$'
+        - '\\.png$'
+        - '\\.gitignore$'
+      deny:
+        - '\\.py$'
 
     scripts/:
       allow:
