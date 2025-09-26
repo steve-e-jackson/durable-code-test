@@ -11,69 +11,69 @@ locals {
     # Base/persistent resources - slow to provision, expensive to recreate
     base = {
       # Networking - takes time to provision NAT Gateway
-      "aws_vpc.main"                    = true
-      "aws_subnet.public"                = true
-      "aws_subnet.private"               = true
-      "aws_internet_gateway.main"        = true
-      "aws_eip.nat"                     = true
-      "aws_nat_gateway.main"            = true
-      "aws_route_table.public"          = true
-      "aws_route_table.private"         = true
-      "aws_route_table_association.public" = true
+      "aws_vpc.main"                        = true
+      "aws_subnet.public"                   = true
+      "aws_subnet.private"                  = true
+      "aws_internet_gateway.main"           = true
+      "aws_eip.nat"                         = true
+      "aws_nat_gateway.main"                = true
+      "aws_route_table.public"              = true
+      "aws_route_table.private"             = true
+      "aws_route_table_association.public"  = true
       "aws_route_table_association.private" = true
-      "aws_security_group.alb"         = true
-      "aws_security_group.ecs_tasks"   = true
+      "aws_security_group.alb"              = true
+      "aws_security_group.ecs_tasks"        = true
 
       # ECR - Container registries
-      "aws_ecr_repository.frontend"    = true
-      "aws_ecr_repository.backend"     = true
+      "aws_ecr_repository.frontend"       = true
+      "aws_ecr_repository.backend"        = true
       "aws_ecr_lifecycle_policy.frontend" = true
       "aws_ecr_lifecycle_policy.backend"  = true
 
       # Route53 and certificates - DNS takes 30+ mins to validate
-      "aws_route53_zone.main"          = true
-      "aws_acm_certificate.main"       = true
-      "aws_route53_record.cert_validation" = true
+      "aws_route53_zone.main"               = true
+      "aws_acm_certificate.main"            = true
+      "aws_route53_record.cert_validation"  = true
       "aws_acm_certificate_validation.main" = true
 
       # ALB itself (but not listeners/targets)
-      "aws_lb.main"                    = true
+      "aws_lb.main" = true
     }
 
     # Runtime/temporal resources - quick to provision, can be destroyed for cost savings
     runtime = {
       # ECS Cluster and Services
-      "aws_ecs_cluster.main"           = true
-      "aws_ecs_task_definition.backend" = true
+      "aws_ecs_cluster.main"             = true
+      "aws_ecs_task_definition.backend"  = true
       "aws_ecs_task_definition.frontend" = true
-      "aws_ecs_service.backend"        = true
-      "aws_ecs_service.frontend"       = true
+      "aws_ecs_service.backend"          = true
+      "aws_ecs_service.frontend"         = true
 
       # IAM roles for ECS
-      "aws_iam_role.ecs_task_execution" = true
-      "aws_iam_role.ecs_task"          = true
+      "aws_iam_role.ecs_task_execution"                   = true
+      "aws_iam_role.ecs_task"                             = true
       "aws_iam_role_policy_attachment.ecs_task_execution" = true
 
       # CloudWatch logs
-      "aws_cloudwatch_log_group.backend" = true
+      "aws_cloudwatch_log_group.backend"  = true
       "aws_cloudwatch_log_group.frontend" = true
 
       # ALB listeners and targets
-      "aws_lb_target_group.backend"    = true
-      "aws_lb_target_group.frontend"   = true
-      "aws_lb_listener.http"           = true
-      "aws_lb_listener.https"          = true
-      "aws_lb_listener_rule.backend"   = true
-      "aws_lb_listener_rule.frontend"  = true
+      "aws_lb_target_group.backend"   = true
+      "aws_lb_target_group.frontend"  = true
+      "aws_lb_listener.http"          = true
+      "aws_lb_listener.https"         = true
+      "aws_lb_listener_rule.backend"  = true
+      "aws_lb_listener_rule.frontend" = true
 
       # Service discovery
       "aws_service_discovery_private_dns_namespace.main" = true
-      "aws_service_discovery_service.backend" = true
-      "aws_service_discovery_service.frontend" = true
+      "aws_service_discovery_service.backend"            = true
+      "aws_service_discovery_service.frontend"           = true
 
       # Route53 records pointing to ALB
-      "aws_route53_record.alb"         = true
-      "aws_route53_record.www"         = true
+      "aws_route53_record.alb" = true
+      "aws_route53_record.www" = true
     }
   }
 
@@ -82,7 +82,7 @@ locals {
 
   # Tag all resources with their scope for easy identification
   scope_tags = {
-    Scope = local.deployment_scope
+    Scope     = local.deployment_scope
     ManagedBy = "Terraform"
   }
 }
