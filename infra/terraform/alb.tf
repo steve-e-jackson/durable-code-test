@@ -41,6 +41,10 @@ resource "aws_lb" "main" {
       Type = "ApplicationLoadBalancer"
     }
   )
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # S3 bucket for ALB access logs (production only)
@@ -112,6 +116,10 @@ resource "aws_lb_target_group" "frontend" {
       Service = "frontend"
     }
   )
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # Target Group for Backend Service
@@ -147,6 +155,10 @@ resource "aws_lb_target_group" "backend" {
       Service = "backend"
     }
   )
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # HTTP Listener (redirects to HTTPS in production)
@@ -159,7 +171,7 @@ resource "aws_lb_listener" "http" {
   # Redirect HTTP to HTTPS when HTTPS is enabled
   # Otherwise forward to frontend
   dynamic "default_action" {
-    for_each = var.enable_https && var.certificate_arn != "" ? [1] : []
+    for_each = var.enable_https && length(aws_acm_certificate.main) > 0 ? [1] : []
     content {
       type = "redirect"
 
@@ -173,7 +185,7 @@ resource "aws_lb_listener" "http" {
 
   # When HTTPS is disabled or no certificate available
   dynamic "default_action" {
-    for_each = !var.enable_https || var.certificate_arn == "" ? [1] : []
+    for_each = !var.enable_https || length(aws_acm_certificate.main) == 0 ? [1] : []
     content {
       type             = "forward"
       target_group_arn = aws_lb_target_group.frontend[0].arn
@@ -183,13 +195,13 @@ resource "aws_lb_listener" "http" {
 
 # HTTPS Listener (when certificate is available and HTTPS is enabled)
 resource "aws_lb_listener" "https" {
-  count = local.should_create_resource.alb_listeners && var.enable_https && var.certificate_arn != "" ? 1 : 0
+  count = local.should_create_resource.alb_listeners && var.enable_https && length(aws_acm_certificate.main) > 0 ? 1 : 0
 
   load_balancer_arn = aws_lb.main.arn
   port              = 443
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-TLS-1-2-2017-01"
-  certificate_arn   = var.certificate_arn
+  certificate_arn   = aws_acm_certificate_validation.main[0].certificate_arn
 
   default_action {
     type             = "forward"
@@ -218,7 +230,7 @@ resource "aws_lb_listener_rule" "backend_http" {
 
 # Listener Rule for Backend API (HTTPS)
 resource "aws_lb_listener_rule" "backend_https" {
-  count = local.should_create_resource.alb_listeners && var.enable_https && var.certificate_arn != "" ? 1 : 0
+  count = local.should_create_resource.alb_listeners && var.enable_https && length(aws_acm_certificate.main) > 0 ? 1 : 0
 
   listener_arn = aws_lb_listener.https[0].arn
   priority     = 100

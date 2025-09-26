@@ -39,6 +39,10 @@ resource "aws_ecr_repository" "frontend" {
       Purpose   = "Docker image storage for frontend application"
     }
   )
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # Backend ECR Repository
@@ -64,6 +68,10 @@ resource "aws_ecr_repository" "backend" {
       Purpose   = "Docker image storage for backend API"
     }
   )
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # Lifecycle policy for frontend repository - Keep only recent images

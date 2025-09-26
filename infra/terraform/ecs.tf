@@ -20,6 +20,10 @@ resource "aws_ecs_cluster" "main" {
       Description = "Main ECS cluster for container orchestration"
     }
   )
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # ECS Cluster Capacity Providers
@@ -51,6 +55,10 @@ resource "aws_cloudwatch_log_group" "backend" {
       Component = "Logging"
     }
   )
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "aws_cloudwatch_log_group" "frontend" {
@@ -66,6 +74,10 @@ resource "aws_cloudwatch_log_group" "frontend" {
       Component = "Logging"
     }
   )
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # Task Execution Role - Used by ECS to pull images and write logs
@@ -93,6 +105,10 @@ resource "aws_iam_role" "task_execution_role" {
       Component = "IAM"
     }
   )
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # Attach AWS managed policy for ECS task execution
@@ -165,6 +181,10 @@ resource "aws_iam_role" "task_role" {
       Component = "IAM"
     }
   )
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # Task Role Policy - Application permissions
@@ -265,6 +285,10 @@ resource "aws_ecs_task_definition" "backend" {
       Component = "ECS"
     }
   )
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # Frontend Task Definition
@@ -330,6 +354,10 @@ resource "aws_ecs_task_definition" "frontend" {
       Component = "ECS"
     }
   )
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # Service Discovery Namespace (Private DNS)
@@ -346,6 +374,10 @@ resource "aws_service_discovery_private_dns_namespace" "main" {
       Component = "ServiceDiscovery"
     }
   )
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # Backend Service Discovery Service
@@ -441,7 +473,7 @@ resource "aws_ecs_service" "backend" {
   )
 
   lifecycle {
-    ignore_changes = [desired_count] # Allow auto-scaling to manage this
+    ignore_changes = [desired_count, tags] # Allow auto-scaling to manage this, ignore tag changes
   }
 }
 
@@ -494,7 +526,7 @@ resource "aws_ecs_service" "frontend" {
   )
 
   lifecycle {
-    ignore_changes = [desired_count] # Allow auto-scaling to manage this
+    ignore_changes = [desired_count, tags] # Allow auto-scaling to manage this, ignore tag changes
   }
 }
 
