@@ -61,6 +61,12 @@
   align-items: center;
   gap: 0.25rem;
   transition: gap 0.2s ease;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  padding: 0;
 }
 
 .card:hover .cardLink {

@@ -17,7 +17,7 @@ resource "aws_lb" "main" {
   name               = "${var.project_name}-${var.environment}-alb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb.id]
+  security_groups    = [aws_security_group.alb[0].id]
   subnets            = aws_subnet.public[*].id
 
   enable_deletion_protection       = var.environment == "prod" ? true : false
@@ -80,10 +80,11 @@ resource "aws_s3_bucket_policy" "alb_logs" {
 
 # Target Group for Frontend Service
 resource "aws_lb_target_group" "frontend" {
+  count                = local.should_create_resource.alb_target_groups ? 1 : 0
   name                 = "${var.project_name}-${var.environment}-frontend-tg"
   port                 = 3000
   protocol             = "HTTP"
-  vpc_id               = aws_vpc.main.id
+  vpc_id               = aws_vpc.main[0].id
   target_type          = "ip"                                # Required for Fargate
   deregistration_delay = var.environment == "prod" ? 30 : 10 # Faster deploys in dev
 
@@ -115,10 +116,11 @@ resource "aws_lb_target_group" "frontend" {
 
 # Target Group for Backend Service
 resource "aws_lb_target_group" "backend" {
+  count                = local.should_create_resource.alb_target_groups ? 1 : 0
   name                 = "${var.project_name}-${var.environment}-backend-tg"
   port                 = 8000
   protocol             = "HTTP"
-  vpc_id               = aws_vpc.main.id
+  vpc_id               = aws_vpc.main[0].id
   target_type          = "ip" # Required for Fargate
   deregistration_delay = var.environment == "prod" ? 30 : 10
 
@@ -149,6 +151,7 @@ resource "aws_lb_target_group" "backend" {
 
 # HTTP Listener (redirects to HTTPS in production)
 resource "aws_lb_listener" "http" {
+  count             = local.should_create_resource.alb_listeners ? 1 : 0
   load_balancer_arn = aws_lb.main.arn
   port              = 80
   protocol          = "HTTP"
@@ -173,14 +176,14 @@ resource "aws_lb_listener" "http" {
     for_each = !var.enable_https || var.certificate_arn == "" ? [1] : []
     content {
       type             = "forward"
-      target_group_arn = aws_lb_target_group.frontend.arn
+      target_group_arn = aws_lb_target_group.frontend[0].arn
     }
   }
 }
 
 # HTTPS Listener (when certificate is available and HTTPS is enabled)
 resource "aws_lb_listener" "https" {
-  count = var.enable_https && var.certificate_arn != "" ? 1 : 0
+  count = local.should_create_resource.alb_listeners && var.enable_https && var.certificate_arn != "" ? 1 : 0
 
   load_balancer_arn = aws_lb.main.arn
   port              = 443
@@ -190,18 +193,20 @@ resource "aws_lb_listener" "https" {
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.frontend.arn
+    target_group_arn = aws_lb_target_group.frontend[0].arn
   }
 }
 
 # Listener Rule for Backend API (HTTP)
 resource "aws_lb_listener_rule" "backend_http" {
-  listener_arn = aws_lb_listener.http.arn
+  count = local.should_create_resource.alb_listeners ? 1 : 0
+
+  listener_arn = aws_lb_listener.http[0].arn
   priority     = 100
 
   action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.backend.arn
+    target_group_arn = aws_lb_target_group.backend[0].arn
   }
 
   condition {
@@ -213,14 +218,14 @@ resource "aws_lb_listener_rule" "backend_http" {
 
 # Listener Rule for Backend API (HTTPS)
 resource "aws_lb_listener_rule" "backend_https" {
-  count = var.enable_https && var.certificate_arn != "" ? 1 : 0
+  count = local.should_create_resource.alb_listeners && var.enable_https && var.certificate_arn != "" ? 1 : 0
 
   listener_arn = aws_lb_listener.https[0].arn
   priority     = 100
 
   action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.backend.arn
+    target_group_arn = aws_lb_target_group.backend[0].arn
   }
 
   condition {

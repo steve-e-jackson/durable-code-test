@@ -60,13 +60,13 @@ output "domain_name" {
 
 output "route53_zone_id" {
   description = "Route53 hosted zone ID"
-  value       = var.create_route53_zone && var.domain_name != "" ? aws_route53_zone.main[0].zone_id : "Not created"
+  value       = local.should_create_resource.route53 && var.create_route53_zone && var.domain_name != "" ? aws_route53_zone.main[0].zone_id : "Not created"
   sensitive   = false
 }
 
 output "name_servers" {
   description = "Name servers for the Route53 hosted zone"
-  value       = var.create_route53_zone && var.domain_name != "" ? aws_route53_zone.main[0].name_servers : []
+  value       = local.should_create_resource.route53 && var.create_route53_zone && var.domain_name != "" ? aws_route53_zone.main[0].name_servers : []
   sensitive   = false
 }
 
@@ -96,68 +96,68 @@ output "fargate_spot_enabled" {
 # ECR Repository URLs (PR2 - Complete)
 output "ecr_frontend_url" {
   description = "URL of the frontend ECR repository"
-  value       = aws_ecr_repository.frontend.repository_url
+  value       = local.should_create_resource.ecr ? aws_ecr_repository.frontend[0].repository_url : ""
   sensitive   = false
 }
 
 output "ecr_backend_url" {
   description = "URL of the backend ECR repository"
-  value       = aws_ecr_repository.backend.repository_url
+  value       = local.should_create_resource.ecr ? aws_ecr_repository.backend[0].repository_url : ""
   sensitive   = false
 }
 
 # ECS Cluster (PR3 - In Progress)
 output "ecs_cluster_name" {
   description = "Name of the ECS cluster"
-  value       = aws_ecs_cluster.main.name
+  value       = local.should_create_resource.ecs_cluster ? aws_ecs_cluster.main[0].name : "Not created"
   sensitive   = false
 }
 
 output "ecs_cluster_id" {
   description = "ID of the ECS cluster"
-  value       = aws_ecs_cluster.main.id
+  value       = local.should_create_resource.ecs_cluster ? aws_ecs_cluster.main[0].id : "Not created"
   sensitive   = false
 }
 
 output "backend_service_name" {
   description = "Name of the backend ECS service"
-  value       = aws_ecs_service.backend.name
+  value       = local.should_create_resource.ecs_services ? aws_ecs_service.backend[0].name : "Not created"
   sensitive   = false
 }
 
 output "frontend_service_name" {
   description = "Name of the frontend ECS service"
-  value       = aws_ecs_service.frontend.name
+  value       = local.should_create_resource.ecs_services ? aws_ecs_service.frontend[0].name : "Not created"
   sensitive   = false
 }
 
 output "backend_task_definition" {
   description = "ARN of the backend task definition"
-  value       = aws_ecs_task_definition.backend.arn
+  value       = local.should_create_resource.ecs_services ? aws_ecs_task_definition.backend[0].arn : "Not created"
   sensitive   = false
 }
 
 output "frontend_task_definition" {
   description = "ARN of the frontend task definition"
-  value       = aws_ecs_task_definition.frontend.arn
+  value       = local.should_create_resource.ecs_services ? aws_ecs_task_definition.frontend[0].arn : "Not created"
   sensitive   = false
 }
 
 output "service_discovery_namespace" {
   description = "Service discovery namespace for internal communication"
-  value       = aws_service_discovery_private_dns_namespace.main.name
+  value       = local.should_create_resource.service_discovery ? aws_service_discovery_private_dns_namespace.main[0].name : "Not created"
   sensitive   = false
 }
 
 output "backend_internal_dns" {
   description = "Internal DNS name for backend service"
-  value       = "backend.${aws_service_discovery_private_dns_namespace.main.name}"
+  value       = local.should_create_resource.service_discovery ? "backend.${aws_service_discovery_private_dns_namespace.main[0].name}" : "Not created"
   sensitive   = false
 }
 
 output "frontend_internal_dns" {
   description = "Internal DNS name for frontend service"
-  value       = "frontend.${aws_service_discovery_private_dns_namespace.main.name}"
+  value       = local.should_create_resource.service_discovery ? "frontend.${aws_service_discovery_private_dns_namespace.main[0].name}" : "Not created"
   sensitive   = false
 }
 
@@ -192,13 +192,13 @@ output "alb_url" {
 # Target Group Outputs
 output "frontend_target_group_arn" {
   description = "ARN of the frontend target group"
-  value       = aws_lb_target_group.frontend.arn
+  value       = local.should_create_resource.alb_target_groups ? aws_lb_target_group.frontend[0].arn : "Not created"
   sensitive   = false
 }
 
 output "backend_target_group_arn" {
   description = "ARN of the backend target group"
-  value       = aws_lb_target_group.backend.arn
+  value       = local.should_create_resource.alb_target_groups ? aws_lb_target_group.backend[0].arn : "Not created"
   sensitive   = false
 }
 
@@ -218,12 +218,12 @@ output "application_urls" {
 # Certificate Output (when configured)
 output "certificate_arn" {
   description = "ARN of the ACM certificate"
-  value       = var.domain_name != "" && var.create_route53_zone ? aws_acm_certificate.main[0].arn : "Not created"
+  value       = local.should_create_resource.acm && var.domain_name != "" && var.create_route53_zone ? aws_acm_certificate.main[0].arn : "Not created"
   sensitive   = false
 }
 
 output "certificate_status" {
   description = "Status of the ACM certificate"
-  value       = var.domain_name != "" && var.create_route53_zone ? aws_acm_certificate.main[0].status : "Not created"
+  value       = local.should_create_resource.acm && var.domain_name != "" && var.create_route53_zone ? aws_acm_certificate.main[0].status : "Not created"
   sensitive   = false
 }
