@@ -18,7 +18,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from loguru import logger
 
+from .api.v1.contributions import router as contributions_router
 from .core.exceptions import AppExceptionError, ValidationError
+from .db.dynamodb_client import DynamoDBClient
 from .oscilloscope import router as oscilloscope_router
 from .security import SecurityMiddleware, get_rate_limiter, get_security_config
 
@@ -163,6 +165,16 @@ app = create_application()
 
 # Include routers
 app.include_router(oscilloscope_router)
+app.include_router(contributions_router)
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize DynamoDB table on startup."""
+    logger.info("Initializing DynamoDB...")
+    db_client = DynamoDBClient()
+    await db_client.create_table_if_not_exists()
+    logger.info("DynamoDB initialized successfully")
 
 
 @app.get("/")

@@ -230,6 +230,84 @@ linter_rules:
         - '_test\\.py$'
         - '\\.(js|ts|tsx)$'
 
+    durable-code-app/backend/app/db/:
+      description: "Database client and storage layer (DynamoDB/in-memory)"
+      allow:
+        - '/db/__init__\\.py$'
+        - '/db/dynamodb_client\\.py$'
+        - '/db/storage_interface\\.py$'
+        - '/db/models/'
+      deny:
+        - 'test_'
+        - '_test\\.py$'
+        - '\\.(js|ts|tsx)$'
+        - 'session\\.py'  # Not using SQLAlchemy sessions
+        - 'base\\.py'  # Not using SQLAlchemy base
+
+    durable-code-app/backend/app/db/models/:
+      description: "Data models for storage (not ORM models)"
+      allow:
+        - '/models/[^/]+\\.py$'
+        - '/models/__init__\\.py$'
+      deny:
+        - 'test_'
+        - '_test\\.py$'
+
+    durable-code-app/backend/app/models/:
+      description: "Pydantic models for API validation"
+      allow:
+        - '/models/[^/]+\\.py$'
+        - '/models/__init__\\.py$'
+      deny:
+        - 'test_'
+        - '_test\\.py$'
+        - 'db'  # DB models go in db/models
+
+    durable-code-app/backend/app/api/:
+      allow:
+        - '/api/__init__\\.py$'
+        - '/api/v[0-9]+/'
+        - '/api/deps\\.py$'
+      deny:
+        - 'test_'
+        - '_test\\.py$'
+
+    durable-code-app/backend/app/api/v1/:
+      allow:
+        - '/v1/[^/]+\\.py$'
+        - '/v1/__init__\\.py$'
+      deny:
+        - 'test_'
+        - '_test\\.py$'
+
+    durable-code-app/backend/htmlcov/:
+      description: "Coverage HTML reports - auto-generated"
+      allow:
+        - '\\.html$'
+        - '\\.css$'
+        - '\\.js$'
+        - '\\.json$'
+      deny:
+        - '\\.py$'
+
+    durable-code-app/backend/test/:
+      description: "Backend-specific tests (if needed)"
+      allow:
+        - 'test_.*\\.py$'
+        - '.*_test\\.py$'
+        - '__init__\\.py$'
+      deny:
+        - '^[^/]+\\.py$'  # Tests must have test_ prefix or _test suffix
+
+    durable-code-app/backend/tools/:
+      description: "Backend-specific tools and scripts"
+      allow:
+        - '/tools/[^/]+\\.py$'
+        - '/tools/[^/]+\\.sh$'
+      deny:
+        - 'test_'
+        - '\\.tsx?$'
+
     tools/:
       description: "Tools root directory - Python files must be in subdirectories"
       allow:
