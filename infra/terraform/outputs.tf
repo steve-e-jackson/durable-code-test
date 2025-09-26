@@ -162,6 +162,28 @@ output "frontend_internal_dns" {
 }
 
 # ============================================================================
+# DynamoDB Outputs
+# ============================================================================
+
+output "contributions_table_name" {
+  description = "Name of the DynamoDB table for contributions"
+  value       = local.should_create_resource.contributions ? aws_dynamodb_table.contributions[0].name : "Not created"
+  sensitive   = false
+}
+
+output "contributions_table_arn" {
+  description = "ARN of the DynamoDB table for contributions"
+  value       = local.should_create_resource.contributions ? aws_dynamodb_table.contributions[0].arn : "Not created"
+  sensitive   = false
+}
+
+output "contributions_table_billing_mode" {
+  description = "Billing mode of the contributions table"
+  value       = local.should_create_resource.contributions ? aws_dynamodb_table.contributions[0].billing_mode : "Not created"
+  sensitive   = false
+}
+
+# ============================================================================
 # Application Load Balancer Outputs (PR4)
 # ============================================================================
 

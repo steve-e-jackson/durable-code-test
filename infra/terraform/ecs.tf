@@ -197,6 +197,24 @@ resource "aws_iam_role_policy" "task_role_policy" {
             "kms:ViaService" = "ssm.${data.aws_region.current.name}.amazonaws.com"
           }
         }
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:PutItem",
+          "dynamodb:GetItem",
+          "dynamodb:UpdateItem",
+          "dynamodb:DeleteItem",
+          "dynamodb:Query",
+          "dynamodb:Scan",
+          "dynamodb:BatchGetItem",
+          "dynamodb:BatchWriteItem",
+          "dynamodb:DescribeTable"
+        ]
+        Resource = [
+          "arn:aws:dynamodb:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:table/${var.project_name}-${var.environment}-contributions",
+          "arn:aws:dynamodb:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:table/${var.project_name}-${var.environment}-contributions/index/*"
+        ]
       }
     ]
   })
@@ -228,6 +246,14 @@ resource "aws_ecs_task_definition" "backend" {
         {
           name  = "PORT"
           value = "8000"
+        },
+        {
+          name  = "DYNAMODB_TABLE_NAME"
+          value = "${var.project_name}-${var.environment}-contributions"
+        },
+        {
+          name  = "AWS_REGION"
+          value = data.aws_region.current.name
         }
       ]
 

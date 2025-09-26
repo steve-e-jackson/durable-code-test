@@ -74,6 +74,10 @@ locals {
       # Route53 records pointing to ALB
       "aws_route53_record.alb" = true
       "aws_route53_record.www" = true
+
+      # DynamoDB tables for contributions feature
+      "aws_dynamodb_table.contributions" = true
+      "aws_dynamodb_table.rate_limits"   = true
     }
   }
 
@@ -124,5 +128,6 @@ locals {
     alb_target_groups = local.create_runtime_resources
     service_discovery = local.create_runtime_resources
     cloudwatch_logs   = local.create_runtime_resources
+    contributions     = local.create_runtime_resources # DynamoDB for contributions
   }
 }
