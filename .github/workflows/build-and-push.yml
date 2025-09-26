@@ -1,0 +1,99 @@
+name: Build and Push to ECR
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'durable-code-app/**'
+      - '.github/workflows/build-and-push.yml'
+      - 'Dockerfile*'
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'durable-code-app/**'
+      - '.github/workflows/build-and-push.yml'
+      - 'Dockerfile*'
+
+env:
+  AWS_REGION: us-west-2
+  ECR_REPOSITORY_FRONTEND: durableai-dev-frontend
+  ECR_REPOSITORY_BACKEND: durableai-dev-backend
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Images
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-session-name: GitHub-Actions-Build-${{ github.run_id }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Get commit SHA
+        id: sha
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./durable-code-app/backend
+          file: ./durable-code-app/backend/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_BACKEND }}:latest
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_BACKEND }}:${{ steps.sha.outputs.sha_short }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_BACKEND }}:${{ github.ref_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+          provenance: false
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./durable-code-app/frontend
+          file: ./durable-code-app/frontend/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_FRONTEND }}:latest
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_FRONTEND }}:${{ steps.sha.outputs.sha_short }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_FRONTEND }}:${{ github.ref_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+          provenance: false
+          build-args: |
+            VITE_API_URL=${{ secrets.API_URL || 'https://api.dev.durableaicoding.net' }}
+
+      - name: Image digest
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "Backend image pushed with tags:"
+          echo "  - latest"
+          echo "  - ${{ steps.sha.outputs.sha_short }}"
+          echo "  - ${{ github.ref_name }}"
+          echo ""
+          echo "Frontend image pushed with tags:"
+          echo "  - latest"
+          echo "  - ${{ steps.sha.outputs.sha_short }}"
+          echo "  - ${{ github.ref_name }}"
