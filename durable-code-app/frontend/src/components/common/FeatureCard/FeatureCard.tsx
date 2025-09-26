@@ -1,46 +1,70 @@
 /**
  * Purpose: Reusable feature card component for all tabs
- * Scope: Common component for displaying feature items with icon, title, description
- * Overview: Standardized card component with theme-aware styling and color variants
+ * Scope: Common component for displaying feature items with icon, title, description, and links
+ * Overview: Standardized card component with theme-aware styling and badge variants
  * Dependencies: React, CSS Modules
  * Exports: FeatureCard component
- * Props/Interfaces: icon, title, description, children, variant, className
- * Implementation: Shared component with color theme variants
+ * Props/Interfaces: icon, title, description, linkText, linkHref, badge, onClick, className
+ * Implementation: Shared component with consistent layout and badge system
  */
 
-import { memo } from 'react';
-import type { ReactNode } from 'react';
+import type { ReactElement } from 'react';
 import styles from './FeatureCard.module.css';
 
-export type FeatureCardVariant =
-  | 'primary' // Default blue theme
-  | 'success' // Green theme
-  | 'warning' // Orange/yellow theme
-  | 'info' // Blue theme
-  | 'purple' // Purple theme
-  | 'cyan' // Cyan theme
-  | 'gold'; // Gold theme
-
-interface FeatureCardProps {
-  icon: string;
+export interface FeatureCardProps {
+  icon: ReactElement;
   title: string;
-  description?: string;
-  children?: ReactNode;
-  variant?: FeatureCardVariant;
+  description: string;
+  linkText: string;
+  linkHref?: string;
+  badge?: {
+    text: string;
+    variant:
+      | 'essential'
+      | 'active'
+      | 'strategic'
+      | 'technical'
+      | 'quality'
+      | 'visual'
+      | 'timeline'
+      | 'neutral';
+  };
+  onClick?: () => void;
   className?: string;
 }
 
-export const FeatureCard = memo<FeatureCardProps>(
-  ({ icon, title, description, children, variant = 'primary', className = '' }) => {
-    return (
-      <div className={`${styles.featureCard} ${styles[variant]} ${className}`}>
-        <div className={styles.icon}>{icon}</div>
-        <h5 className={styles.title}>{title}</h5>
-        {description && <p className={styles.description}>{description}</p>}
-        {children && <div className={styles.content}>{children}</div>}
-      </div>
-    );
-  },
-);
+export function FeatureCard({
+  icon,
+  title,
+  description,
+  linkText,
+  linkHref,
+  badge,
+  onClick,
+  className = '',
+}: FeatureCardProps): ReactElement {
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+    } else if (linkHref) {
+      window.location.href = linkHref;
+    }
+  };
 
-FeatureCard.displayName = 'FeatureCard';
+  return (
+    <div
+      className={`${styles.card} ${className}`}
+      onClick={onClick ? handleClick : undefined}
+    >
+      <span className={styles.cardIcon}>{icon}</span>
+      <h4 className="light-title-on-dark">{title}</h4>
+      <p className="light-text-on-dark">{description}</p>
+      <a href={linkHref || '#'} className={styles.cardLink}>
+        {linkText} →
+      </a>
+      {badge && (
+        <div className={`${styles.badge} ${styles[badge.variant]}`}>{badge.text}</div>
+      )}
+    </div>
+  );
+}

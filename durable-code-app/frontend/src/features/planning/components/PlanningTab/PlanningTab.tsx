@@ -12,6 +12,7 @@
 import { type ReactElement, useCallback, useState } from 'react';
 import type { CaseStudyStep } from '../../types/planning.types';
 import { usePlanning } from '../../hooks/usePlanning';
+import { FeatureCard } from '../../../../components/common/FeatureCard/FeatureCard';
 import styles from './PlanningTab.module.css';
 import {
   FaCalendarAlt,
@@ -30,7 +31,7 @@ export function PlanningTab(): ReactElement {
   const [selectedStep, setSelectedStep] = useState<string | null>(null);
 
   // Icon mapping function
-  const getIconForDocument = (docId: string): ReactElement | null => {
+  const getIconForDocument = (docId: string): ReactElement => {
     switch (docId) {
       case 'feature-index':
         return <FaListUl />;
@@ -51,9 +52,50 @@ export function PlanningTab(): ReactElement {
       case 'implementation':
         return <FaCalendarAlt />;
       default:
-        return null;
+        return <FaFileAlt />;
     }
   };
+
+  // Convert badge text to proper variant
+  const getBadgeVariant = (
+    badge: string,
+  ):
+    | 'essential'
+    | 'active'
+    | 'strategic'
+    | 'technical'
+    | 'quality'
+    | 'visual'
+    | 'timeline'
+    | 'neutral' => {
+    switch (badge) {
+      case 'Essential':
+        return 'essential';
+      case 'Active':
+        return 'active';
+      case 'Strategic':
+        return 'strategic';
+      case 'Technical':
+        return 'technical';
+      case 'Quality':
+        return 'quality';
+      case 'Visual':
+        return 'visual';
+      case 'Timeline':
+        return 'timeline';
+      default:
+        return 'neutral';
+    }
+  };
+
+  const planningFeatures = planningSection.documents.map((doc) => ({
+    icon: getIconForDocument(doc.id),
+    title: doc.title,
+    description: doc.description,
+    linkText: `View ${doc.title.split(' ')[0]}`,
+    linkHref: doc.href,
+    badge: { text: doc.badge, variant: getBadgeVariant(doc.badge) },
+  }));
 
   const handleStepClick = useCallback((step: CaseStudyStep) => {
     setSelectedStep(step.id);
@@ -69,36 +111,8 @@ export function PlanningTab(): ReactElement {
       </div>
 
       <div className={styles.grid}>
-        {planningSection.documents.map((doc) => (
-          <div key={doc.id} className={styles.card}>
-            <span className={styles.cardIcon}>{getIconForDocument(doc.id)}</span>
-            <h4 className="light-title-on-dark">{doc.title}</h4>
-            <p className="light-text-on-dark">{doc.description}</p>
-            <a href={doc.href} className={styles.cardLink}>
-              View {doc.title.split(' ')[0]} →
-            </a>
-            <div
-              className={`${styles.badge} ${
-                doc.badge === 'Essential'
-                  ? styles.essential
-                  : doc.badge === 'Active'
-                    ? styles.active
-                    : doc.badge === 'Strategic'
-                      ? styles.info
-                      : doc.badge === 'Technical'
-                        ? styles.neutral
-                        : doc.badge === 'Quality'
-                          ? styles.success
-                          : doc.badge === 'Visual'
-                            ? styles.available
-                            : doc.badge === 'Timeline'
-                              ? styles.warning
-                              : styles.neutral
-              }`}
-            >
-              {doc.badge}
-            </div>
-          </div>
+        {planningFeatures.map((feature) => (
+          <FeatureCard key={feature.title} {...feature} />
         ))}
       </div>
 
