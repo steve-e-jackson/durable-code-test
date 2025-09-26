@@ -10,7 +10,7 @@
 # Integration: Included by main Makefile via -include directive
 # Key Features: Auto-init on first use, Docker volume caching, AWS profile support, CI/CD parameters
 
-.PHONY: infra-help infra-init infra-plan infra-refresh infra-output infra-validate infra-fmt infra-state-list infra-state-show infra-import infra-workspace-list infra-workspace-new infra-workspace-select infra-backend-setup infra-check-aws infra-console infra-graph infra-cost infra-check infra-up infra-down infra-clean-cache infra-reinit check-terraform-init
+.PHONY: infra-init infra-plan infra-refresh infra-output infra-validate infra-fmt infra-state-list infra-state-show infra-import infra-workspace-list infra-workspace-new infra-workspace-select infra-backend-setup infra-check-aws infra-console infra-graph infra-cost infra-check infra-up infra-down infra-clean-cache infra-reinit check-terraform-init
 
 # Variables
 TERRAFORM_DIR = infra/terraform
