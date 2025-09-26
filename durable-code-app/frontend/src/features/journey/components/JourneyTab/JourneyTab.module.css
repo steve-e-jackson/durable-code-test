@@ -1,0 +1,470 @@
+/**
+ * Purpose: Styles for the JourneyTab component with vertical timeline layout
+ * Scope: Journey timeline-specific styling
+ * Overview: Vertical timeline with alternating left/right milestone placement
+ * Dependencies: CSS variables from theme
+ * Exports: CSS module classes
+ * Implementation: Timeline visualization with connecting lines and milestone cards
+ */
+
+.container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Hero Section */
+.hero {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding: 3rem;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-50) 0%,
+    rgba(255, 255, 255, 0.95) 100%
+  );
+  border-radius: 16px;
+  border: 1px solid var(--color-border-light);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gradient-primary);
+}
+
+.stats {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  font-size: 1.1rem;
+  color: var(--color-text-secondary);
+}
+
+.statItem strong {
+  color: var(--color-primary-600);
+  font-size: 1.5rem;
+  margin-right: 0.25rem;
+}
+
+.statSeparator {
+  color: var(--color-border);
+}
+
+/* Phase Filter */
+.phaseFilter {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-bottom: 3rem;
+  flex-wrap: wrap;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.phaseButton {
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--color-border);
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.phaseButton:hover {
+  border-color: var(--phase-color, var(--color-primary-400));
+  background: var(--phase-color, var(--color-primary-50));
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.phaseButtonActive {
+  background: var(--phase-color, var(--color-primary-500));
+  border-color: var(--phase-color, var(--color-primary-500));
+  color: white;
+}
+
+/* Timeline */
+.timeline {
+  position: relative;
+  padding: 2rem 0;
+}
+
+.timelineLine {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(
+    to bottom,
+    var(--color-primary-300),
+    var(--color-primary-400),
+    var(--color-primary-300)
+  );
+  transform: translateX(-50%);
+}
+
+/* Phase */
+.phase {
+  margin-bottom: 4rem;
+  position: relative;
+}
+
+.phaseHeader {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  border: 2px solid var(--phase-color);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+  z-index: 2;
+}
+
+.phaseTitle {
+  color: var(--phase-color);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.phaseDescription {
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+}
+
+/* Milestones */
+.milestones {
+  position: relative;
+}
+
+.milestoneWrapper {
+  position: relative;
+  margin-bottom: 2rem;
+  display: flex;
+}
+
+.milestoneLeft {
+  justify-content: flex-end;
+  padding-right: calc(50% + 2rem);
+}
+
+.milestoneRight {
+  justify-content: flex-start;
+  padding-left: calc(50% + 2rem);
+}
+
+.milestone {
+  background: white;
+  border-radius: 12px;
+  border: 2px solid var(--color-border);
+  padding: 1.25rem;
+  max-width: 500px;
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.milestone:hover {
+  border-color: var(--color-primary-400);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.milestoneExpanded {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+}
+
+.milestoneHeader {
+  display: flex;
+  gap: 1rem;
+}
+
+.milestoneNumber {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.milestoneContent {
+  flex: 1;
+}
+
+.milestoneMeta {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.milestoneType {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.typeFeat {
+  background: #10b981;
+  color: white;
+}
+
+.typeFix {
+  background: #ef4444;
+  color: white;
+}
+
+.typeRefactor {
+  background: #8b5cf6;
+  color: white;
+}
+
+.typePerf {
+  background: #f59e0b;
+  color: white;
+}
+
+.typeDocs {
+  background: #06b6d4;
+  color: white;
+}
+
+.typeTest {
+  background: #ec4899;
+  color: white;
+}
+
+.typeDefault {
+  background: #6b7280;
+  color: white;
+}
+
+.milestonePR {
+  padding: 0.25rem 0.5rem;
+  background: var(--color-primary-100);
+  color: var(--color-primary-700);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.milestoneDate {
+  padding: 0.25rem 0.5rem;
+  background: #f3f4f6;
+  color: #4b5563;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.milestoneImpact {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.impactMajor {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.impactMinor {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.impactPatch {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.milestoneTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.milestoneDescription {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.milestoneDetails {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+  animation: expandIn 0.3s ease-out;
+}
+
+@keyframes expandIn {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
+}
+
+.detailsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.detailsList li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.detailsList li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: var(--color-primary-500);
+  font-weight: bold;
+}
+
+/* Milestone Connector */
+.milestoneConnector {
+  position: absolute;
+  top: 2rem;
+}
+
+.milestoneLeft .milestoneConnector {
+  right: -2rem;
+  transform: translateX(100%);
+}
+
+.milestoneRight .milestoneConnector {
+  left: -2rem;
+  transform: translateX(-100%);
+}
+
+.connectorDot {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: white;
+  border: 3px solid var(--color-primary-500);
+  position: relative;
+  z-index: 2;
+}
+
+.connectorLine {
+  position: absolute;
+  top: 50%;
+  width: 2rem;
+  height: 2px;
+  background: var(--color-primary-300);
+}
+
+.milestoneLeft .connectorLine {
+  left: 100%;
+}
+
+.milestoneRight .connectorLine {
+  right: 100%;
+}
+
+/* Timeline End */
+.timelineEnd {
+  text-align: center;
+  padding: 2rem;
+  position: relative;
+}
+
+.timelineEndDot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  margin: 0 auto 1rem;
+  position: relative;
+  z-index: 2;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(var(--color-primary-rgb), 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 20px rgba(var(--color-primary-rgb), 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--color-primary-rgb), 0);
+  }
+}
+
+.timelineEndText {
+  color: var(--color-text-secondary);
+  font-style: italic;
+  font-size: 1.1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .milestoneLeft,
+  .milestoneRight {
+    padding: 0 1rem;
+    justify-content: center;
+  }
+
+  .timelineLine {
+    left: 1.5rem;
+  }
+
+  .milestone {
+    margin-left: 3rem;
+  }
+
+  .milestoneConnector {
+    display: none;
+  }
+
+  .phaseFilter {
+    padding: 0.75rem;
+  }
+
+  .phaseButton {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+  }
+}
