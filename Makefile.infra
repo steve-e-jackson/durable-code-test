@@ -64,56 +64,6 @@ TERRAFORM_DOCKER_RUN_IT = docker run --rm -it \
 	-e AWS_SESSION_TOKEN=$(AWS_SESSION_TOKEN) \
 	$(TERRAFORM_IMAGE)
 
-# Infrastructure Help
-infra-help: ## Show infrastructure management commands
-	@echo "$(CYAN)╔════════════════════════════════════════════════════════════╗$(NC)"
-	@echo "$(CYAN)║          Infrastructure Management (Terraform)            ║$(NC)"
-	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
-	@echo ""
-	@echo "$(GREEN)Prerequisites:$(NC)"
-	@echo "  • Docker installed and running"
-	@echo "  • AWS credentials configured in ~/.aws/credentials"
-	@echo "  • Set AWS_PROFILE environment variable if not using 'default'"
-	@echo ""
-	@echo "$(YELLOW)Note:$(NC) Terraform will auto-initialize on first use of any command."
-	@echo "      The .terraform cache is stored in a Docker volume for persistence."
-	@echo ""
-	@echo "$(GREEN)Core Commands:$(NC)"
-	@echo "  $(YELLOW)make infra-plan$(NC)                  # Preview infrastructure changes"
-	@echo "  $(YELLOW)make infra-up$(NC)                    # Deploy infrastructure (default: runtime only)"
-	@echo "  $(YELLOW)make infra-down$(NC)                  # Destroy infrastructure (default: runtime only)"
-	@echo "  $(YELLOW)make infra-up SCOPE=all$(NC)          # Deploy all infrastructure"
-	@echo "  $(YELLOW)make infra-down SCOPE=all$(NC)        # Destroy all infrastructure"
-	@echo "  $(YELLOW)make infra-up AUTO=true$(NC)          # Deploy without confirmation"
-	@echo ""
-	@echo "$(GREEN)Available targets:$(NC)"
-	@grep -E '^infra-[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sed 's/^[^:]*://' | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(YELLOW)%-25s$(NC) %s\n", $$1, $$2}' | sort
-	@echo ""
-	@echo "$(GREEN)Parameters:$(NC)"
-	@echo "  $(YELLOW)SCOPE=<scope>$(NC)            # Deployment scope (runtime|base|all) - default: runtime"
-	@echo "  $(YELLOW)AUTO=true$(NC)                # Skip confirmation prompts (up/down)"
-	@echo "  $(YELLOW)FORMAT=json$(NC)              # Output in JSON format (infra-output)"
-	@echo "  $(YELLOW)AWS_PROFILE=<name>$(NC)       # Use specific AWS profile"
-	@echo "  $(YELLOW)AWS_REGION=<region>$(NC)      # Override AWS region"
-	@echo "  $(YELLOW)RESOURCE=<name>$(NC)          # Resource name (state-show/import)"
-	@echo "  $(YELLOW)ID=<id>$(NC)                  # Resource ID (import)"
-	@echo "  $(YELLOW)WORKSPACE=<name>$(NC)         # Workspace name (workspace commands)"
-	@echo ""
-	@echo "$(YELLOW)Example usage:$(NC)"
-	@echo "  AWS_PROFILE=myprofile make infra-plan"
-	@echo "  make infra-up                           # Deploy runtime resources only"
-	@echo "  make infra-down                         # Destroy runtime resources only"
-	@echo "  SCOPE=all make infra-up                 # Deploy all infrastructure"
-	@echo "  SCOPE=all make infra-down               # Destroy everything"
-	@echo "  SCOPE=base make infra-up                # Deploy only base/persistent resources"
-	@echo "  AUTO=true make infra-down               # Destroy runtime without confirmation"
-	@echo "  FORMAT=json make infra-output           # Output in JSON format"
-	@echo ""
-	@echo "$(YELLOW)Troubleshooting:$(NC)"
-	@echo "  • Backend changed error: run 'make infra-reinit'"
-	@echo "  • AWS credentials error: check ~/.aws/credentials and AWS_PROFILE"
-	@echo "  • Clear all cache: run 'make infra-clean-cache'"
-	@echo ""
 
 # AWS Credentials Check
 infra-check-aws: ## Verify AWS credentials are configured correctly
@@ -302,21 +252,6 @@ infra-cost: ## Estimate monthly costs (requires Infracost)
 # Quick Commands
 infra-check: infra-fmt infra-validate ## Format and validate configuration
 
-# Convenience targets for base/runtime separation
-infra-up-base: ## Deploy only base infrastructure (VPC, NAT, ECR, Route53, ACM certificates)
-	@$(MAKE) infra-up SCOPE=base
-
-infra-up-runtime: ## Deploy only runtime infrastructure (ECS, ALB listeners, etc.)
-	@$(MAKE) infra-up SCOPE=runtime
-
-infra-up-all: ## Deploy all infrastructure (base + runtime)
-	@$(MAKE) infra-up SCOPE=all
-
-infra-down-runtime: ## Destroy only runtime infrastructure (preserves base)
-	@$(MAKE) infra-down SCOPE=runtime
-
-infra-down-all: ## Destroy all infrastructure including base
-	@$(MAKE) infra-down SCOPE=all
 
 infra-up: check-terraform-init ## Deploy infrastructure (use AUTO=true for auto-approve, SCOPE=runtime|base|all)
 	@echo "$(CYAN)Deploying infrastructure...$(NC)"
