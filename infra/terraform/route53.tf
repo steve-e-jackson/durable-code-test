@@ -13,7 +13,7 @@
 
 # Route53 Hosted Zone (only created when domain is configured)
 resource "aws_route53_zone" "main" {
-  count = var.domain_name != "" && var.create_route53_zone ? 1 : 0
+  count = local.should_create_resource.route53 && var.domain_name != "" && var.create_route53_zone ? 1 : 0
 
   name    = var.domain_name
   comment = "Hosted zone for ${var.project_name} ${var.environment} environment"
@@ -30,7 +30,7 @@ resource "aws_route53_zone" "main" {
 
 # A Record for apex domain pointing to ALB
 resource "aws_route53_record" "apex" {
-  count = var.domain_name != "" && var.create_route53_zone ? 1 : 0
+  count = local.should_create_resource.alb_listeners && var.domain_name != "" && var.create_route53_zone ? 1 : 0
 
   zone_id = aws_route53_zone.main[0].zone_id
   name    = var.domain_name
@@ -45,7 +45,7 @@ resource "aws_route53_record" "apex" {
 
 # AAAA Record for apex domain (IPv6) pointing to ALB
 resource "aws_route53_record" "apex_ipv6" {
-  count = var.domain_name != "" && var.create_route53_zone ? 1 : 0
+  count = local.should_create_resource.alb_listeners && var.domain_name != "" && var.create_route53_zone ? 1 : 0
 
   zone_id = aws_route53_zone.main[0].zone_id
   name    = var.domain_name
@@ -60,7 +60,7 @@ resource "aws_route53_record" "apex_ipv6" {
 
 # A Record for www subdomain pointing to ALB
 resource "aws_route53_record" "www" {
-  count = var.domain_name != "" && var.create_route53_zone ? 1 : 0
+  count = local.should_create_resource.alb_listeners && var.domain_name != "" && var.create_route53_zone ? 1 : 0
 
   zone_id = aws_route53_zone.main[0].zone_id
   name    = "www.${var.domain_name}"
@@ -75,7 +75,7 @@ resource "aws_route53_record" "www" {
 
 # AAAA Record for www subdomain (IPv6) pointing to ALB
 resource "aws_route53_record" "www_ipv6" {
-  count = var.domain_name != "" && var.create_route53_zone ? 1 : 0
+  count = local.should_create_resource.alb_listeners && var.domain_name != "" && var.create_route53_zone ? 1 : 0
 
   zone_id = aws_route53_zone.main[0].zone_id
   name    = "www.${var.domain_name}"
@@ -90,7 +90,7 @@ resource "aws_route53_record" "www_ipv6" {
 
 # Environment-specific subdomain
 resource "aws_route53_record" "env" {
-  count = var.domain_name != "" && var.create_route53_zone && var.environment != "prod" ? 1 : 0
+  count = local.should_create_resource.alb_listeners && var.domain_name != "" && var.create_route53_zone && var.environment != "prod" ? 1 : 0
 
   zone_id = aws_route53_zone.main[0].zone_id
   name    = "${var.environment}.${var.domain_name}"
@@ -105,7 +105,7 @@ resource "aws_route53_record" "env" {
 
 # API subdomain
 resource "aws_route53_record" "api" {
-  count = var.domain_name != "" && var.create_route53_zone ? 1 : 0
+  count = local.should_create_resource.alb_listeners && var.domain_name != "" && var.create_route53_zone ? 1 : 0
 
   zone_id = aws_route53_zone.main[0].zone_id
   name    = "api.${var.domain_name}"
@@ -120,7 +120,7 @@ resource "aws_route53_record" "api" {
 
 # Environment-specific API subdomain
 resource "aws_route53_record" "api_env" {
-  count = var.domain_name != "" && var.create_route53_zone && var.environment != "prod" ? 1 : 0
+  count = local.should_create_resource.alb_listeners && var.domain_name != "" && var.create_route53_zone && var.environment != "prod" ? 1 : 0
 
   zone_id = aws_route53_zone.main[0].zone_id
   name    = "api-${var.environment}.${var.domain_name}"
@@ -135,7 +135,7 @@ resource "aws_route53_record" "api_env" {
 
 # Health Check for the main domain (production only)
 resource "aws_route53_health_check" "main" {
-  count = var.environment == "prod" && var.domain_name != "" && var.create_route53_zone ? 1 : 0
+  count = local.should_create_resource.route53 && var.environment == "prod" && var.domain_name != "" && var.create_route53_zone ? 1 : 0
 
   fqdn              = var.domain_name
   port              = 443
@@ -155,7 +155,7 @@ resource "aws_route53_health_check" "main" {
 
 # CloudWatch Alarm for Route53 Health Check
 resource "aws_cloudwatch_metric_alarm" "route53_health" {
-  count = var.environment == "prod" && var.domain_name != "" && var.create_route53_zone ? 1 : 0
+  count = local.should_create_resource.route53 && var.environment == "prod" && var.domain_name != "" && var.create_route53_zone ? 1 : 0
 
   alarm_name          = "${var.project_name}-${var.environment}-route53-health"
   comparison_operator = "LessThanThreshold"

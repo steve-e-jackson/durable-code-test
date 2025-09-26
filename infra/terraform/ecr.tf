@@ -18,6 +18,8 @@
 
 # Frontend ECR Repository
 resource "aws_ecr_repository" "frontend" {
+  count = local.should_create_resource.ecr ? 1 : 0
+
   name                 = "${local.name_prefix}-frontend"
   image_tag_mutability = "IMMUTABLE"
 
@@ -41,6 +43,8 @@ resource "aws_ecr_repository" "frontend" {
 
 # Backend ECR Repository
 resource "aws_ecr_repository" "backend" {
+  count = local.should_create_resource.ecr ? 1 : 0
+
   name                 = "${local.name_prefix}-backend"
   image_tag_mutability = "IMMUTABLE"
 
@@ -64,7 +68,9 @@ resource "aws_ecr_repository" "backend" {
 
 # Lifecycle policy for frontend repository - Keep only recent images
 resource "aws_ecr_lifecycle_policy" "frontend" {
-  repository = aws_ecr_repository.frontend.name
+  count = local.should_create_resource.ecr ? 1 : 0
+
+  repository = aws_ecr_repository.frontend[0].name
 
   policy = jsonencode({
     rules = [
@@ -114,7 +120,9 @@ resource "aws_ecr_lifecycle_policy" "frontend" {
 
 # Lifecycle policy for backend repository - Keep only recent images
 resource "aws_ecr_lifecycle_policy" "backend" {
-  repository = aws_ecr_repository.backend.name
+  count = local.should_create_resource.ecr ? 1 : 0
+
+  repository = aws_ecr_repository.backend[0].name
 
   policy = jsonencode({
     rules = [
@@ -164,7 +172,9 @@ resource "aws_ecr_lifecycle_policy" "backend" {
 
 # Repository policy for frontend - Allow specific AWS accounts and services
 resource "aws_ecr_repository_policy" "frontend" {
-  repository = aws_ecr_repository.frontend.name
+  count = local.should_create_resource.ecr ? 1 : 0
+
+  repository = aws_ecr_repository.frontend[0].name
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -208,7 +218,9 @@ resource "aws_ecr_repository_policy" "frontend" {
 
 # Repository policy for backend - Allow specific AWS accounts and services
 resource "aws_ecr_repository_policy" "backend" {
-  repository = aws_ecr_repository.backend.name
+  count = local.should_create_resource.ecr ? 1 : 0
+
+  repository = aws_ecr_repository.backend[0].name
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -254,30 +266,30 @@ resource "aws_ecr_repository_policy" "backend" {
 # Outputs for ECR repositories
 output "ecr_frontend_repository_url" {
   description = "The URL of the frontend ECR repository"
-  value       = aws_ecr_repository.frontend.repository_url
+  value       = local.should_create_resource.ecr ? aws_ecr_repository.frontend[0].repository_url : ""
 }
 
 output "ecr_backend_repository_url" {
   description = "The URL of the backend ECR repository"
-  value       = aws_ecr_repository.backend.repository_url
+  value       = local.should_create_resource.ecr ? aws_ecr_repository.backend[0].repository_url : ""
 }
 
 output "ecr_frontend_repository_arn" {
   description = "The ARN of the frontend ECR repository"
-  value       = aws_ecr_repository.frontend.arn
+  value       = local.should_create_resource.ecr ? aws_ecr_repository.frontend[0].arn : ""
 }
 
 output "ecr_backend_repository_arn" {
   description = "The ARN of the backend ECR repository"
-  value       = aws_ecr_repository.backend.arn
+  value       = local.should_create_resource.ecr ? aws_ecr_repository.backend[0].arn : ""
 }
 
 output "ecr_frontend_repository_name" {
   description = "The name of the frontend ECR repository"
-  value       = aws_ecr_repository.frontend.name
+  value       = local.should_create_resource.ecr ? aws_ecr_repository.frontend[0].name : ""
 }
 
 output "ecr_backend_repository_name" {
   description = "The name of the backend ECR repository"
-  value       = aws_ecr_repository.backend.name
+  value       = local.should_create_resource.ecr ? aws_ecr_repository.backend[0].name : ""
 }

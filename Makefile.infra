@@ -209,9 +209,7 @@ infra-plan: check-terraform-init ## Show what changes will be made (dry run, res
 	else \
 		echo "$(YELLOW)Planning all resources$(NC)"; \
 	fi
-	@# Generate target flags based on scope
-	$(eval TARGETS := $(shell bash $(PWD)/infra/scripts/generate-targets.sh $(SCOPE)))
-	@$(TERRAFORM_DOCKER_RUN) plan -var-file=/environments/$(ENV).tfvars -var="deployment_scope=$(SCOPE)" $(TARGETS)
+	@$(TERRAFORM_DOCKER_RUN) plan -var-file=/environments/$(ENV).tfvars -var="deployment_scope=$(SCOPE)"
 	@echo "$(GREEN)✓ Plan complete!$(NC)"
 
 
@@ -333,16 +331,14 @@ infra-up: check-terraform-init ## Deploy infrastructure (use AUTO=true for auto-
 	else \
 		echo "$(YELLOW)Deploying all resources$(NC)"; \
 	fi
-	@# Generate target flags based on scope
-	$(eval TARGETS := $(shell bash $(PWD)/infra/scripts/generate-targets.sh $(SCOPE)))
 	@if [ "$(AUTO)" = "true" ]; then \
 		echo "$(YELLOW)Auto-approve mode enabled$(NC)"; \
-		$(TERRAFORM_DOCKER_RUN) apply -var-file=/environments/$(ENV).tfvars -var="deployment_scope=$(SCOPE)" $(TARGETS) -auto-approve; \
+		$(TERRAFORM_DOCKER_RUN) apply -var-file=/environments/$(ENV).tfvars -var="deployment_scope=$(SCOPE)" -auto-approve; \
 	else \
 		echo "$(RED)⚠️  This will create/modify real AWS resources!$(NC)"; \
 		echo "$(YELLOW)Press Ctrl+C to cancel, or wait 5 seconds to continue...$(NC)"; \
 		sleep 5; \
-		$(TERRAFORM_DOCKER_RUN_IT) apply -var-file=/environments/$(ENV).tfvars -var="deployment_scope=$(SCOPE)" $(TARGETS); \
+		$(TERRAFORM_DOCKER_RUN_IT) apply -var-file=/environments/$(ENV).tfvars -var="deployment_scope=$(SCOPE)"; \
 	fi
 	@echo "$(GREEN)✓ Infrastructure deployed successfully!$(NC)"
 
@@ -380,11 +376,9 @@ infra-down: check-terraform-init ## Destroy infrastructure (use AUTO=true for au
 	@echo "$(YELLOW)AWS Profile: $(AWS_PROFILE)$(NC)"
 	@echo "$(YELLOW)AWS Region: $(AWS_REGION)$(NC)"
 	@echo "$(YELLOW)Destroy Scope: $(SCOPE)$(NC)"
-	@# Generate target flags based on scope
-	$(eval TARGETS := $(shell bash $(PWD)/infra/scripts/generate-targets.sh $(SCOPE)))
 	@if [ "$(AUTO)" = "true" ]; then \
 		echo "$(RED)Auto-approve mode enabled - destroying immediately!$(NC)"; \
-		$(TERRAFORM_DOCKER_RUN) destroy -var-file=/environments/$(ENV).tfvars -var="deployment_scope=$(SCOPE)" $(TARGETS) -auto-approve; \
+		$(TERRAFORM_DOCKER_RUN) destroy -var-file=/environments/$(ENV).tfvars -var="deployment_scope=$(SCOPE)" -auto-approve; \
 	else \
 		if [ "$(SCOPE)" = "all" ] || [ "$(SCOPE)" = "base" ]; then \
 			echo "$(RED)Press Ctrl+C to cancel, or wait 10 seconds to continue...$(NC)"; \
@@ -393,7 +387,7 @@ infra-down: check-terraform-init ## Destroy infrastructure (use AUTO=true for au
 			echo "$(YELLOW)Press Ctrl+C to cancel, or wait 5 seconds to continue...$(NC)"; \
 			sleep 5; \
 		fi; \
-		$(TERRAFORM_DOCKER_RUN_IT) destroy -var-file=/environments/$(ENV).tfvars -var="deployment_scope=$(SCOPE)" $(TARGETS); \
+		$(TERRAFORM_DOCKER_RUN_IT) destroy -var-file=/environments/$(ENV).tfvars -var="deployment_scope=$(SCOPE)"; \
 	fi
 	@echo "$(GREEN)✓ Infrastructure destroyed!$(NC)"
 
