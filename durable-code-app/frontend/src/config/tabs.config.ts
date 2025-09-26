@@ -39,6 +39,11 @@ const MaintenanceTab = lazy(() =>
 const DemoTab = lazy(() =>
   import('../features/demo/components/DemoTab').then((m) => ({ default: m.DemoTab })),
 );
+const JourneyTab = lazy(() =>
+  import('../features/journey/components/JourneyTab/JourneyTab').then((m) => ({
+    default: m.JourneyTab,
+  })),
+);
 
 export const tabs: Record<TabName, TabContent> = {
   Repository: {
@@ -77,5 +82,11 @@ export const tabs: Record<TabName, TabContent> = {
     icon: '',
     description: 'Real-time oscilloscope demonstration with WebSocket streaming',
     component: DemoTab,
+  },
+  Journey: {
+    title: 'Journey',
+    icon: '',
+    description: 'The evolution of an AI-authored codebase from concept to production',
+    component: JourneyTab,
   },
 };

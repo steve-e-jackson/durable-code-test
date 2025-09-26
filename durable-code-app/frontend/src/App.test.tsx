@@ -289,7 +289,7 @@ describe('App Component', () => {
       render(<AppWithRouter />);
 
       const tabButtons = screen.getAllByRole('tab');
-      expect(tabButtons.length).toBe(6); // Exactly 6 tab buttons including Demo
+      expect(tabButtons.length).toBe(7); // Exactly 7 tab buttons including Demo and Journey
     });
 
     it('has proper links for external resources', async () => {

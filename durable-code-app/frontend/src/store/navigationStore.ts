@@ -7,7 +7,8 @@ export type TabName =
   | 'Building'
   | 'Quality Assurance'
   | 'Maintenance'
-  | 'Demo';
+  | 'Demo'
+  | 'Journey';
 
 interface NavigationState {
   activeTab: TabName;
