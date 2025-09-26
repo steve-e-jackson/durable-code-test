@@ -1,3 +1,15 @@
+<!--
+Purpose: User guide for managing Terraform deployment scopes in infrastructure operations
+Scope: Practical usage instructions and operational procedures for deployment scopes
+Overview: Step-by-step guide for using the conditional deployment system to manage base and runtime
+    infrastructure resources. Covers common operations, cost optimization workflows, troubleshooting,
+    and best practices for daily infrastructure management with different deployment scopes.
+Dependencies: Requires configured Terraform environment and access to make targets
+Exports: Operational procedures and commands for infrastructure deployment management
+Interfaces: Used by developers and operators managing infrastructure deployments
+Implementation: Production-ready deployment workflows using SCOPE parameter
+-->
+
 # How to Manage Terraform Deployment Scopes
 
 ## Overview

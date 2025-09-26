@@ -1,3 +1,15 @@
+<!--
+Purpose: Feature documentation for Terraform conditional deployment system
+Scope: Technical implementation details and architecture patterns for deployment scopes
+Overview: Documents the native Terraform conditional deployment system that replaces target-based
+    deployment with count parameters. Covers implementation patterns, resource categorization, and
+    integration points for managing base vs runtime infrastructure resources efficiently.
+Dependencies: Requires Terraform 1.0+, understanding of count parameters and local variables
+Exports: Technical patterns and implementation guidelines for conditional resource creation
+Interfaces: Used by infrastructure developers implementing new Terraform resources
+Implementation: Production-ready conditional deployment using deployment_scope variable
+-->
+
 # Terraform Conditional Deployment Feature
 
 ## Feature Overview
