@@ -15,7 +15,6 @@ Implementation: Uses httpx for async requests with retry logic and rate limit aw
 """
 
 import os
-from typing import Dict, List, Optional
 
 import httpx
 from loguru import logger
@@ -23,7 +22,6 @@ from loguru import logger
 from ..core.exceptions import ExternalServiceError, ServiceError
 from ..core.retry import retry_with_backoff
 from ..db.models.contribution import Contribution
-from ..models.contribution import GitHubIssueCreate
 
 
 class GitHubService:
@@ -46,7 +44,7 @@ class GitHubService:
         }
 
     @retry_with_backoff(max_attempts=3, exceptions=(httpx.HTTPError,))
-    async def create_issue_from_contribution(self, contribution: Contribution) -> Dict:
+    async def create_issue_from_contribution(self, contribution: Contribution) -> dict:
         """Create a GitHub issue from an approved contribution.
 
         Args:
@@ -76,9 +74,7 @@ class GitHubService:
                 response.raise_for_status()
 
                 issue = response.json()
-                logger.info(
-                    f"Created GitHub issue #{issue['number']} for contribution {contribution.id}"
-                )
+                logger.info(f"Created GitHub issue #{issue['number']} for contribution {contribution.id}")
 
                 return {
                     "number": issue["number"],
@@ -91,21 +87,21 @@ class GitHubService:
                     raise ExternalServiceError(
                         "GitHub API rate limit exceeded",
                         details={"retry_after": e.response.headers.get("X-RateLimit-Reset")},
-                    )
+                    ) from e
                 elif e.response.status_code == 404:
                     raise ServiceError(
                         "GitHub repository not found",
                         details={"repo": f"{self.repo_owner}/{self.repo_name}"},
-                    )
+                    ) from e
                 else:
                     raise ExternalServiceError(
                         f"GitHub API error: {e.response.status_code}",
                         details={"error": e.response.text},
-                    )
+                    ) from e
             except httpx.HTTPError as e:
-                raise ExternalServiceError(f"Failed to connect to GitHub: {str(e)}")
+                raise ExternalServiceError(f"Failed to connect to GitHub: {str(e)}") from e
 
-    def _format_contribution_as_issue(self, contribution: Contribution) -> Dict:
+    def _format_contribution_as_issue(self, contribution: Contribution) -> dict:
         """Format a contribution as a GitHub issue.
 
         Args:
@@ -201,7 +197,11 @@ class GitHubService:
                 f"- **Category**: {contribution.category}",
                 f"- **Priority**: {contribution.priority}/10",
                 f"- **Quality Score**: {contribution.quality_score}/100" if contribution.quality_score else "",
-                f"- **Submitted by**: @{contribution.github_username}" if contribution.github_username else "- **Submitted by**: Anonymous",
+                (
+                    f"- **Submitted by**: @{contribution.github_username}"
+                    if contribution.github_username
+                    else "- **Submitted by**: Anonymous"
+                ),
                 f"- **Contribution ID**: #{contribution.id}",
             ]
         )
@@ -222,7 +222,7 @@ class GitHubService:
 
         return "\n".join(filter(None, body_parts))  # Filter out empty strings
 
-    def _determine_labels(self, contribution: Contribution) -> List[str]:
+    def _determine_labels(self, contribution: Contribution) -> list[str]:
         """Determine GitHub labels based on contribution properties.
 
         Args:
@@ -261,7 +261,7 @@ class GitHubService:
 
         return labels
 
-    async def check_rate_limit(self) -> Dict:
+    async def check_rate_limit(self) -> dict:
         """Check GitHub API rate limit status.
 
         Returns:

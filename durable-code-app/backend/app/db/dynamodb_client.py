@@ -15,10 +15,9 @@ Implementation: Uses aioboto3 for async AWS operations with proper error handlin
 import os
 import uuid
 from datetime import datetime
-from typing import Dict, List, Optional
 
 import aioboto3
-from boto3.dynamodb.conditions import Attr, Key
+from boto3.dynamodb.conditions import Key
 from loguru import logger
 
 from ..core.exceptions import ResourceNotFoundError, ServiceError
@@ -36,7 +35,7 @@ class DynamoDBClient:
         # For local development, we can use DynamoDB Local or just mock
         if self.use_local:
             # In-memory storage for local development
-            self._local_storage: Dict[str, dict] = {}
+            self._local_storage: dict[str, dict] = {}
             logger.info("Using local in-memory storage for development")
         else:
             self.session = aioboto3.Session()
@@ -117,9 +116,9 @@ class DynamoDBClient:
 
         except Exception as e:
             logger.error(f"Failed to store contribution: {e}")
-            raise ServiceError(f"Failed to store contribution: {str(e)}")
+            raise ServiceError(f"Failed to store contribution: {str(e)}") from e
 
-    async def get_contribution(self, contribution_id: str) -> Optional[dict]:
+    async def get_contribution(self, contribution_id: str) -> dict | None:
         """Get a contribution by ID.
 
         Args:
@@ -165,8 +164,8 @@ class DynamoDBClient:
                 return self._local_storage[contribution_id]
 
             # Build update expression
-            update_expr = "SET " + ", ".join(f"#{k} = :{k}" for k in updates.keys())
-            expr_names = {f"#{k}": k for k in updates.keys()}
+            update_expr = "SET " + ", ".join(f"#{k} = :{k}" for k in updates)
+            expr_names = {f"#{k}": k for k in updates}
             expr_values = {f":{k}": v for k, v in updates.items()}
 
             async with self.session.resource("dynamodb", region_name=self.region) as dynamodb:
@@ -182,14 +181,14 @@ class DynamoDBClient:
 
         except Exception as e:
             logger.error(f"Failed to update contribution: {e}")
-            raise ServiceError(f"Failed to update contribution: {str(e)}")
+            raise ServiceError(f"Failed to update contribution: {str(e)}") from e
 
     async def list_contributions(
         self,
-        status: Optional[str] = None,
+        status: str | None = None,
         limit: int = 20,
-        last_evaluated_key: Optional[dict] = None,
-    ) -> tuple[List[dict], Optional[dict]]:
+        last_evaluated_key: dict | None = None,
+    ) -> tuple[list[dict], dict | None]:
         """List contributions with optional filtering.
 
         Args:

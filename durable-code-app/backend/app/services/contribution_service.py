@@ -16,7 +16,6 @@ Implementation: Service pattern with DynamoDB backend
 
 import json
 from datetime import datetime
-from typing import Dict, List, Optional
 
 from loguru import logger
 
@@ -46,7 +45,7 @@ class ContributionService:
         self,
         submission: ContributionSubmit,
         ip_address: str,
-        user_agent: Optional[str] = None,
+        user_agent: str | None = None,
     ) -> ContributionResponse:
         """Submit a new contribution for review.
 
@@ -124,7 +123,7 @@ class ContributionService:
             raise
         except Exception as e:
             logger.error(f"Failed to submit contribution: {e}")
-            raise ServiceError(f"Failed to process contribution: {str(e)}")
+            raise ServiceError(f"Failed to process contribution: {str(e)}") from e
 
     async def get_contribution(self, contribution_id: str) -> ContributionResponse:
         """Get a contribution by ID.
@@ -158,14 +157,16 @@ class ContributionService:
             github_username=contribution.get("github_username"),
             github_issue_url=contribution.get("github_issue_url"),
             submitted_at=datetime.fromisoformat(contribution["submitted_at"]),
-            reviewed_at=datetime.fromisoformat(contribution["reviewed_at"]) if contribution.get("reviewed_at") else None,
+            reviewed_at=(
+                datetime.fromisoformat(contribution["reviewed_at"]) if contribution.get("reviewed_at") else None
+            ),
         )
 
     async def list_contributions(
         self,
         filter_params: ContributionFilter,
         is_admin: bool = False,
-    ) -> List[ContributionResponse]:
+    ) -> list[ContributionResponse]:
         """List contributions with filtering and pagination.
 
         Args:
@@ -204,7 +205,9 @@ class ContributionService:
                         github_username=contrib.get("github_username"),
                         github_issue_url=contrib.get("github_issue_url"),
                         submitted_at=datetime.fromisoformat(contrib["submitted_at"]),
-                        reviewed_at=datetime.fromisoformat(contrib["reviewed_at"]) if contrib.get("reviewed_at") else None,
+                        reviewed_at=(
+                            datetime.fromisoformat(contrib["reviewed_at"]) if contrib.get("reviewed_at") else None
+                        ),
                     )
                 )
             except Exception as e:
@@ -285,9 +288,7 @@ class ContributionService:
             # Update in DynamoDB
             updated = await self.db_client.update_contribution(contribution_id, updates)
 
-            logger.info(
-                f"Contribution {contribution_id} reviewed: status={review.status.value}, reviewer={reviewer}"
-            )
+            logger.info(f"Contribution {contribution_id} reviewed: status={review.status.value}, reviewer={reviewer}")
 
             return ContributionResponse(
                 id=updated["id"],
@@ -305,7 +306,7 @@ class ContributionService:
 
         except Exception as e:
             logger.error(f"Failed to review contribution: {e}")
-            raise ServiceError(f"Failed to process review: {str(e)}")
+            raise ServiceError(f"Failed to process review: {str(e)}") from e
 
     async def get_statistics(self) -> ContributionStats:
         """Get contribution statistics for the dashboard.
@@ -332,7 +333,7 @@ class ContributionService:
 
         except Exception as e:
             logger.error(f"Failed to get statistics: {e}")
-            raise ServiceError("Failed to retrieve statistics")
+            raise ServiceError("Failed to retrieve statistics") from e
 
     def _calculate_quality_score(self, submission: ContributionSubmit) -> int:
         """Calculate quality score for a contribution.

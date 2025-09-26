@@ -14,8 +14,6 @@ Interfaces: RESTful HTTP endpoints with JSON request/response format
 Implementation: FastAPI router with dependency injection and async request handlers
 """
 
-from typing import List
-
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from loguru import logger
 
@@ -139,13 +137,13 @@ async def submit_contribution(
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=e.message,
-        )
+        ) from e
     except ServiceError as e:
         logger.error(f"Service error during submission: {e.message}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to process contribution",
-        )
+        ) from e
 
 
 @router.get(
@@ -177,18 +175,18 @@ async def get_contribution(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=e.message,
-        )
+        ) from e
 
 
 @router.get(
     "/",
-    response_model=List[ContributionResponse],
+    response_model=list[ContributionResponse],
     summary="List contributions",
     description="List contributions with filtering and pagination",
 )
 async def list_contributions(
     filter_params: ContributionFilter = Depends(),
-) -> List[ContributionResponse]:
+) -> list[ContributionResponse]:
     """List contributions with filtering.
 
     Args:
@@ -198,14 +196,14 @@ async def list_contributions(
     Returns:
         List of contributions
     """
-    service = ContributionService(db)
+    service = ContributionService()
     # Public endpoint - only show approved contributions
     return await service.list_contributions(filter_params, is_admin=False)
 
 
 @router.get(
     "/admin/pending",
-    response_model=List[ContributionResponse],
+    response_model=list[ContributionResponse],
     summary="List pending contributions (Admin)",
     description="List contributions pending review for administrators",
 )
@@ -215,7 +213,7 @@ async def list_pending_contributions(
     limit: int = 20,
     offset: int = 0,
     admin: str = Depends(require_admin),
-) -> List[ContributionResponse]:
+) -> list[ContributionResponse]:
     """List contributions pending review (admin only).
 
     Args:
@@ -234,7 +232,7 @@ async def list_pending_contributions(
         offset=offset,
     )
 
-    service = ContributionService(db)
+    service = ContributionService()
     contributions = await service.list_contributions(filter_params, is_admin=True)
 
     logger.info(f"Admin {admin} retrieved {len(contributions)} pending contributions")
@@ -277,22 +275,20 @@ async def review_contribution(
             reviewer=admin,
         )
 
-        logger.info(
-            f"Admin {admin} reviewed contribution {contribution_id}: status={review.status}"
-        )
+        logger.info(f"Admin {admin} reviewed contribution {contribution_id}: status={review.status}")
         return contribution
 
     except ResourceNotFoundError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=e.message,
-        )
+        ) from e
     except ServiceError as e:
         logger.error(f"Failed to review contribution: {e.message}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to process review",
-        )
+        ) from e
 
 
 @router.get(
@@ -323,7 +319,7 @@ async def get_statistics(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve statistics",
-        )
+        ) from e
 
 
 @router.post(
@@ -365,4 +361,4 @@ async def mark_as_spam(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=e.message,
-        )
+        ) from e

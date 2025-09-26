@@ -14,30 +14,24 @@ Interfaces: Decorator-based rate limiting with configurable limits per endpoint
 Implementation: Uses slowapi with Redis backend for distributed rate limiting
 """
 
-from typing import Dict
-
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 # Rate limit configurations for different endpoints
-RATE_LIMITS: Dict[str, str] = {
+RATE_LIMITS: dict[str, str] = {
     # Contribution submission - stricter limits to prevent spam
     "contribution_submit": "5 per hour",
     "contribution_submit_burst": "2 per minute",
-
     # Admin operations - more lenient for trusted users
     "admin_review": "100 per minute",
     "admin_bulk": "20 per minute",
-
     # Public read operations
     "contribution_list": "30 per minute",
     "contribution_get": "60 per minute",
     "contribution_stats": "10 per minute",
-
     # Authentication operations
     "auth_login": "5 per minute",
     "auth_callback": "10 per minute",
-
     # Search operations
     "search": "20 per minute",
 }
@@ -90,8 +84,8 @@ class ContributionRateLimiter:
     def __init__(self):
         """Initialize the rate limiter with tracking storage."""
         # In production, this would use Redis or similar
-        self._submission_counts: Dict[str, int] = {}
-        self._failed_attempts: Dict[str, int] = {}
+        self._submission_counts: dict[str, int] = {}
+        self._failed_attempts: dict[str, int] = {}
         self._blocked_ips: set = set()
 
     def check_submission_allowed(self, ip_address: str) -> tuple[bool, str]:

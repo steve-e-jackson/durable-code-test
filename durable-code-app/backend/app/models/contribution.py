@@ -14,7 +14,6 @@ Implementation: Uses Pydantic v2 with custom validators for business logic valid
 """
 
 from datetime import datetime
-from typing import List, Optional
 
 from pydantic import BaseModel, Field, validator
 
@@ -33,7 +32,7 @@ class ContributionSubmit(BaseModel):
         max_length=2000,
         description="The AI prompt describing the desired functionality",
     )
-    context: Optional[str] = Field(
+    context: str | None = Field(
         None,
         max_length=1000,
         description="Additional context or background information",
@@ -42,22 +41,22 @@ class ContributionSubmit(BaseModel):
         ContributionCategory.OTHER,
         description="Category of the contribution",
     )
-    examples: Optional[List[str]] = Field(
+    examples: list[str] | None = Field(
         None,
         max_items=5,
         description="Example prompts or expected outputs",
     )
-    github_username: Optional[str] = Field(
+    github_username: str | None = Field(
         None,
         max_length=255,
         description="GitHub username for attribution",
     )
-    email: Optional[str] = Field(
+    email: str | None = Field(
         None,
         max_length=255,
         description="Email for updates (optional)",
     )
-    captcha_token: Optional[str] = Field(
+    captcha_token: str | None = Field(
         None,
         description="CAPTCHA verification token for anonymous submissions",
     )
@@ -82,7 +81,7 @@ class ContributionSubmit(BaseModel):
         return v.strip()
 
     @validator("examples")
-    def validate_examples(cls, v: Optional[List[str]]) -> Optional[List[str]]:
+    def validate_examples(cls, v: list[str] | None) -> list[str] | None:
         """Validate example format and content."""
         if not v:
             return v
@@ -115,15 +114,15 @@ class ContributionResponse(BaseModel):
 
     id: str  # Using UUID strings for DynamoDB
     prompt: str
-    context: Optional[str]
+    context: str | None
     category: ContributionCategory
     status: ContributionStatus
     priority: int
-    quality_score: Optional[int]
-    github_username: Optional[str]
-    github_issue_url: Optional[str]
+    quality_score: int | None
+    github_username: str | None
+    github_issue_url: str | None
     submitted_at: datetime
-    reviewed_at: Optional[datetime]
+    reviewed_at: datetime | None
 
     class Config:
         from_attributes = True
@@ -136,17 +135,17 @@ class ContributionReview(BaseModel):
         ...,
         description="New status for the contribution",
     )
-    review_notes: Optional[str] = Field(
+    review_notes: str | None = Field(
         None,
         max_length=1000,
         description="Internal notes about the review",
     )
-    rejection_reason: Optional[str] = Field(
+    rejection_reason: str | None = Field(
         None,
         max_length=500,
         description="Public reason for rejection (shown to submitter)",
     )
-    priority: Optional[int] = Field(
+    priority: int | None = Field(
         None,
         ge=0,
         le=10,
@@ -158,7 +157,7 @@ class ContributionReview(BaseModel):
     )
 
     @validator("rejection_reason")
-    def validate_rejection_reason(cls, v: Optional[str], values: dict) -> Optional[str]:
+    def validate_rejection_reason(cls, v: str | None, values: dict) -> str | None:
         """Ensure rejection reason is provided when rejecting."""
         if values.get("status") == ContributionStatus.REJECTED and not v:
             raise ValueError("Rejection reason is required when rejecting a contribution")
@@ -168,23 +167,22 @@ class ContributionReview(BaseModel):
 class ContributionFilter(BaseModel):
     """Model for filtering contributions in admin interface."""
 
-    status: Optional[ContributionStatus] = None
-    category: Optional[ContributionCategory] = None
-    priority_min: Optional[int] = Field(None, ge=0, le=10)
-    priority_max: Optional[int] = Field(None, ge=0, le=10)
-    quality_score_min: Optional[int] = Field(None, ge=0, le=100)
-    has_github_issue: Optional[bool] = None
-    is_anonymous: Optional[bool] = None
-    search: Optional[str] = Field(None, max_length=100)
+    status: ContributionStatus | None = None
+    category: ContributionCategory | None = None
+    priority_min: int | None = Field(None, ge=0, le=10)
+    priority_max: int | None = Field(None, ge=0, le=10)
+    quality_score_min: int | None = Field(None, ge=0, le=100)
+    has_github_issue: bool | None = None
+    is_anonymous: bool | None = None
+    search: str | None = Field(None, max_length=100)
     limit: int = Field(20, ge=1, le=100)
     offset: int = Field(0, ge=0)
 
     @validator("priority_max")
-    def validate_priority_range(cls, v: Optional[int], values: dict) -> Optional[int]:
+    def validate_priority_range(cls, v: int | None, values: dict) -> int | None:
         """Ensure max priority is greater than min priority."""
-        if v is not None and values.get("priority_min") is not None:
-            if v < values["priority_min"]:
-                raise ValueError("priority_max must be greater than priority_min")
+        if v is not None and values.get("priority_min") is not None and v < values["priority_min"]:
+            raise ValueError("priority_max must be greater than priority_min")
         return v
 
 
@@ -197,10 +195,10 @@ class ContributionStats(BaseModel):
     rejected: int
     spam: int
     github_issues_created: int
-    average_quality_score: Optional[float]
+    average_quality_score: float | None
     submissions_today: int
     submissions_this_week: int
-    top_categories: List[dict]  # List of {category: str, count: int}
+    top_categories: list[dict]  # List of {category: str, count: int}
 
 
 class GitHubIssueCreate(BaseModel):
@@ -215,11 +213,11 @@ class GitHubIssueCreate(BaseModel):
         ...,
         description="GitHub issue body in Markdown format",
     )
-    labels: List[str] = Field(
+    labels: list[str] = Field(
         default_factory=lambda: ["ai-contribution", "needs-triage"],
         description="Labels to apply to the issue",
     )
-    assignees: Optional[List[str]] = Field(
+    assignees: list[str] | None = Field(
         None,
         description="GitHub usernames to assign",
     )
