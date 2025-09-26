@@ -32,4 +32,4 @@ export type { SectionProps, SectionVariant } from './Section';
 export { DetailsCard } from './DetailsCard';
 
 export { FeatureCard } from './FeatureCard';
-export type { FeatureCardVariant } from './FeatureCard';
+export type { FeatureCardProps } from './FeatureCard';

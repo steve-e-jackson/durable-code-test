@@ -133,6 +133,7 @@ export function RepositoryTab(): ReactElement {
         window.scrollTo(0, scrollY);
       };
     }
+    return undefined;
   }, [selectedRepoItem]);
 
   // Loading state
