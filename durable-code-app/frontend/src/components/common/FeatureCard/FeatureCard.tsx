@@ -59,7 +59,16 @@ export function FeatureCard({
       <span className={styles.cardIcon}>{icon}</span>
       <h4 className="light-title-on-dark">{title}</h4>
       <p className="light-text-on-dark">{description}</p>
-      <a href={linkHref || '#'} className={styles.cardLink}>
+      <a
+        href={linkHref || '#'}
+        className={styles.cardLink}
+        onClick={(e) => {
+          if (!linkHref) {
+            e.preventDefault();
+            handleClick();
+          }
+        }}
+      >
         {linkText} →
       </a>
       {badge && (
