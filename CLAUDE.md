@@ -5,3 +5,4 @@
 - Never create anything, not one single thing, on the main branch.
 - Nevery bypass or skip pre commit hooks. They must be made to pass.
 - When creating a PR always check for un-commited code, don't leave anything behind.
+- Always use make targets for terraform operation when available.

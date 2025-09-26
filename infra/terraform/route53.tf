@@ -26,6 +26,10 @@ resource "aws_route53_zone" "main" {
       Environment = var.environment
     }
   )
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # A Record for apex domain pointing to ALB
@@ -151,6 +155,10 @@ resource "aws_route53_health_check" "main" {
       Domain = var.domain_name
     }
   )
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # CloudWatch Alarm for Route53 Health Check

@@ -46,6 +46,10 @@ enable_security_hub = false
 # CI/CD Configuration
 github_branches = ["develop", "feature/*"]
 
+# HTTPS Configuration
+enable_https = true
+# Certificate ARN will be dynamically retrieved from ACM
+
 # Additional tags for dev environment
 additional_tags = {
   "Environment"     = "Development"
