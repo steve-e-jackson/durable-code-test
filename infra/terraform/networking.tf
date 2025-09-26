@@ -29,6 +29,10 @@ resource "aws_vpc" "main" {
     Name = "${var.project_name}-${var.environment}-vpc"
     Type = "networking"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # ============================================================================
@@ -44,6 +48,10 @@ resource "aws_internet_gateway" "main" {
     Name = "${var.project_name}-${var.environment}-igw"
     Type = "networking"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # ============================================================================
@@ -63,6 +71,10 @@ resource "aws_subnet" "public" {
     Type = "public-subnet"
     AZ   = data.aws_availability_zones.available.names[count.index]
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # ============================================================================
@@ -81,6 +93,10 @@ resource "aws_subnet" "private" {
     Type = "private-subnet"
     AZ   = data.aws_availability_zones.available.names[count.index]
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # ============================================================================
@@ -97,6 +113,10 @@ resource "aws_eip" "nat" {
     Name = "${var.project_name}-${var.environment}-nat-eip-${count.index + 1}"
     Type = "nat-gateway"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # ============================================================================
@@ -113,6 +133,10 @@ resource "aws_nat_gateway" "main" {
     Name = "${var.project_name}-${var.environment}-nat-${count.index + 1}"
     Type = "nat-gateway"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 
   depends_on = [aws_internet_gateway.main]
 }
@@ -136,6 +160,10 @@ resource "aws_route_table" "public" {
     Name = "${var.project_name}-${var.environment}-public-rt"
     Type = "route-table"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # Private route tables
@@ -157,6 +185,10 @@ resource "aws_route_table" "private" {
     Name = "${var.project_name}-${var.environment}-private-rt-${count.index + 1}"
     Type = "route-table"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # ============================================================================
@@ -220,6 +252,10 @@ resource "aws_security_group" "alb" {
     Type      = "security-group"
     Component = "load-balancer"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # ECS Tasks Security Group
@@ -259,6 +295,10 @@ resource "aws_security_group" "ecs_tasks" {
     Type      = "security-group"
     Component = "ecs-tasks"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # VPC Endpoints Security Group (for private subnets without NAT Gateway)
@@ -290,6 +330,10 @@ resource "aws_security_group" "vpc_endpoints" {
     Type      = "security-group"
     Component = "vpc-endpoints"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # ============================================================================
@@ -310,6 +354,10 @@ resource "aws_vpc_endpoint" "s3" {
     Type    = "vpc-endpoint"
     Service = "s3"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # ECR API VPC Endpoint (Interface type)
@@ -328,6 +376,10 @@ resource "aws_vpc_endpoint" "ecr_api" {
     Type    = "vpc-endpoint"
     Service = "ecr-api"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # ECR Docker VPC Endpoint (Interface type)
@@ -346,6 +398,10 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
     Type    = "vpc-endpoint"
     Service = "ecr-dkr"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # CloudWatch Logs VPC Endpoint (Interface type)
@@ -364,4 +420,8 @@ resource "aws_vpc_endpoint" "logs" {
     Type    = "vpc-endpoint"
     Service = "cloudwatch-logs"
   })
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }

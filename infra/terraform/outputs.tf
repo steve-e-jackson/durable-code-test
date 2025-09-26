@@ -207,7 +207,7 @@ output "alb_arn" {
 
 output "alb_url" {
   description = "URL to access the application via ALB"
-  value       = var.enable_https && var.certificate_arn != "" ? "https://${aws_lb.main.dns_name}" : "http://${aws_lb.main.dns_name}"
+  value       = var.enable_https && length(aws_acm_certificate.main) > 0 ? "https://${aws_lb.main.dns_name}" : "http://${aws_lb.main.dns_name}"
   sensitive   = false
 }
 
@@ -228,7 +228,7 @@ output "backend_target_group_arn" {
 output "application_urls" {
   description = "URLs to access the application"
   value = {
-    alb_direct    = var.enable_https && var.certificate_arn != "" ? "https://${aws_lb.main.dns_name}" : "http://${aws_lb.main.dns_name}"
+    alb_direct    = var.enable_https && length(aws_acm_certificate.main) > 0 ? "https://${aws_lb.main.dns_name}" : "http://${aws_lb.main.dns_name}"
     custom_domain = var.domain_name != "" ? (var.enable_https ? "https://${var.domain_name}" : "http://${var.domain_name}") : "Not configured"
     www_domain    = var.domain_name != "" ? (var.enable_https ? "https://www.${var.domain_name}" : "http://www.${var.domain_name}") : "Not configured"
     api_domain    = var.domain_name != "" ? (var.enable_https ? "https://api.${var.domain_name}" : "http://api.${var.domain_name}") : "Not configured"
