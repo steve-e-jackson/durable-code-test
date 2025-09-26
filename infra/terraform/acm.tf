@@ -13,7 +13,7 @@
 
 # ACM Certificate for the primary domain (only when domain is configured)
 resource "aws_acm_certificate" "main" {
-  count = var.domain_name != "" && var.create_route53_zone ? 1 : 0
+  count = local.should_create_resource.acm && var.domain_name != "" && var.create_route53_zone ? 1 : 0
 
   domain_name = var.domain_name
   subject_alternative_names = [
@@ -41,7 +41,7 @@ resource "aws_acm_certificate" "main" {
 
 # Route53 record for certificate validation
 resource "aws_route53_record" "cert_validation" {
-  for_each = var.domain_name != "" && var.create_route53_zone ? {
+  for_each = local.should_create_resource.acm && var.domain_name != "" && var.create_route53_zone ? {
     for dvo in aws_acm_certificate.main[0].domain_validation_options : dvo.domain_name => {
       name   = dvo.resource_record_name
       record = dvo.resource_record_value
@@ -61,7 +61,7 @@ resource "aws_route53_record" "cert_validation" {
 
 # Certificate validation
 resource "aws_acm_certificate_validation" "main" {
-  count = var.domain_name != "" && var.create_route53_zone ? 1 : 0
+  count = local.should_create_resource.acm && var.domain_name != "" && var.create_route53_zone ? 1 : 0
 
   certificate_arn         = aws_acm_certificate.main[0].arn
   validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
@@ -71,7 +71,7 @@ resource "aws_acm_certificate_validation" "main" {
 
 # CloudWatch alarm for certificate expiry (production only)
 resource "aws_cloudwatch_metric_alarm" "certificate_expiry" {
-  count = var.environment == "prod" && var.domain_name != "" ? 1 : 0
+  count = local.should_create_resource.acm && var.environment == "prod" && var.domain_name != "" ? 1 : 0
 
   alarm_name          = "${var.project_name}-${var.environment}-cert-expiry"
   comparison_operator = "LessThanThreshold"
