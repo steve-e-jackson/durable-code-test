@@ -1,21 +1,19 @@
 /**
  * Purpose: Repository tab component showcasing AI-ready project setup and architecture
  * Scope: Feature-based React component for displaying repository best practices
- * Overview: Modern React component demonstrating repository setup for AI-assisted development
- *     including project organization, tooling configuration, CI/CD setup, and development
- *     environment preparation. Modularized with proper separation of concerns, CSS modules,
- *     and comprehensive error handling following established patterns.
- * Dependencies: React, repository hooks, common components, CSS modules
- * Exports: RepositoryTab component (default export), RepositoryTabProps interface
- * Props/Interfaces: Optional className and error handling callback
- * State/Behavior: Fetches repository data via hook, displays modular content sections
+ * Overview: Standardized component using FeatureCard grid layout with popup functionality
+ * Dependencies: React, FeatureCard component, useRepository hook, CSS modules
+ * Exports: RepositoryTab component (default export)
+ * Props/Interfaces: No props - self-contained feature component
+ * Implementation: Feature-based architecture with FeatureCard grid layout and modal popups
  */
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactElement } from 'react';
+import { FeatureCard } from '../../../../components/common/FeatureCard/FeatureCard';
 import { ErrorMessage, LoadingSpinner } from '../../../../components/common';
 import { useRepository } from '../../hooks/useRepository';
-import type { RepositoryItem, RepositoryTabProps } from '../../types/repository.types';
+import type { RepositoryItem } from '../../types/repository.types';
 import styles from './RepositoryTab.module.css';
 import {
   FaCheckCircle,
@@ -31,42 +29,12 @@ import {
   FaShieldAlt,
 } from 'react-icons/fa';
 
-/**
- * RepositoryTab component
- *
- * @param props - Component props
- * @returns Rendered repository tab component
- */
-export function RepositoryTab({
-  className = '',
-  onError,
-}: RepositoryTabProps): ReactElement {
-  const {
-    repositoryItems,
-    folderStructure: _folderStructure,
-    loading,
-    error,
-  } = useRepository();
-
-  // State for clicked popup
+export function RepositoryTab(): ReactElement {
+  const { repositoryItems, loading, error } = useRepository();
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
 
-  // Component classes
-  const componentClasses = useMemo(() => {
-    return [
-      styles.repositoryTab,
-      'tab-content',
-      'repository-content',
-      className,
-      loading && styles.loading,
-      error && styles.error,
-    ]
-      .filter(Boolean)
-      .join(' ');
-  }, [className, loading, error]);
-
   // Icon mapping function
-  const getIconForItem = (itemId: string): ReactElement | null => {
+  const getIconForItem = useCallback((itemId: string): ReactElement | null => {
     switch (itemId) {
       case 'project-layout':
         return <FaFolder />;
@@ -93,49 +61,42 @@ export function RepositoryTab({
       default:
         return null;
     }
-  };
+  }, []);
 
-  // Event handlers
+  // Badge mapping function
+  const getBadgeForItem = useCallback((item: RepositoryItem) => {
+    switch (item.badge) {
+      case 'Foundation':
+        return { text: 'Essential', variant: 'essential' as const };
+      case 'Critical':
+        return { text: 'Active', variant: 'active' as const };
+      case 'Essential':
+        return { text: 'Quality', variant: 'quality' as const };
+      case 'Important':
+        return { text: 'Technical', variant: 'technical' as const };
+      default:
+        return { text: 'Strategic', variant: 'strategic' as const };
+    }
+  }, []);
+
+  // Event handler for card clicks
   const handleItemClick = useCallback((item: RepositoryItem) => {
     if (item.popup) {
       setSelectedItem(item.id);
     }
   }, []);
 
-  // Error propagation
-  if (error) {
-    onError?.(error);
-  }
-
-  // Render helpers
-  const repositoryGrid = useMemo(() => {
-    return (
-      <div className={styles.repositoryGrid}>
-        {repositoryItems.map((item) => (
-          <div
-            key={item.id}
-            className={`${styles.repositoryCard} feature-card`}
-            onClick={() => handleItemClick(item)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                handleItemClick(item);
-              }
-            }}
-          >
-            <div className={styles.cardContent}>
-              {getIconForItem(item.id) && (
-                <div className={styles.cardIcon}>{getIconForItem(item.id)}</div>
-              )}
-              <h4 className={styles.cardTitle}>{item.title}</h4>
-              <span className={styles.clickHint}>Click to explore</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }, [repositoryItems, handleItemClick]);
+  // Convert repository items to FeatureCard format
+  const repositoryFeatures = useMemo(() => {
+    return repositoryItems.map((item) => ({
+      icon: getIconForItem(item.id) || <FaFolder />,
+      title: item.title,
+      description: item.popup?.solution.title || 'Repository feature information',
+      linkText: 'Click to explore',
+      badge: getBadgeForItem(item),
+      onClick: () => handleItemClick(item),
+    }));
+  }, [repositoryItems, getIconForItem, getBadgeForItem, handleItemClick]);
 
   // Find selected item for popup
   const selectedRepoItem = useMemo(() => {
@@ -143,11 +104,42 @@ export function RepositoryTab({
     return repositoryItems.find((item) => item.id === selectedItem);
   }, [selectedItem, repositoryItems]);
 
+  // Prevent body scroll when popup is open
+  useEffect(() => {
+    if (selectedRepoItem) {
+      // Store current scroll position
+      const scrollY = window.scrollY;
+
+      // Store original body styles
+      const originalOverflow = document.body.style.overflow;
+      const originalPosition = document.body.style.position;
+      const originalTop = document.body.style.top;
+      const originalWidth = document.body.style.width;
+
+      // Prevent scrolling
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+
+      return () => {
+        // Restore original styles
+        document.body.style.overflow = originalOverflow;
+        document.body.style.position = originalPosition;
+        document.body.style.top = originalTop;
+        document.body.style.width = originalWidth;
+
+        // Restore scroll position
+        window.scrollTo(0, scrollY);
+      };
+    }
+  }, [selectedRepoItem]);
+
   // Loading state
   if (loading) {
     return (
-      <div className={componentClasses}>
-        <LoadingSpinner className={styles.loadingSpinner} />
+      <div className={styles.container}>
+        <LoadingSpinner />
         <p>Loading repository data...</p>
       </div>
     );
@@ -156,23 +148,20 @@ export function RepositoryTab({
   // Error state
   if (error) {
     return (
-      <div className={componentClasses}>
+      <div className={styles.container}>
         <ErrorMessage
           message={error.message}
           title="Error loading repository"
           variant="error"
           onDismiss={() => window.location.reload()}
-          className={styles.errorMessage}
         />
       </div>
     );
   }
 
-  // Main render
   return (
-    <div className={componentClasses}>
-      {/* Hero section */}
-      <div className={styles.repositoryHero}>
+    <div className={styles.container}>
+      <div className={styles.hero}>
         <h3 className="hero-title">
           Why Rigid Repository Structure Matters for AI Development
         </h3>
@@ -188,8 +177,11 @@ export function RepositoryTab({
         </p>
       </div>
 
-      {/* Repository grid */}
-      {repositoryGrid}
+      <div className={styles.grid}>
+        {repositoryFeatures.map((feature) => (
+          <FeatureCard key={feature.title} {...feature} />
+        ))}
+      </div>
 
       {/* Popup rendered at component level */}
       {selectedRepoItem && selectedRepoItem.popup && (

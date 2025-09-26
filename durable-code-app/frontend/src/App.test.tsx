@@ -514,7 +514,9 @@ describe('App Component', () => {
       });
 
       // Check that QA links exist (reports and standards)
-      const reportLinks = screen.getAllByRole('link', { name: /View Report/i });
+      const reportLinks = screen.getAllByRole('link', {
+        name: /(View.*Report|View Linter Reports|View Coverage Report|View Bug Reports|View All Reports)/i,
+      });
       expect(reportLinks.length).toBeGreaterThan(0);
 
       const standardsLink = screen.getByRole('link', { name: /View Standards/i });
