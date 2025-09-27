@@ -1,14 +1,21 @@
 #!/usr/bin/env python3
 """
-Purpose: Basic working tests for design linters.
+Purpose: Validates design linters framework basic functionality
 
-Scope: Simple smoke tests that actually work
+Scope: Smoke tests for framework components and core functionality
+
 Overview: This module provides comprehensive basic tests that verify the design linters framework loads correctly,
-basic components exist and can be imported without errors, core functionality works as expected, and integration
-between different modules functions properly without testing complex advanced functionality or edge cases.
+    basic components exist and can be imported without errors, core functionality works as expected, and integration
+    between different modules functions properly. Tests focus on framework stability, import validation, component
+    initialization, and basic rule execution without testing complex advanced functionality or edge cases. The suite
+    ensures the linting infrastructure is properly configured and operational.
+
 Dependencies: unittest, framework modules
+
 Exports: Test classes for basic imports, functionality, categories filter, and ignore functionality
+
 Interfaces: Standard unittest test methods and pytest-style fixtures for framework testing
+
 Implementation: Uses unittest with temporary files and mock configurations for testing framework components
 """
 

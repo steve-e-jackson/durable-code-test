@@ -1,8 +1,28 @@
 # Claude Integration and AI-Assisted Development
 
-## Overview
+**Purpose**: Sophisticated Claude AI integration providing intelligent code generation and development workflow automation
 
-Sophisticated Claude AI integration providing intelligent code generation, standards enforcement, and development workflow automation. The integration features custom commands, hooks, and templates that ensure consistent code quality and adherence to project standards.
+**Scope**: AI-assisted development, code generation, standards enforcement, workflow automation, template-based development
+
+**Overview**: Advanced Claude AI integration that provides intelligent code generation, automated standards
+    enforcement, and comprehensive development workflow automation. Features custom commands, hooks,
+    and templates that ensure consistent code quality and adherence to project standards. Enables
+    AI-assisted development patterns that enhance productivity while maintaining code quality and
+    architectural consistency across the project.
+
+**Dependencies**: Claude AI integration, custom commands, development templates, workflow automation tools
+
+**Exports**: AI command system, code generation templates, workflow automation, standards enforcement tools
+
+**Related**: Development templates, code generation guides, workflow documentation, quality standards
+
+**Implementation**: Custom Claude commands, template-based generation, automated workflow integration, standards validation
+
+---
+
+## Claude Integration Overview
+
+Sophisticated AI integration providing intelligent code generation, standards enforcement, and development workflow automation through custom commands and templates.
 
 ## Claude Command System
 

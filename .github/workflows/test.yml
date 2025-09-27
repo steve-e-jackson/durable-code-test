@@ -1,5 +1,16 @@
-# GitHub Actions workflow for comprehensive testing with Docker caching
-# Runs all tests using cached Docker images for faster execution
+# Purpose: Comprehensive testing workflow with Docker-based test execution and intelligent caching
+# Scope: Full test suite execution for backend, frontend, integration, and design linter framework tests
+# Overview: Executes complete test coverage across all application components using Docker containerization
+#     for consistent test environments. Implements advanced Docker BuildKit caching to optimize build
+#     performance, manages test artifact collection and coverage reporting, and provides comprehensive
+#     test result summarization. Ensures test reliability through cached Docker images while maintaining
+#     fast execution times and proper artifact management for debugging and coverage analysis.
+# Dependencies: Docker BuildKit, make targets, test frameworks (pytest, Jest/Vitest), coverage tools
+# Exports: Test execution status, coverage reports, test artifacts, and comprehensive test summaries
+# Environment: GitHub Actions CI/CD pipeline with Docker layer caching and artifact storage
+# Related: Links to testing documentation, Docker configuration, and coverage reporting setup
+# Implementation: Uses GitHub Actions with Docker BuildKit caching and make-based test orchestration
+
 name: Testing
 
 on:

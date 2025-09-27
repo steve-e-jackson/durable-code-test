@@ -1,5 +1,25 @@
 # AI Agent Expanded Documentation
 
+**Purpose**: Provide comprehensive implementation details and usage examples for all AI agent workflows, templates, and project features
+
+**Scope**: Detailed documentation for developers and AI agents covering templates, features, standards, and workflows
+
+**Overview**: Serves as the comprehensive reference manual for the AI agent system, expanding on the
+    concise navigation provided in index.yaml. Contains detailed template usage instructions,
+    feature implementation guides, workflow examples, and development patterns. Designed to support
+    both human developers and AI agents with practical examples, file locations, and step-by-step
+    implementation guidance for all project capabilities.
+
+**Dependencies**: index.yaml for navigation structure, layout.yaml for file placement, template files, feature documentation
+
+**Exports**: Detailed usage instructions, implementation examples, workflow guidance, template documentation
+
+**Related**: .ai/index.yaml, .ai/layout.yaml, .ai/templates/, .ai/features/, .ai/docs/
+
+**Implementation**: Structured markdown with clear sections, code examples, and cross-references to enable efficient AI agent usage
+
+---
+
 > **Note**: This file provides detailed information referenced by `index.yaml`. Read the YAML file first for quick navigation.
 
 ## Templates

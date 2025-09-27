@@ -1,7 +1,19 @@
 #!/bin/bash
-
-# Script to check domain name availability for the Durable Code Test project
-# This helps in selecting an available domain before registration
+# Purpose: Check domain name availability for the Durable Code Test project and provide registration guidance
+# Scope: Domain availability checking, pricing research, and registration recommendations
+# Overview: This script automates the process of checking domain availability for the project,
+#     providing both AWS Route53 API-based checks and fallback whois lookups for comprehensive
+#     availability verification. It includes a curated list of domain name suggestions optimized
+#     for the project, checks availability across multiple TLDs (.dev, .tech, .app), and provides
+#     pricing information and registration recommendations. The script handles rate limiting,
+#     API authentication, and graceful fallbacks when AWS CLI is not configured. Results include
+#     availability status, estimated pricing, and step-by-step registration instructions with
+#     links to popular registrars and post-registration configuration guidance.
+# Dependencies: AWS CLI (optional), whois utility (fallback), proper AWS credentials for Route53 Domains API
+# Usage: ./check-domain-availability.sh (runs interactively with domain suggestions)
+# Environment: Works with or without AWS CLI configuration, adapts checking method accordingly
+# Related: Links to domain registrars, Route53 documentation, and infrastructure configuration files
+# Implementation: Uses AWS Route53 Domains API when available, fallback to whois, includes rate limiting and error handling
 
 set -e
 

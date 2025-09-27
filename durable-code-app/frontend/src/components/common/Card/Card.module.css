@@ -1,3 +1,19 @@
+/*
+Purpose: Card component styles with glassmorphism design and interactive variants
+Scope: Card component styling across the application for content organization and visual grouping
+Overview: Provides comprehensive styling for the card component with glassmorphism design patterns
+    including backdrop filters, gradient overlays, and smooth animations. Supports multiple variants
+    (default, feature, stat, principle) with distinct visual treatments. Implements hover effects,
+    clickable states, and responsive design patterns. Uses modern CSS features like backdrop-filter
+    for visual depth and sophisticated visual hierarchy.
+Dependencies: CSS custom properties from design system, card component markup with optional elements
+Exports: Styling for card container, variants, interactive states, and internal elements
+Interfaces: CSS classes for card, variants, clickable states, icon, title, content, and badge elements
+Environment: Modern browser support for backdrop-filter with graceful degradation and responsive design
+Related: Card.tsx component, design system tokens, and glassmorphism design patterns
+Implementation: CSS Modules with modern CSS features and component-scoped styling isolation
+*/
+
 .card {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);

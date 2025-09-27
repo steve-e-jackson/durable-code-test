@@ -1,5 +1,16 @@
-# GitHub Actions workflow for comprehensive linting with Docker caching
-# Runs all linting checks using cached Docker images for faster execution
+# Purpose: Comprehensive code quality and linting workflow with Docker-based execution and caching
+# Scope: Complete linting coverage for Python, TypeScript, React, and custom design pattern validation
+# Overview: Executes comprehensive code quality checks across all codebase components using Docker
+#     containerization for consistent linting environments. Implements advanced Docker BuildKit caching
+#     to optimize performance, runs multiple linting tools including Ruff, ESLint, custom SOLID principle
+#     validators, and design pattern linters. Provides detailed linting summaries and integrates with
+#     CI/CD pipeline to ensure code quality standards before merging changes.
+# Dependencies: Docker BuildKit, make targets, linting tools (Ruff, ESLint, MyPy, custom linters)
+# Exports: Linting execution status, code quality reports, and comprehensive quality summaries
+# Environment: GitHub Actions CI/CD pipeline with Docker layer caching and quality gate enforcement
+# Related: Links to linting configuration, Docker setup, and code quality standards documentation
+# Implementation: Uses GitHub Actions with Docker BuildKit caching and make-based linting orchestration
+
 name: Linting
 
 on:

@@ -1,7 +1,26 @@
 # Error Handling Standards
 
-## Overview
-This document defines standards for error handling across the codebase to ensure robust, maintainable, and debuggable applications.
+**Purpose**: Define comprehensive error handling standards for robust, maintainable, and debuggable applications
+
+**Scope**: All error handling patterns across Python backend, React frontend, and general application code
+
+**Overview**: Establishes standards for error handling that ensure application robustness, maintainability,
+    and effective debugging capabilities. Covers patterns for exception handling, error boundaries,
+    logging practices, and recovery strategies that prevent application failures and provide meaningful
+    error information for development and operations teams.
+
+**Dependencies**: Logging frameworks, error tracking systems, exception handling libraries, debugging tools
+
+**Exports**: Error handling patterns, exception standards, logging guidelines, debugging practices
+
+**Related**: Logging standards, debugging guidelines, application monitoring practices
+
+**Implementation**: Specific exception handling, error boundary patterns, structured logging, recovery mechanisms
+
+---
+
+## Standards Overview
+These standards ensure robust error handling across the codebase for maintainable and debuggable applications.
 
 ## Core Principles
 

@@ -1,5 +1,25 @@
 # AWS Deployment Infrastructure - PR Breakdown
 
+**Purpose**: Comprehensive PR breakdown for AWS deployment infrastructure implementation with detailed task management and progress tracking
+
+**Scope**: Complete AWS ECS Fargate deployment setup from foundation through production readiness with cost optimization
+
+**Overview**: Detailed breakdown of AWS deployment infrastructure implementation into manageable, atomic pull requests.
+    Each PR is designed to be self-contained, testable, and maintains working application while incrementally
+    building toward production deployment. Covers Terraform foundation, ECR setup, ECS configuration, load
+    balancer setup, CI/CD pipeline, monitoring, security hardening, cost optimization, backup strategies,
+    and production readiness. Includes implementation timelines, risk mitigation, and success metrics.
+
+**Dependencies**: AWS services (ECS, ECR, ALB, Route53, CloudWatch), Terraform, Docker, GitHub Actions, monitoring tools
+
+**Exports**: PR implementation roadmap, task breakdowns, timeline estimates, risk assessments, and success criteria
+
+**Related**: AI_CONTEXT.md for implementation guidance, PROGRESS_TRACKER.md for current status, deployment workflow documentation
+
+**Implementation**: Atomic PR approach with comprehensive testing, risk mitigation, and systematic production deployment preparation
+
+---
+
 ## 🚀 PROGRESS TRACKER - MUST BE UPDATED AFTER EACH PR!
 
 ### ✅ Completed PRs

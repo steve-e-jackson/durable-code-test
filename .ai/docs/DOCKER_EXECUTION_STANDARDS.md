@@ -1,7 +1,27 @@
 # Docker Execution Standards
 
-## Overview
-All development tools, scripts, and testing utilities MUST run within Docker containers. Local developer systems may not have the proper configuration, dependencies, or versions required.
+**Purpose**: Establish mandatory Docker execution requirements for all development tools, scripts, and testing utilities
+
+**Scope**: All development workflows, testing procedures, script execution, and tooling across the project
+
+**Overview**: Enforces containerized execution for all development activities to ensure consistent
+    environments, dependency management, and reproducible results across different developer systems.
+    Eliminates environment-specific issues by requiring all tools, scripts, and tests to run within
+    controlled Docker containers. Provides standardized execution patterns and prevents local system
+    configuration dependencies that can cause inconsistent behavior.
+
+**Dependencies**: Docker engine, docker-compose, container images, Makefile targets
+
+**Exports**: Docker execution patterns, container-based development workflows, environment standards
+
+**Related**: Makefile, docker-compose.yml, development tooling, testing framework
+
+**Implementation**: Make targets with docker exec commands, containerized script execution, no local tool dependencies
+
+---
+
+## Core Principle
+All development tools, scripts, and testing utilities execute within Docker containers to ensure consistent environments and eliminate local system dependencies.
 
 ## Core Principle
 **Never assume local system configuration**. All development workflows must be containerized.

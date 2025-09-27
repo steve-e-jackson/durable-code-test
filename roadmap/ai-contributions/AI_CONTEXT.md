@@ -1,5 +1,25 @@
 # AI-Powered Community Contributions - AI Context
 
+**Purpose**: AI agent context document for implementing community contribution feature enabling AI prompt submissions and automated code generation
+
+**Scope**: Complete community contribution feature including prompt submission, review workflow, GitHub integration, and AI-powered implementation
+
+**Overview**: Comprehensive context document for AI agents working on the community contribution feature that enables
+    community members to submit AI prompts for code generation. Covers project background, feature vision,
+    target architecture, user journey, security strategy, and integration points with existing application
+    features. Includes key decisions, success metrics, technical constraints, and specific guidance for AI
+    agents on processing submissions and implementing approved prompts following project standards.
+
+**Dependencies**: FastAPI backend, React frontend, GitHub API and OAuth, database for submissions, AI agents for implementation
+
+**Exports**: AI agent guidance for feature implementation, architectural patterns, integration strategies, and development workflows
+
+**Related**: PR_BREAKDOWN.md for implementation tasks, SECURITY_STRATEGY.md for security requirements, contribution-flow.html for workflow visualization
+
+**Implementation**: Feature architecture with AI agent guidance, security considerations, and systematic implementation approach
+
+---
+
 ## Overview
 This document provides context for AI agents working on the community contribution feature for the Durable Code Test application. The feature enables community members to submit AI prompts that, when approved, can be used to generate code contributions to the project.
 

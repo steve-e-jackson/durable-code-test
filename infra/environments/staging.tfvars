@@ -1,16 +1,20 @@
 # Purpose: Staging environment configuration balancing cost efficiency with production-like behavior
-# Scope: Variable overrides specific to the staging/pre-production environment
+# Scope: Variable overrides specific to the staging/pre-production environment for infrastructure deployment
 # Overview: This file provides environment-specific variable values for the staging
 #     infrastructure, balancing cost optimization with the need for production-like
-#     testing conditions. Uses on-demand Fargate instances for stability while still
+#     testing conditions. Uses on-demand Fargate instances for enhanced stability while
 #     implementing auto-shutdown scheduling to reduce costs during off-hours. Resources
 #     are sized moderately (512 CPU/1024 Memory) with two instances for high-availability
-#     testing. Container Insights and GuardDuty are enabled to test monitoring and
-#     security features before production. The configuration targets a monthly budget
-#     of $15 while providing a realistic testing environment for pre-production validation,
-#     performance testing, and user acceptance testing.
-# Dependencies: Requires variables defined in terraform/variables.tf
+#     testing scenarios. Container Insights and GuardDuty are enabled to validate monitoring
+#     and security features before production deployment. The configuration targets a monthly
+#     budget of $15 while providing a realistic testing environment for pre-production
+#     validation, performance testing, and user acceptance testing workflows.
+# Dependencies: Requires variables defined in terraform/variables.tf and backend configuration
+# Exports: Environment-specific variable overrides for staging infrastructure deployment
 # Configuration: Applied via terraform plan/apply -var-file=../environments/staging.tfvars
+# Environment: Staging environment with balanced cost optimization and production-like testing capabilities
+# Related: Links to dev.tfvars and prod.tfvars for environment comparison and configuration patterns
+# Implementation: Uses on-demand Fargate, scheduled auto-shutdown, and moderate resource allocation for testing
 
 environment = "staging"
 aws_region  = "us-west-2"

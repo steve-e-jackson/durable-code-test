@@ -1,3 +1,16 @@
+# Purpose: Define comprehensive file placement rules and directory organization standards for the project
+# Scope: All project files, AI agent guidance, and automated linting tool validation
+# Overview: Establishes authoritative rules for where different types of files should be placed
+#     throughout the project structure. Provides both human-readable guidance for AI agents and
+#     machine-readable validation rules for automated enforcement. Includes decision trees for
+#     component placement, common mistakes to avoid, and linter configuration patterns. Essential
+#     for maintaining consistent project organization and enabling automated file placement validation.
+# Dependencies: Design linting framework, AI agent workflow tools, pre-commit hooks
+# Exports: File placement rules, validation patterns, directory organization standards
+# Environment: All development environments, integrated with linting and AI agent tools
+# Related: FILE_HEADER_STANDARDS.md, STANDARDS.md, design linting framework
+# Implementation: YAML structure with regex patterns for automated validation and human guidance
+
 version: "3.0"
 _meta:
   description: "Project layout rules for both AI agents and linting tools"

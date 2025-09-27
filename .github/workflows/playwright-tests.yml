@@ -1,3 +1,16 @@
+# Purpose: Automated end-to-end testing workflow using Playwright for comprehensive application testing
+# Scope: Integration testing across all application components (frontend, backend, API endpoints)
+# Overview: Executes Playwright integration tests in CI/CD pipeline to validate complete user workflows
+#     and application functionality. Manages dynamic port allocation for branch-specific deployments,
+#     orchestrates service startup and teardown, handles test artifact collection, and provides
+#     comprehensive test coverage reporting. Integrates with Docker containerization for consistent
+#     test environments and supports parallel test execution with proper resource management.
+# Dependencies: Docker, make targets, branch port allocation scripts, GitHub Actions runners
+# Exports: Test execution status, coverage reports, test artifacts, and integration test validation
+# Environment: GitHub Actions CI/CD pipeline for pull requests and main branch deployments
+# Related: Links to test framework configuration, Docker setup, and deployment workflows
+# Implementation: Uses GitHub Actions with Docker orchestration and make-based test execution
+
 name: Playwright Integration Tests
 
 on:

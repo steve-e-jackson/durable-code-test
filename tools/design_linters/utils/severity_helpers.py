@@ -2,7 +2,7 @@
 """
 Purpose: Severity-related helper functions
 Scope: Common severity handling utilities
-Overview: Overview: This utility module provides comprehensive severity level management for the design
+Overview: This utility module provides comprehensive severity level management for the design
     linter framework, enabling consistent classification and prioritization of violations across
     all rules. It defines severity levels (ERROR, WARNING, INFO) with associated properties like
     exit codes, display colors, and sorting priorities. The module includes helper functions for

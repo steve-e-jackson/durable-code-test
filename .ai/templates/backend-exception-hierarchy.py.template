@@ -1,12 +1,21 @@
 """
-{{MODULE_NAME}} Exception Hierarchy Template
+Purpose: {{MODULE_NAME}} exception hierarchy template for structured error handling
 
-This template provides a structured exception hierarchy for backend services.
-Replace {{PLACEHOLDER}} variables with your specific values.
+Scope: Backend service exception handling with proper HTTP status codes and error categorization
 
-Purpose: Define custom exceptions with proper error codes and status codes
-Location: durable-code-app/backend/app/core/exceptions.py
-Example: app/core/exceptions.py
+Overview: Provides a structured exception hierarchy template for backend services that ensures
+    consistent error handling patterns throughout the application. Includes base exception class
+    with structured error information, specific exception types for common scenarios, and proper
+    HTTP status code mapping for API responses. Template supports comprehensive error tracking
+    and debugging capabilities with optional detailed error information.
+
+Dependencies: FastAPI status codes, typing annotations, HTTP exception handling
+
+Exports: Exception hierarchy template with base and specialized exception classes
+
+Interfaces: Exception classes with structured error information and HTTP status code mapping
+
+Implementation: Template-based exception hierarchy with placeholder variables for customization
 """
 
 from typing import Any, Optional

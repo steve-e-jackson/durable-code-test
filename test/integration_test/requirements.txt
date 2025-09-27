@@ -1,3 +1,16 @@
+# Purpose: Python package dependencies for integration testing infrastructure
+# Scope: Playwright-based browser automation and async testing framework requirements
+# Overview: Defines the Python package dependencies required for running comprehensive
+#     integration tests using Playwright for browser automation, async testing support
+#     with pytest-asyncio, and WebSocket testing capabilities. These dependencies enable
+#     end-to-end testing of the full application stack including frontend interactions,
+#     real-time data streaming validation, and cross-service communication testing.
+# Dependencies: Python package manager (pip) for installation and dependency resolution
+# Exports: Package requirements specification for integration testing environment setup
+# Environment: Testing environments requiring browser automation and async test execution
+# Related: Dockerfile.playwright for containerized test execution and CI/CD pipeline configuration
+# Implementation: Standard pip requirements format with version constraints for stability
+
 # Integration test requirements
 playwright>=1.40.0
 pytest>=8.0.0

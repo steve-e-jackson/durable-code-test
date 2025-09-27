@@ -1,16 +1,21 @@
 # Purpose: Development environment configuration with aggressive cost optimization settings
-# Scope: Variable overrides specific to the development environment
+# Scope: Variable overrides specific to the development environment for infrastructure deployment
 # Overview: This file provides environment-specific variable values for the development
 #     infrastructure, prioritizing cost savings over performance and availability. Key
-#     cost optimizations include Fargate Spot instances (70% savings), auto-shutdown
-#     scheduling (66% compute savings), minimal resource sizing (256 CPU/512 Memory),
-#     and scale-to-zero capabilities. All optional features like WAF, GuardDuty, and
-#     enhanced monitoring are disabled to minimize costs. The configuration targets a
-#     monthly budget of $10 or less while maintaining a functional development environment
-#     for testing and iteration. Auto-shutdown ensures resources only run during business
-#     hours on weekdays, with complete shutdown on weekends.
-# Dependencies: Requires variables defined in terraform/variables.tf
+#     cost optimizations include Fargate Spot instances (70% cost reduction), auto-shutdown
+#     scheduling (66% compute cost savings), minimal resource sizing (256 CPU/512 Memory),
+#     and scale-to-zero capabilities during off-hours. All optional security features like
+#     WAF, GuardDuty, and enhanced monitoring are disabled to minimize costs. The configuration
+#     targets a monthly budget of $10 or less while maintaining a functional development
+#     environment for testing and iteration. Auto-shutdown schedules ensure resources only
+#     run during business hours on weekdays, with complete shutdown on weekends for maximum
+#     cost efficiency.
+# Dependencies: Requires variables defined in terraform/variables.tf and backend configuration
+# Exports: Environment-specific variable overrides for development infrastructure deployment
 # Configuration: Applied via terraform plan/apply -var-file=../environments/dev.tfvars
+# Environment: Development environment with cost-optimized settings and aggressive resource scheduling
+# Related: Links to staging.tfvars and prod.tfvars for environment comparison
+# Implementation: Uses Fargate Spot, auto-shutdown scheduling, and minimal resource allocation for cost optimization
 
 environment = "dev"
 aws_region  = "us-west-2"

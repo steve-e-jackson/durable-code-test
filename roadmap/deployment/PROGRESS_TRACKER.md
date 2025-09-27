@@ -1,5 +1,25 @@
 # AWS Deployment Infrastructure - Progress Tracker & AI Agent Handoff Document
 
+**Purpose**: Primary AI agent handoff document for AWS deployment infrastructure with progress tracking, cost optimization, and implementation coordination
+
+**Scope**: Complete AWS deployment lifecycle management from initial setup through production readiness with cost monitoring and optimization
+
+**Overview**: Primary handoff document for AI agents working on AWS deployment infrastructure implementation.
+    Tracks implementation progress, manages cost optimization requirements, and coordinates AI agent work across
+    multiple infrastructure pull requests. Contains current deployment status, cost targets, PR dashboard,
+    detailed checklists, implementation guidelines, and AI agent instructions. Essential for maintaining
+    deployment consistency and ensuring systematic infrastructure implementation with cost efficiency targets.
+
+**Dependencies**: AWS services, Terraform, Docker, GitHub Actions, cost monitoring tools, domain registration
+
+**Exports**: Progress tracking, cost optimization guidance, AI agent coordination, and infrastructure deployment roadmap
+
+**Related**: AI_CONTEXT.md for deployment context, PR_BREAKDOWN.md for detailed tasks, deployment workflow documentation
+
+**Implementation**: Progress-driven coordination with cost monitoring, systematic validation, and AI agent handoff procedures
+
+---
+
 ## 🤖 Document Purpose
 This is the **PRIMARY HANDOFF DOCUMENT** for AI agents working on the AWS deployment infrastructure. When starting work on any PR, the AI agent should:
 1. **Read this document FIRST** to understand current progress and cost optimization requirements

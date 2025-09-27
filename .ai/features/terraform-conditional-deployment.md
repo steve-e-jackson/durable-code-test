@@ -1,16 +1,24 @@
-<!--
-Purpose: Feature documentation for Terraform conditional deployment system
-Scope: Technical implementation details and architecture patterns for deployment scopes
-Overview: Documents the native Terraform conditional deployment system that replaces target-based
-    deployment with count parameters. Covers implementation patterns, resource categorization, and
-    integration points for managing base vs runtime infrastructure resources efficiently.
-Dependencies: Requires Terraform 1.0+, understanding of count parameters and local variables
-Exports: Technical patterns and implementation guidelines for conditional resource creation
-Interfaces: Used by infrastructure developers implementing new Terraform resources
-Implementation: Production-ready conditional deployment using deployment_scope variable
--->
-
 # Terraform Conditional Deployment Feature
+
+**Purpose**: Feature documentation for Terraform conditional deployment system with native count-based resource management
+
+**Scope**: Technical implementation details and architecture patterns for deployment scopes and conditional resource creation
+
+**Overview**: Documents the native Terraform conditional deployment system that replaces target-based
+    deployment with count parameters for efficient infrastructure management. Covers implementation
+    patterns, resource categorization, and integration points for managing base vs runtime infrastructure
+    resources through conditional deployment logic. Provides production-ready patterns for selective
+    resource creation based on deployment scope variables.
+
+**Dependencies**: Terraform 1.0+, count parameters, local variables, deployment scope configuration
+
+**Exports**: Technical patterns, implementation guidelines, conditional resource creation strategies
+
+**Related**: Infrastructure management documentation, Terraform standards, deployment automation
+
+**Implementation**: Production-ready conditional deployment using deployment_scope variable and count parameters
+
+---
 
 ## Feature Overview
 Native Terraform conditional deployment using `count` parameters to selectively create resources based on deployment scope, replacing the problematic `-target` flag approach.

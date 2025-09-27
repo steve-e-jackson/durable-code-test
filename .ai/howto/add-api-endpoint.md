@@ -1,6 +1,25 @@
 # How to Add a New API Endpoint
 
-This guide explains how to add a new API endpoint to the FastAPI backend, ensuring it appears in the auto-generated documentation at http://localhost:8000/docs.
+**Purpose**: Step-by-step guide for adding new API endpoints to the FastAPI backend with automatic documentation
+
+**Scope**: FastAPI backend development, REST API creation, endpoint documentation, request/response handling
+
+**Overview**: Comprehensive guide for adding new API endpoints to the FastAPI backend that ensures proper
+    integration with the auto-generated documentation system. Covers endpoint creation patterns,
+    request/response models, validation, error handling, and testing approaches that maintain
+    consistency with existing API architecture and documentation standards.
+
+**Dependencies**: FastAPI backend, Python type hints, Pydantic models, REST API knowledge
+
+**Exports**: API endpoint creation workflow, documentation patterns, testing approaches
+
+**Related**: FastAPI backend documentation, API design standards, testing guides
+
+**Implementation**: FastAPI router patterns, Pydantic validation, endpoint documentation, testing integration
+
+---
+
+This guide provides step-by-step instructions for adding new API endpoints to the FastAPI backend with proper documentation and testing.
 
 ## Prerequisites
 

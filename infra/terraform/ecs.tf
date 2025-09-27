@@ -1,6 +1,17 @@
-# ECS Cluster and Fargate Service Configuration
-# PR3: Container orchestration infrastructure
-# Cost-optimized with Fargate Spot for dev environment
+# Purpose: ECS cluster and Fargate service configuration for container orchestration
+# Scope: ECS cluster, task definitions, services, auto-scaling, and service discovery for containerized applications
+# Overview: This file defines the complete ECS infrastructure for running containerized frontend
+#     and backend services on AWS Fargate. It includes cluster configuration with Container Insights,
+#     task definitions with proper resource allocation and health checks, service configurations
+#     with load balancer integration, auto-scaling policies for production environments, and
+#     service discovery for inter-service communication. The configuration emphasizes cost
+#     optimization through Fargate Spot usage in development, minimal resource allocation,
+#     and environment-specific scaling policies. IAM roles provide least-privilege access
+#     for task execution and application permissions. CloudWatch logging captures application
+#     output with retention policies optimized for cost and compliance requirements.
+# Dependencies: Requires networking.tf (VPC, subnets, security groups), ecr.tf (container repositories), alb.tf (load balancer target groups)
+# Configuration: Uses variables from variables.tf for environment-specific resource sizing and cost optimization
+# Implementation: Creates ECS cluster, task definitions, services with auto-scaling, service discovery, and IAM roles
 
 # ECS Cluster
 resource "aws_ecs_cluster" "main" {

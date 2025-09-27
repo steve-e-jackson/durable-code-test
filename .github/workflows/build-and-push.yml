@@ -1,3 +1,16 @@
+# Purpose: Automated Docker image building and deployment to AWS ECR with multi-architecture support
+# Scope: Container image management for frontend and backend services across development environments
+# Overview: Builds and pushes Docker images to Amazon ECR with comprehensive tagging strategy,
+#     multi-platform support, and intelligent caching mechanisms. Implements AWS OIDC authentication,
+#     waits for test completion before building, and manages image versioning with commit SHA and
+#     branch-based tags. Optimizes build performance with GitHub Actions cache and Docker BuildKit
+#     features while ensuring secure image distribution across AWS infrastructure.
+# Dependencies: AWS ECR, Docker BuildKit, GitHub Actions, AWS OIDC role, test suite completion
+# Exports: Docker images with latest, commit SHA, and branch name tags to ECR repositories
+# Environment: AWS us-west-2 region with ECR repositories for development deployment
+# Related: Links to Dockerfile configurations, AWS infrastructure setup, and deployment workflows
+# Implementation: Uses Docker BuildKit with multi-platform builds and GitHub Actions caching
+
 name: Build and Push to ECR
 
 on:

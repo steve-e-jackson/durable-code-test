@@ -1,8 +1,18 @@
-/**
- * Purpose: CSS module styles for main control panel component
- * Scope: Styling for control panel layout and button controls
- * Overview: Provides organized layout for control sections with proper spacing and styling.
- */
+/*
+Purpose: Control panel component styles for oscilloscope demo interface
+Scope: CSS module styles for control panel layout, buttons, and interactive elements
+Overview: Comprehensive styling for the main control panel component including control
+    button layouts, hover states, focus accessibility, and disabled state handling.
+    Implements responsive design patterns with proper spacing using design system tokens.
+    Provides interactive feedback through transforms and transitions for better user
+    experience. Includes specialized styling for pause state indication and button grouping.
+Dependencies: CSS custom properties from design system for spacing, colors, and typography
+Exports: Control panel styling classes for container, control rows, and button states
+Interfaces: CSS class selectors for container, controlRow, controlButton, and state modifiers
+Environment: Modern browsers supporting CSS transforms, transitions, and custom properties
+Related: ControlPanel React component and design system spacing/color tokens
+Implementation: CSS Modules with design system integration and accessibility-focused styling
+*/
 
 .container {
   margin-top: var(--space-5, 20px);

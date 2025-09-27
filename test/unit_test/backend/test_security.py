@@ -1,13 +1,21 @@
 """
-Purpose: Test security implementations for the durable code application.
+Purpose: Validates security implementations for the durable code application
 
 Scope: Rate limiting, input validation, security headers, and CORS configuration
+
 Overview: Comprehensive test suite for security features including rate limiting,
     input sanitization, security headers validation, and CORS policy testing.
-    Ensures that security hardening measures are working correctly.
+    Ensures that security hardening measures function correctly. Tests verify
+    proper input validation against injection attacks, rate limiting effectiveness,
+    security header presence and configuration, CORS policy enforcement, and
+    overall application security posture.
+
 Dependencies: pytest, httpx, FastAPI TestClient
+
 Exports: Security test functions for automated testing
+
 Interfaces: pytest test functions
+
 Implementation: FastAPI TestClient for endpoint testing and mock requests
 """
 

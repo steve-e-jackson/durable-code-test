@@ -1,5 +1,26 @@
 # AWS Deployment Infrastructure - AI Context
 
+**Purpose**: AI agent context document for AWS deployment infrastructure implementation and management for the Durable Code Test application
+
+**Scope**: AWS ECS Fargate deployment architecture, Terraform infrastructure management, and CI/CD automation guidance for AI agents
+
+**Overview**: Comprehensive context document providing AI agents with essential information for working on AWS
+    deployment infrastructure. Covers ECS Fargate container orchestration, Terraform infrastructure as code
+    patterns, cost optimization strategies, and deployment workflows. Includes architectural decisions,
+    constraint definitions, file structure guidance, and common operational tasks. Designed to enable AI
+    agents to effectively contribute to deployment infrastructure while following established patterns and
+    maintaining cost efficiency targets.
+
+**Dependencies**: AWS services (ECS, ECR, ALB, Route53, ACM, CloudWatch), Terraform, Docker, GitHub Actions
+
+**Exports**: AI agent guidance for deployment infrastructure, architectural patterns, cost optimization strategies, and operational procedures
+
+**Related**: PR_BREAKDOWN.md for implementation tasks, PROGRESS_TRACKER.md for current status, deployment workflow documents
+
+**Implementation**: Context-driven guidance with specific examples, constraints, and patterns for AI agent infrastructure development
+
+---
+
 ## Overview
 This document provides context for AI agents working on the AWS deployment infrastructure for the Durable Code Test application. The deployment uses AWS ECS Fargate for container orchestration, with Terraform for infrastructure as code.
 

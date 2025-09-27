@@ -1,3 +1,16 @@
+# Purpose: Automated deployment workflow for containerized applications to AWS ECS infrastructure
+# Scope: Production deployment management for frontend and backend services across AWS environments
+# Overview: Orchestrates deployment of Docker containers to Amazon ECS with comprehensive environment
+#     configuration, task definition management, and deployment verification. Supports manual and
+#     automated deployment triggers with environment-specific configuration handling. Manages AWS
+#     authentication, container image deployment, service health monitoring, and provides deployment
+#     status reporting with rollback capabilities and zero-downtime deployment strategies.
+# Dependencies: AWS ECS, ECR images, task definitions, AWS OIDC authentication, environment configurations
+# Exports: Deployed services to ECS cluster with updated task definitions and environment variables
+# Environment: AWS us-west-2 region targeting dev, staging, and production ECS environments
+# Related: Links to ECR build workflow, AWS infrastructure configuration, and monitoring setup
+# Implementation: Uses AWS ECS deployment actions with task definition updates and service stability verification
+
 name: Deploy to ECS
 
 on:

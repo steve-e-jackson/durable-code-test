@@ -1,3 +1,16 @@
+# Purpose: Central navigation index for AI agents and development workflows across the project
+# Scope: All AI agent interactions, code templates, documentation, and project navigation
+# Overview: Provides the primary entry point for AI agents to understand and navigate the project
+#     structure. Contains quick navigation links, common workflows, template references, and feature
+#     documentation links. Designed for efficient AI agent usage with structured YAML for both
+#     human readability and programmatic access. Serves as the authoritative source for project
+#     capabilities, available commands, and development workflows.
+# Dependencies: layout.yaml for file placement rules, index_expanded.md for detailed documentation
+# Exports: Project structure navigation, template locations, feature descriptions, command workflows
+# Environment: Development and production environments, used by AI agents and developers
+# Related: .ai/layout.yaml, .ai/index_expanded.md, .ai/docs/, .ai/templates/, .ai/features/
+# Implementation: YAML structure with hierarchical organization for quick agent navigation
+
 _meta:
   name: "Durable Code Test - AI Agent Index"
   version: "1.0"

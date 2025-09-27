@@ -3,7 +3,7 @@
 """
 Purpose: Utilities for handling ignore/suppress directives in code
 Scope: Framework utilities for skipping specific linting violations
-Overview: Overview: This module provides comprehensive ignore directive handling for the design linter
+Overview: This module provides comprehensive ignore directive handling for the design linter
     framework, allowing developers to suppress specific violations when necessary while
     maintaining code quality standards. It supports multiple ignore patterns including file-level
     ignores for entire files, line-level ignores for specific lines, next-line ignores for the

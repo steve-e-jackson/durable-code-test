@@ -1,5 +1,25 @@
 # CI/CD Deployment Lessons Learned
 
+**Purpose**: Critical lessons learned documentation from AWS ECS Fargate deployment experience to improve future CI/CD implementations
+
+**Scope**: Real-world deployment challenges, solutions, and requirements for CI/CD pipelines based on actual implementation experience
+
+**Overview**: Comprehensive documentation of critical deployment issues encountered during durable-code application
+    deployment to AWS ECS Fargate infrastructure. Covers WebSocket URL generation problems, Docker build context
+    issues, ECR image management challenges, service discovery configuration, and ALB routing limitations.
+    Provides specific solutions implemented and detailed CI/CD requirements to prevent similar issues in future
+    deployments. Essential reference for understanding production deployment complexities and preventive measures.
+
+**Dependencies**: AWS ECS, Fargate, ECR, ALB, Route53, Docker, Terraform, and WebSocket service configurations
+
+**Exports**: Deployment issue analysis, proven solutions, CI/CD requirements, and preventive measures for future implementations
+
+**Related**: DEPLOYMENT_CHECKLIST.md for validation procedures, CICD_PIPELINE_STEPS.md for implementation steps
+
+**Implementation**: Issue documentation with root cause analysis, implemented solutions, and specific CI/CD requirements for prevention
+
+---
+
 ## Overview
 This document captures critical lessons learned from deploying the durable-code application to AWS ECS Fargate, focusing on issues that must be addressed in CI/CD pipelines for future PRs.
 

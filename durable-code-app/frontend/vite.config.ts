@@ -1,3 +1,24 @@
+/**
+ * Purpose: Vite build tool configuration for React frontend development and production builds
+ *
+ * Scope: Build system configuration covering development server, bundling, and deployment setup
+ *
+ * Overview: Configures Vite build tool with React plugin support, path aliases for clean imports,
+ *     development server settings with proxy configuration for backend API integration, and
+ *     bundle analysis capabilities. Includes development-focused optimizations like hot module
+ *     replacement and production build optimizations for deployment. Sets up proxy routing
+ *     to handle API requests during development and establishes import aliases for maintainable
+ *     code organization.
+ *
+ * Dependencies: Vite build tool, React plugin for JSX support, Node.js path utilities
+ *
+ * Exports: Vite configuration object with plugins, server settings, and build options
+ *
+ * Interfaces: Vite configuration schema with development and production build settings
+ *
+ * Implementation: Configuration-as-code pattern with environment-specific optimizations
+ */
+
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 // import { visualizer } from 'rollup-plugin-visualizer';

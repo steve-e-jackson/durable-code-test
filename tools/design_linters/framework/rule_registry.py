@@ -2,7 +2,7 @@
 """
 Purpose: Rule registry for managing and discovering linting rules
 Scope: Provides dynamic registration and discovery of linting rules
-Overview: Overview: This module implements the dynamic rule discovery and registration system that forms
+Overview: This module implements the dynamic rule discovery and registration system that forms
     the backbone of the pluggable linter framework's extensibility. It automatically discovers
     all rule classes in the rules directory structure, validates they implement the correct
     interfaces, and registers them for use by the orchestrator. The registry maintains mappings

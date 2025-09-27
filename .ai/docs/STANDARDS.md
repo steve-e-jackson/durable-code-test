@@ -1,44 +1,28 @@
 # Development Standards and Best Practices
 
 **Purpose**: Define comprehensive development standards for Python backend and React frontend applications
+
 **Scope**: All development practices, code quality requirements, and project structure standards
-**Created**: 2024-12-15
-**Updated**: 2025-09-12
-**Author**: Development Team
-**Version**: 2.0
+
+**Overview**: Establishes comprehensive development standards that ensure code quality, maintainability,
+    and consistency across Python backend and React frontend applications. Covers type safety requirements,
+    testing strategies, security practices, and project organization patterns that support reliable software
+    development. Provides detailed guidelines for code style, API design, error handling, and performance
+    optimization that enable sustainable long-term development practices.
+
+**Dependencies**: Python development tooling, React/TypeScript ecosystem, testing frameworks, linting tools
+
+**Exports**: Development standards, coding guidelines, quality requirements, project structure patterns
+
+**Related**: FILE_HEADER_STANDARDS.md, linting configuration, testing documentation, security guidelines
+
+**Implementation**: Comprehensive standards enforcement through automated tooling, testing requirements, and code review processes
 
 ---
 
 ## Python Backend Standards
 
-### 1. Project Structure
-```
-backend/
-├── app/
-│   ├── __init__.py
-│   ├── main.py              # FastAPI application entry
-│   ├── api/
-│   │   ├── __init__.py
-│   │   └── v1/
-│   │       ├── __init__.py
-│   │       └── endpoints/   # API endpoints
-│   ├── core/
-│   │   ├── __init__.py
-│   │   ├── config.py        # Settings and configuration
-│   │   └── security.py      # Security utilities
-│   ├── models/
-│   │   ├── __init__.py
-│   │   └── domain.py        # Pydantic models
-│   ├── services/
-│   │   ├── __init__.py
-│   │   └── business.py      # Business logic
-│   └── db/
-│       ├── __init__.py
-│       └── session.py       # Database connection
-├── tests/
-├── pyproject.toml
-└── .env
-```
+### 1. Project Structure: see ../layout.yaml
 
 ### 2. Code Style and Formatting
 - **Formatter**: Black with line length 120

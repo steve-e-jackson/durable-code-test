@@ -1,5 +1,25 @@
 # AI-Powered Community Contributions - Progress Tracker & AI Agent Handoff Document
 
+**Purpose**: Primary AI agent handoff document for community contribution feature with current progress tracking and implementation guidance
+
+**Scope**: Complete feature development lifecycle from planning through implementation with AI agent coordination and progress tracking
+
+**Overview**: Primary handoff document for AI agents working on the AI-powered community contribution feature.
+    Tracks current implementation progress, provides next action guidance, and coordinates AI agent work across
+    multiple pull requests. Contains current status, prerequisite validation, PR dashboard, detailed checklists,
+    implementation strategy, success metrics, and AI agent instructions. Essential for maintaining development
+    continuity and ensuring systematic feature implementation with proper validation and testing.
+
+**Dependencies**: FastAPI backend, React frontend, GitHub integration, database systems, authentication infrastructure
+
+**Exports**: Progress tracking, implementation guidance, AI agent coordination, and feature development roadmap
+
+**Related**: AI_CONTEXT.md for feature overview, PR_BREAKDOWN.md for detailed tasks, SECURITY_STRATEGY.md for security requirements
+
+**Implementation**: Progress-driven coordination with systematic validation, checklist management, and AI agent handoff procedures
+
+---
+
 ## 🤖 Document Purpose
 This is the **PRIMARY HANDOFF DOCUMENT** for AI agents working on the AI-powered community contribution feature. When starting work on any PR, the AI agent should:
 1. **Read this document FIRST** to understand current progress and feature requirements

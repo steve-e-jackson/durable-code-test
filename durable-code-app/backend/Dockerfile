@@ -1,3 +1,17 @@
+# Purpose: Multi-stage Docker build configuration for Python FastAPI backend service
+# Scope: Backend containerization for development, testing, and production environments
+# Overview: Implements secure multi-stage Docker build with Poetry dependency management,
+#     non-root user execution, health checks, and optimized layer caching. The builder stage
+#     installs dependencies using Poetry while the production stage copies only necessary
+#     packages and application code. Includes security hardening with non-root user,
+#     comprehensive health checks, and efficient layer structure for CI/CD optimization.
+# Dependencies: Python 3.11, Poetry package manager, FastAPI application structure
+# Exports: Containerized backend service exposing port 8000 with health monitoring
+# Interfaces: HTTP health endpoint, uvicorn ASGI server, and container orchestration APIs
+# Environment: Multi-stage build supporting development and production deployment scenarios
+# Related: docker-compose configuration, FastAPI application, and deployment documentation
+# Implementation: Multi-stage build pattern with security best practices and health monitoring
+
 # Multi-stage build for Python backend
 FROM python:3.11-slim as builder
 

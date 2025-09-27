@@ -1,35 +1,23 @@
 #!/usr/bin/env python3
 """
-Integration tests for the oscilloscope functionality using Playwright.
+Purpose: Validates oscilloscope functionality through end-to-end browser automation
 
-Purpose:
-    Validate that the oscilloscope WebSocket connection, data streaming,
-    and UI interactions work correctly end-to-end.
-
-Scope:
-    - WebSocket connection establishment
-    - Real-time data streaming
-    - UI control interactions
-    - Waveform visualization
-    - Error handling
+Scope: WebSocket connection establishment, real-time data streaming, UI control interactions, waveform visualization, and error handling
 
 Overview: End-to-end integration tests using Playwright to validate oscilloscope functionality including
-WebSocket connections, real-time data streaming, user interface interactions, waveform visualization,
-control panel operations, and error handling scenarios across the complete technology stack from frontend
-to backend.
+    WebSocket connections, real-time data streaming, user interface interactions, waveform visualization,
+    control panel operations, and error handling scenarios across the complete technology stack from frontend
+    to backend. Tests verify browser compatibility, UI responsiveness, data accuracy, and user workflow
+    completeness. The suite ensures proper integration between frontend components and backend services
+    through realistic user interaction patterns and comprehensive scenario coverage.
 
-Dependencies:
-    - playwright
-    - pytest
-    - asyncio
+Dependencies: playwright, pytest, asyncio
 
 Exports: Playwright-based integration test classes and browser automation fixtures for oscilloscope testing
 
 Interfaces: Async pytest fixtures and test methods using Playwright browser automation API
 
-Implementation:
-    Uses Playwright to automate browser interactions and validate
-    the oscilloscope functionality across the full stack.
+Implementation: Uses Playwright to automate browser interactions and validate the oscilloscope functionality across the full stack
 """
 
 import asyncio

@@ -1,4 +1,27 @@
-# Open-Closed Principle (OCP) Violation Checker
+# GitHub Actions Workflows Documentation
+
+**Purpose**: Comprehensive documentation for CI/CD workflows and automated code quality checking
+
+**Scope**: All GitHub Actions workflows in the repository including testing, building, deployment, and code quality
+
+**Overview**: Provides detailed documentation for the repository's CI/CD pipeline implementation,
+    covering automated testing workflows, Docker image building and deployment, code quality checks,
+    and SOLID principle validation. Includes setup instructions, configuration details, troubleshooting
+    guidance, and best practices for maintaining robust continuous integration and deployment processes.
+    Serves as the primary reference for understanding workflow dependencies, execution patterns, and
+    operational requirements across all automated pipeline components.
+
+**Dependencies**: GitHub Actions, AWS infrastructure, Docker, Claude AI API, testing frameworks
+
+**Exports**: Workflow documentation, setup instructions, configuration examples, and operational guidance
+
+**Related**: Links to AWS deployment documentation, testing frameworks, and code quality standards
+
+**Implementation**: Structured documentation with examples, troubleshooting guides, and configuration templates
+
+---
+
+## Overview
 
 This GitHub Action automatically checks pull requests for violations of the SOLID Open-Closed Principle using Claude AI.
 

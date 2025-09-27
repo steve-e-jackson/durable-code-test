@@ -1,3 +1,17 @@
+# Purpose: Multi-stage Docker build configuration for React frontend production deployment
+# Scope: Frontend containerization using nginx for production-ready static asset serving
+# Overview: Implements secure multi-stage build process with Node.js build stage and nginx
+#     production stage. The builder stage compiles React application with Vite bundler while
+#     the production stage serves optimized static assets through nginx. Includes security
+#     hardening with non-root user execution, health checks, and efficient layer caching.
+#     Supports build-time HTML validation and production-optimized nginx configuration.
+# Dependencies: Node.js 20, nginx alpine, React/Vite build tools, HTMLHint for validation
+# Exports: Production-ready frontend container exposing port 3000 with nginx serving static assets
+# Interfaces: HTTP static asset serving, nginx configuration, and container health endpoints
+# Environment: Production deployment with optimized static asset delivery and security features
+# Related: nginx configuration, React application, build pipeline, and deployment automation
+# Implementation: Multi-stage build with security best practices and production optimization
+
 # Multi-stage build for React frontend
 FROM node:20-alpine as builder
 

@@ -1,5 +1,19 @@
 #!/bin/bash
-# Deploy application to AWS ECS
+# Purpose: Deploy application containers to AWS ECS with automated image building and service updates
+# Scope: Docker image building, ECR registry operations, ECS task definition updates, and service deployment
+# Overview: This script provides a complete deployment workflow for containerized applications
+#     to AWS ECS Fargate. It handles Docker image building for both frontend and backend services,
+#     authentication with ECR registry, image tagging and pushing, task definition updates with
+#     new image references, and ECS service updates to deploy new versions. The script includes
+#     error handling, environment variable configuration, and deployment status reporting.
+#     Supports multiple environments through ENV variable with automatic resource naming
+#     and configuration. Integrates with existing Terraform-managed infrastructure including
+#     ECR repositories, ECS clusters, and service configurations.
+# Dependencies: Docker, AWS CLI, jq, ECR repositories, ECS cluster and services
+# Usage: ENV=dev ./deploy-app.sh or ENV=staging ./deploy-app.sh
+# Environment: Supports dev, staging, and prod environments with environment-specific configurations
+# Related: Links to ECS service configurations, ECR repository policies, and CI/CD pipeline documentation
+# Implementation: Uses Docker multi-stage builds, ECR lifecycle policies, and zero-downtime ECS deployments
 
 set -e
 

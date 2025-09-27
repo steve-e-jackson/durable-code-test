@@ -1,5 +1,24 @@
 # How to Run Linting
 
+**Purpose**: Guide for running linting and code quality checks using Make targets and automated tools
+
+**Scope**: Code quality analysis, linting automation, style enforcement, design linter execution
+
+**Overview**: Comprehensive linting guide covering all available code quality tools and automated
+    checks. Emphasizes Make target usage for consistent linting execution across development
+    environments. Covers design linters, style checks, type checking, and automated quality
+    enforcement that maintains code standards and identifies potential issues early in development.
+
+**Dependencies**: Make build system, linting tools, design linters, code quality frameworks
+
+**Exports**: Linting workflows, quality check procedures, automated enforcement patterns
+
+**Related**: Design linting framework, code quality standards, development tooling
+
+**Implementation**: Make-based linting automation, comprehensive quality checks, automated enforcement
+
+---
+
 ## Important: Always Check Available Make Targets First
 
 ```bash

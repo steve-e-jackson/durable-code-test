@@ -1,8 +1,20 @@
 #!/bin/bash
-
-# Setup script for Terraform backend infrastructure
-# This script creates the S3 bucket and DynamoDB table required for Terraform state management
-# Must be run once before initializing Terraform
+# Purpose: Setup script for Terraform backend infrastructure including S3 state storage and DynamoDB locking
+# Scope: AWS S3 bucket creation, DynamoDB table configuration, and backend security setup for Terraform state management
+# Overview: This script creates and configures the essential AWS resources required for Terraform
+#     backend state management, including S3 bucket for versioned state storage with encryption
+#     and public access blocking, and DynamoDB table for state locking to prevent concurrent
+#     modifications. The script handles proper bucket configuration including versioning,
+#     encryption at rest, lifecycle policies for cost optimization, and point-in-time recovery
+#     for the DynamoDB table. It includes comprehensive error handling, resource existence
+#     checking to avoid conflicts, and detailed progress reporting. The configuration follows
+#     AWS security best practices with least-privilege access and proper resource tagging.
+#     Must be executed once before any Terraform operations.
+# Dependencies: AWS CLI, proper AWS credentials with S3 and DynamoDB permissions
+# Usage: AWS_PROFILE=terraform-deploy ./setup-terraform-backend.sh
+# Environment: Supports multiple AWS profiles and regions via environment variables
+# Related: Links to backend.tf configuration, Terraform documentation, and AWS best practices
+# Implementation: Uses AWS CLI with error handling, resource validation, and automated configuration of security settings
 
 set -e  # Exit on any error
 

@@ -1,5 +1,26 @@
 # Docker Linting Separation - AI Context
 
+**Purpose**: AI agent context document for Docker linting separation project to improve development experience and deployment reliability
+
+**Scope**: Docker container architecture refactoring to separate linting toolchains from development and production containers
+
+**Overview**: Comprehensive context document for AI agents working on Docker linting separation project for the
+    Durable Code Test application. Addresses development container inefficiencies by separating linting toolchains
+    from runtime containers to improve startup times, reduce container sizes, and optimize CI/CD performance.
+    Covers current architecture problems, target solutions, implementation strategy, and performance expectations.
+    Includes Docker design patterns, security considerations, rollback strategies, and guidance for AI agents
+    on container optimization and workflow preservation.
+
+**Dependencies**: Docker, Docker Compose, linting tools (Black, Ruff, ESLint, etc.), Make targets, GitHub Actions
+
+**Exports**: Container architecture patterns, performance optimization strategies, implementation guidance, and CI/CD integration approaches
+
+**Related**: TESTING_STRATEGY.md for validation procedures, IMPLEMENTATION_BREAKDOWN.md for detailed tasks, PROGRESS_TRACKER.md for status
+
+**Implementation**: Phased container separation with performance optimization, testing validation, and development workflow preservation
+
+---
+
 ## Overview
 This document provides context for AI agents working on the Docker linting separation project for the Durable Code Test application. The goal is to separate linting toolchains from development containers to improve development experience and deployment reliability.
 
