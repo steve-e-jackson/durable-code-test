@@ -17,6 +17,7 @@ type EventCallback<T = unknown> = (data: T) => void;
 export class WebSocketService {
   private ws: WebSocket | null = null;
   private listeners: Map<string, Set<EventCallback>> = new Map();
+  private componentListeners: Map<string, Map<string, Set<EventCallback>>> = new Map(); // componentId -> event -> callbacks
   private reconnectAttempts = 0;
   private reconnectTimer: NodeJS.Timeout | null = null;
   private url = '';
@@ -152,6 +153,30 @@ export class WebSocketService {
   }
 
   /**
+   * Add event listener for a specific component
+   */
+  onForComponent<T = unknown>(
+    componentId: string,
+    event: string,
+    callback: EventCallback<T>,
+  ): void {
+    // Add to global listeners
+    this.on(event, callback);
+
+    // Track component-specific listeners
+    if (!this.componentListeners.has(componentId)) {
+      this.componentListeners.set(componentId, new Map());
+    }
+    const componentEvents = this.componentListeners.get(componentId);
+    if (!componentEvents) return;
+
+    if (!componentEvents.has(event)) {
+      componentEvents.set(event, new Set());
+    }
+    componentEvents.get(event)?.add(callback as EventCallback);
+  }
+
+  /**
    * Remove event listener
    */
   off<T = unknown>(event: string, callback: EventCallback<T>): void {
@@ -159,6 +184,45 @@ export class WebSocketService {
     if (eventListeners) {
       eventListeners.delete(callback as EventCallback);
     }
+  }
+
+  /**
+   * Remove all event listeners for a specific component
+   */
+  removeAllListenersForComponent(componentId: string): void {
+    const componentEvents = this.componentListeners.get(componentId);
+    if (componentEvents) {
+      // Remove each listener from global listeners
+      componentEvents.forEach((callbacks, event) => {
+        const globalListeners = this.listeners.get(event);
+        if (globalListeners) {
+          callbacks.forEach((callback) => {
+            globalListeners.delete(callback);
+          });
+        }
+      });
+
+      // Clear component's listener tracking
+      this.componentListeners.delete(componentId);
+    }
+  }
+
+  /**
+   * Get the total number of listeners (for testing)
+   */
+  getListenerCount(): number {
+    let count = 0;
+    this.listeners.forEach((eventListeners) => {
+      count += eventListeners.size;
+    });
+    return count;
+  }
+
+  /**
+   * Get the number of components with active listeners (for testing)
+   */
+  getComponentCount(): number {
+    return this.componentListeners.size;
   }
 
   /**
