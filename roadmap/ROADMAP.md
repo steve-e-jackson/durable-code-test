@@ -1,11 +1,11 @@
 # Project Roadmap Overview
 
 **Last Updated**: Auto-generated from roadmap items
-**Overall Completion**: 40% (2.79 of 7 items complete)
+**Overall Completion**: 47% (3.31 of 7 items complete)
 
 ## Status Summary
 - 🔴 Planning: 2 items (0% avg)
-- 🟡 In Progress: 3 items (21% avg)
+- 🟡 In Progress: 3 items (45% avg)
 - 🟢 Complete: 2 items (100%)
 - 📝 Total: 7 items
 
@@ -16,7 +16,7 @@
 | [Frontend Critical Fixes](in_progress/frontend-critical-fixes/PROGRESS_TRACKER.md) | 🟡 | 14% | [███░░░░░░░░░░░░░░░░░] | Critical | 1/7 PRs | `in_progress/` |
 | [AI Contributions](planning/ai-contributions/PROGRESS_TRACKER.md) | 🔴 | 0% | [░░░░░░░░░░░░░░░░░░░░] | High | 0/6 PRs | `planning/` |
 | [Example API Feature](planning/example-api-feature/PROGRESS_TRACKER.md) | 🔴 | 0% | [░░░░░░░░░░░░░░░░░░░░] | Medium | 0/6 PRs | `planning/` |
-| [Docker Linting Separation](in_progress/docker-linting-separation/PROGRESS_TRACKER.md) | 🟡 | 5% | [█░░░░░░░░░░░░░░░░░░░] | High | 1/20 tasks | `in_progress/` |
+| [Docker Linting Separation](in_progress/docker-linting-separation/PROGRESS_TRACKER.md) | 🟡 | 75% | [███████████████░░░░░] | High | 18/24 tasks | `in_progress/` |
 | [Deployment](in_progress/deployment/PROGRESS_TRACKER.md) | 🟡 | 45% | [█████████░░░░░░░░░░░] | Critical | 5/11 PRs | `in_progress/` |
 | [Frontend Upgrade](complete/frontend_upgrade/PROGRESS_TRACKER.md) | 🟢 | 100% | [████████████████████] | Medium | Complete | `complete/` |
 | [Make Robust](complete/make_robust/PROGRESS_TRACKER.md) | 🟢 | 100% | [████████████████████] | Low | Complete | `complete/` |
@@ -34,13 +34,13 @@ Items are automatically organized by completion percentage:
 ### By Status
 ```
 Planning    [░░░░░░░░░░] 0%   (2 items)
-In Progress [██░░░░░░░░] 21%  (3 items)
+In Progress [████░░░░░░] 45%  (3 items)
 Complete    [██████████] 100% (2 items)
 ```
 
 ### Overall Project Progress
 ```
-[████████░░░░░░░░░░░░] 40% Complete
+[█████████░░░░░░░░░░░] 47% Complete
 ```
 
 ## Priority Matrix
@@ -51,7 +51,7 @@ Complete    [██████████] 100% (2 items)
 
 ### 🟠 High Priority
 1. **AI Contributions** - 0% - AI workflow improvements planned
-2. **Docker Linting Separation** - 5% - Build system optimization started
+2. **Docker Linting Separation** - 75% - Tasks 1-4 complete, documentation remaining
 
 ### 🟡 Medium Priority
 1. **Example API Feature** - 0% - Template for new features
