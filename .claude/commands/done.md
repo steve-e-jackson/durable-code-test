@@ -49,38 +49,64 @@ git stash list | grep "Temporary stash for /done command" && git stash pop
 
 **IMPORTANT**: If merge conflicts occur, resolve them manually before proceeding. This ensures your feature branch incorporates the latest main branch changes and reduces merge conflicts in the PR.
 
-### 3. Code Quality Checks
+### 3. Code Quality Checks (May be handled by pre-push hook)
 Run comprehensive quality assurance before committing using established make targets:
+
+**NOTE: If you have the pre-push hook installed, these checks will run automatically when pushing.
+The /done command can skip these to avoid duplication if the pre-push hook is active.**
 
 **CRITICAL: Always use project make targets. Do not deviate to individual tool calls.**
 
 ```bash
-# Primary quality check - runs all linting, formatting, and design checks
-make lint-all
+# Check if pre-push hook exists and is executable
+if [ -x .git/hooks/pre-push ]; then
+    echo "✅ Pre-push hook detected - linting and tests will run during push"
+    echo "Skipping duplicate checks here to save time..."
+    # Optional: Run a quick sanity check instead
+    # make lint-quick 2>/dev/null || make lint-all
+else
+    echo "⚠️  No pre-push hook detected - running full checks now"
 
-# Alternative individual targets if lint-all not available:
-make lint          # Standard linting
-make format-check  # Code formatting validation
-make design-lint   # Custom design linters (SOLID principles, etc.)
-make security      # Security scanning
+    # Primary quality check - runs all linting, formatting, and design checks
+    make lint-all
+
+    # Alternative individual targets if lint-all not available:
+    make lint          # Standard linting
+    make format-check  # Code formatting validation
+    make design-lint   # Custom design linters (SOLID principles, etc.)
+    make security      # Security scanning
+fi
 ```
 
 **Never run individual npm/docker commands directly. Always use make targets.**
 
-### 4. Comprehensive Testing
+### 4. Comprehensive Testing (May be handled by pre-push hook)
 Run all test suites with coverage requirements using make targets:
+
+**NOTE: If you have the pre-push hook installed, these checks will run automatically when pushing.
+The /done command can skip these to avoid duplication if the pre-push hook is active.**
 
 **CRITICAL: Always use project make targets for testing. Do not run individual commands.**
 
 ```bash
-# Primary test command - runs all tests with coverage
-make test
+# Check if pre-push hook exists and will handle testing
+if [ -x .git/hooks/pre-push ]; then
+    echo "✅ Pre-push hook detected - tests will run during push"
+    echo "Skipping duplicate test runs here to save time..."
+    # Optional: Run a quick smoke test instead
+    # make test-quick 2>/dev/null || make test
+else
+    echo "⚠️  No pre-push hook detected - running full test suite now"
 
-# Alternative individual targets if needed:
-make test-frontend    # Frontend tests only
-make test-backend     # Backend tests only
-make test-integration # Integration tests only
-make test-coverage    # Coverage reports
+    # Primary test command - runs all tests with coverage
+    make test
+
+    # Alternative individual targets if needed:
+    make test-frontend    # Frontend tests only
+    make test-backend     # Backend tests only
+    make test-integration # Integration tests only
+    make test-coverage    # Coverage reports
+fi
 ```
 
 **Never run individual npm/pytest/docker commands directly. Always use make targets.**
@@ -304,7 +330,14 @@ Push changes and create PR with comprehensive details:
 #### Push to Remote
 ```bash
 # Push to remote branch
-git push -u origin $(git branch --show-current)
+# Note: If we already ran tests/linting above, skip the pre-push hook to avoid duplication
+if [ -x .git/hooks/pre-push ]; then
+    # We already ran checks, so skip them during push
+    PRE_PUSH_SKIP=1 git push -u origin $(git branch --show-current)
+else
+    # No pre-push hook, just push normally
+    git push -u origin $(git branch --show-current)
+fi
 ```
 
 #### Create Pull Request

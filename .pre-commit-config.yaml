@@ -38,6 +38,7 @@ repos:
         language: system
         files: \.(py)$
         pass_filenames: false
+        stages: [pre-commit]
 
       - id: python-flake8
         name: Flake8 (Python style)
@@ -45,6 +46,7 @@ repos:
         language: system
         files: \.(py)$
         pass_filenames: false
+        stages: [pre-commit]
 
       - id: python-mypy
         name: MyPy (Python type checking)
@@ -52,6 +54,7 @@ repos:
         language: system
         files: \.(py)$
         pass_filenames: false
+        stages: [pre-commit]
 
       - id: python-pylint
         name: Pylint (Python code analysis)
@@ -59,6 +62,7 @@ repos:
         language: system
         files: \.(py)$
         pass_filenames: false
+        stages: [pre-commit]
 
       - id: python-bandit
         name: Bandit (Python security)
@@ -66,6 +70,7 @@ repos:
         language: system
         files: \.(py)$
         pass_filenames: false
+        stages: [pre-commit]
 
       - id: python-xenon
         name: Xenon (Python complexity)
@@ -73,6 +78,7 @@ repos:
         language: system
         files: ^app/.*\.py$
         pass_filenames: false
+        stages: [pre-commit]
 
       # TypeScript/JavaScript Linters - run in Docker on changed files only
       - id: typescript-check
@@ -81,6 +87,7 @@ repos:
         language: system
         files: ^frontend/.*\.(ts|tsx)$
         pass_filenames: false
+        stages: [pre-commit]
 
       - id: eslint
         name: ESLint (JavaScript/TypeScript)
@@ -88,6 +95,7 @@ repos:
         language: system
         files: ^frontend/.*\.(ts|tsx|js|jsx)$
         pass_filenames: false
+        stages: [pre-commit]
 
       - id: stylelint
         name: Stylelint (CSS)
@@ -95,6 +103,7 @@ repos:
         language: system
         files: ^frontend/.*\.css$
         pass_filenames: false
+        stages: [pre-commit]
 
       - id: prettier-check
         name: Prettier (Frontend formatting)
@@ -102,6 +111,7 @@ repos:
         language: system
         files: ^frontend/.*\.(ts|tsx|js|jsx|css)$
         pass_filenames: false
+        stages: [pre-commit]
 
       # Custom Design Linters - run on changed files only
       - id: design-linters
@@ -110,3 +120,29 @@ repos:
         language: system
         files: \.(py|md)$
         pass_filenames: false
+        stages: [pre-commit]
+
+      # Pre-push hooks
+      - id: check-uncommitted-changes
+        name: Check for uncommitted changes
+        entry: bash -c 'UNCOMMITTED=$(git status --porcelain); if [ -n "$UNCOMMITTED" ]; then echo "❌ Error - You have uncommitted changes. Please commit or stash before pushing."; git status --short; exit 1; fi'
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+        always_run: true
+
+      - id: pre-push-lint-all
+        name: Run comprehensive linting before push
+        entry: bash -c 'if [ -z "$PRE_PUSH_SKIP" ]; then make lint-all; else echo "⚠️  Linting skipped via PRE_PUSH_SKIP"; fi'
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+        always_run: true
+
+      - id: pre-push-test-all
+        name: Run all tests before push
+        entry: bash -c 'if [ -z "$PRE_PUSH_SKIP" ]; then make test-all; else echo "⚠️  Tests skipped via PRE_PUSH_SKIP"; fi'
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+        always_run: true

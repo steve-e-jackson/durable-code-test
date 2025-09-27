@@ -55,11 +55,14 @@ help: ## Show this help message
 	@echo ""
 
 # Core targets
-init: ## Initialize project (build images, install pre-commit hooks)
+init: ## Initialize project (build images, install all git hooks)
 	@echo "$(CYAN)Initializing project...$(NC)"
-	@echo "$(YELLOW)Installing pre-commit hooks...$(NC)"
+	@echo "$(YELLOW)Installing pre-commit framework...$(NC)"
 	@pip3 install pre-commit 2>/dev/null || pip install pre-commit 2>/dev/null || echo "$(YELLOW)⚠ Pre-commit not installed - please install manually$(NC)"
+	@echo "$(YELLOW)Installing pre-commit hooks...$(NC)"
 	@pre-commit install 2>/dev/null || echo "$(YELLOW)⚠ Pre-commit hooks not installed$(NC)"
+	@echo "$(YELLOW)Installing pre-push hooks...$(NC)"
+	@pre-commit install --hook-type pre-push 2>/dev/null || echo "$(YELLOW)⚠ Pre-push hooks not installed$(NC)"
 	@echo "$(YELLOW)Building Docker images...$(NC)"
 	@$(DOCKER_COMPOSE_DEV) build --no-cache
 	@echo "$(GREEN)✓ Initialization complete!$(NC)"
