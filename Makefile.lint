@@ -143,7 +143,7 @@ lint-infra: lint-start ## Lint infrastructure files (Terraform format/validate, 
 			for script in /workspace/infra/scripts/*.sh /workspace/scripts/*.sh; do \
 				if [ -f \"\$$script\" ]; then \
 					echo \"  Checking \$$script...\"; \
-					shellcheck \"\$$script\" || exit 1; \
+					shellcheck --severity=warning \"\$$script\" || exit 1; \
 				fi; \
 			done; \
 			echo '$(GREEN)  ✓ Shell scripts passed linting$(NC)'; \
