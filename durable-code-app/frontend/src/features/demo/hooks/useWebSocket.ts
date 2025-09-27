@@ -25,6 +25,12 @@ interface UseWebSocketReturn {
   reconnectAttempts: number;
 }
 
+// Generate unique component ID
+let componentIdCounter = 0;
+function generateComponentId(): string {
+  return `ws-component-${Date.now()}-${++componentIdCounter}`;
+}
+
 export function useWebSocket(url?: string): UseWebSocketReturn {
   // Get singleton service first
   const service = getWebSocketSingleton();
@@ -38,12 +44,16 @@ export function useWebSocket(url?: string): UseWebSocketReturn {
 
   const hasInitializedRef = useRef(false);
   const mountedRef = useRef(true);
+  const componentIdRef = useRef(generateComponentId());
 
-  // Setup event listeners
+  // Setup event listeners with component-specific tracking
   useEffect(() => {
     if (!service) return;
 
+    const componentId = componentIdRef.current;
+
     const handleOpen = () => {
+      if (!mountedRef.current) return;
       setIsConnected(true);
       setIsConnecting(false);
       setError(null);
@@ -51,52 +61,57 @@ export function useWebSocket(url?: string): UseWebSocketReturn {
     };
 
     const handleClose = () => {
+      if (!mountedRef.current) return;
       setIsConnected(false);
       setIsConnecting(false);
     };
 
     const handleError = (error: Error) => {
+      if (!mountedRef.current) return;
       setError(error);
       setIsConnecting(false);
     };
 
     const handleData = (data: OscilloscopeData) => {
+      if (!mountedRef.current) return;
       setLastData(data);
       setError(null); // Clear error on successful data
     };
 
     const handleReconnecting = (data: { attempt: number }) => {
+      if (!mountedRef.current) return;
       setReconnectAttempts(data.attempt);
       setIsConnecting(true);
     };
 
     const handleReconnected = () => {
+      if (!mountedRef.current) return;
       setReconnectAttempts(0);
     };
 
     const handleMaxReconnectAttempts = () => {
+      if (!mountedRef.current) return;
       setError(new Error('Maximum reconnection attempts reached'));
       setIsConnecting(false);
     };
 
-    // Add event listeners
-    service.on('open', handleOpen);
-    service.on('close', handleClose);
-    service.on('error', handleError);
-    service.on('data', handleData);
-    service.on('reconnecting', handleReconnecting);
-    service.on('reconnected', handleReconnected);
-    service.on('maxReconnectAttemptsReached', handleMaxReconnectAttempts);
+    // Add event listeners with component tracking
+    service.onForComponent(componentId, 'open', handleOpen);
+    service.onForComponent(componentId, 'close', handleClose);
+    service.onForComponent(componentId, 'error', handleError);
+    service.onForComponent(componentId, 'data', handleData);
+    service.onForComponent(componentId, 'reconnecting', handleReconnecting);
+    service.onForComponent(componentId, 'reconnected', handleReconnected);
+    service.onForComponent(
+      componentId,
+      'maxReconnectAttemptsReached',
+      handleMaxReconnectAttempts,
+    );
 
-    // Cleanup listeners
+    // Cleanup all listeners for this component on unmount
     return () => {
-      service.off('open', handleOpen);
-      service.off('close', handleClose);
-      service.off('error', handleError);
-      service.off('data', handleData);
-      service.off('reconnecting', handleReconnecting);
-      service.off('reconnected', handleReconnected);
-      service.off('maxReconnectAttemptsReached', handleMaxReconnectAttempts);
+      mountedRef.current = false;
+      service.removeAllListenersForComponent(componentId);
     };
   }, [service]);
 
@@ -184,11 +199,19 @@ export function useWebSocket(url?: string): UseWebSocketReturn {
 
   // Cleanup on unmount
   useEffect(() => {
+    mountedRef.current = true;
+    const componentId = componentIdRef.current;
+
     return () => {
+      mountedRef.current = false;
       hasInitializedRef.current = false;
+      // Clean up all listeners for this component
+      if (service) {
+        service.removeAllListenersForComponent(componentId);
+      }
       // Don't disconnect the singleton - it should persist
     };
-  }, []);
+  }, [service]);
 
   return {
     isConnected,
