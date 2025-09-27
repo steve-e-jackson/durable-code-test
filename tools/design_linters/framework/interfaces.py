@@ -19,14 +19,14 @@ Implementation: Enables plugin architecture with dynamic rule loading
 """
 
 import ast
-
-# Ignore functionality implementation - moved to top for proper imports
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from enum import Enum
 from pathlib import Path
 from typing import Any
+
+from .base_interfaces import BaseLintAnalyzer, BaseLintContext, BaseLintRule
+from .types import LintViolation, Severity
 
 
 def has_file_level_ignore(file_content: str, rule_id: str) -> bool:
@@ -155,45 +155,8 @@ def should_ignore_node(node: ast.AST, file_content: str, rule_id: str) -> bool:
     return False
 
 
-class Severity(Enum):
-    """Enumeration of violation severity levels."""
-
-    ERROR = "error"
-    WARNING = "warning"
-    INFO = "info"
-
-
-@dataclass
-class LintViolation:  # pylint: disable=too-many-instance-attributes
-    """Represents a detected linting violation."""
-
-    rule_id: str
-    file_path: str
-    line: int
-    column: int
-    severity: Severity
-    message: str
-    description: str
-    suggestion: str | None = None
-    context: dict[str, Any] | None = None
-
-    def to_dict(self) -> dict[str, Any]:
-        """Convert violation to dictionary format."""
-        return {
-            "rule_id": self.rule_id,
-            "file": self.file_path,
-            "line": self.line,
-            "column": self.column,
-            "severity": self.severity.value,
-            "message": self.message,
-            "description": self.description,
-            "suggestion": self.suggestion,
-            "context": self.context or {},
-        }
-
-
-class LintRule(ABC):
-    """Abstract base class for all linting rules."""
+class LintRule(BaseLintRule):
+    """Abstract base class for all linting rules (Python-specific, inherits from BaseLintRule)."""
 
     @property
     @abstractmethod
@@ -380,8 +343,8 @@ class FileBasedLintRule(LintRule):
 
 
 @dataclass
-class LintContext:  # pylint: disable=too-many-instance-attributes
-    """Context information for rule checking."""
+class LintContext(BaseLintContext):  # pylint: disable=too-many-instance-attributes
+    """Context information for rule checking (Python-specific, inherits from BaseLintContext)."""
 
     file_path: Path | None = None
     file_content: str | None = None
@@ -394,6 +357,11 @@ class LintContext:  # pylint: disable=too-many-instance-attributes
     file_ignores: list[str] = field(default_factory=list)  # File-level ignore patterns
     line_ignores: dict[int, list[str]] = field(default_factory=dict)  # Line number -> ignore patterns
     ignore_next_line: set[int] = field(default_factory=set)  # Line numbers to ignore next line
+
+    @property
+    def language(self) -> str:
+        """Get the programming language of the file."""
+        return "python"
 
     def get_parent_node(self, offset: int = 1) -> ast.AST | None:
         """Get parent node at specified offset in the stack."""
@@ -472,8 +440,13 @@ class LintReporter(ABC):
         return [v for v in violations if any(pattern in str(v.file_path) for pattern in patterns)]
 
 
-class LintAnalyzer(ABC):
-    """Abstract base class for code analyzers."""
+class LintAnalyzer(BaseLintAnalyzer):
+    """Abstract base class for code analyzers (Python-specific, inherits from BaseLintAnalyzer)."""
+
+    @property
+    def language_name(self) -> str:
+        """Get the name of the language this analyzer handles."""
+        return "python"
 
     @abstractmethod
     def analyze_file(self, file_path: Path) -> LintContext:
@@ -521,7 +494,7 @@ class RuleRegistry(ABC):
 
 
 class LintOrchestrator(ABC):
-    """Abstract interface for coordinating the linting process."""
+    """Abstract interface for coordinating the linting process (Python-focused)."""
 
     @abstractmethod
     def lint_file(self, file_path: Path, config: dict[str, Any] | None = None) -> list[LintViolation]:
