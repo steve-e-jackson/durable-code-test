@@ -19,10 +19,7 @@ Implementation: File-based analysis with language-agnostic line checking
 from pathlib import Path
 from typing import Any
 
-from tools.design_linters.framework import (
-    BaseLintContext,
-    FileBasedMultiLanguageRule,
-)
+from tools.design_linters.framework import BaseLintContext, FileBasedMultiLanguageRule
 from tools.design_linters.framework.types import LintViolation, Severity
 
 
@@ -57,7 +54,7 @@ class LineLengthRule(FileBasedMultiLanguageRule):
     @property
     def severity(self) -> Severity:
         """Default severity level for violations of this rule."""
-        return Severity.WARNING
+        return Severity.ERROR
 
     @property
     def categories(self) -> set[str]:
