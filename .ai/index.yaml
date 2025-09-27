@@ -219,6 +219,17 @@ features:
       - "scripts/check-page-content.js"
     usage: "node scripts/check-page-content.js, node scripts/test-rendered-content.js"
 
+  roadmap-strategy:
+    file: "features/roadmap-strategy.md"
+    summary: "Status-based roadmap organization with automatic progress tracking and directory management"
+    key_files:
+      - "roadmap/ROADMAP.md"
+      - "roadmap/planning/"
+      - "roadmap/in_progress/"
+      - "roadmap/complete/"
+      - ".ai/templates/roadmap-*.md.template"
+    usage: "/reconcile roadmap, automatic directory moves based on completion %"
+
   terraform-conditional-deployment:
     file: "features/terraform-conditional-deployment.md"
     summary: "Intelligent resource deployment based on environment needs and cost optimization"
@@ -457,3 +468,14 @@ common_workflows:
       - "Apply infrastructure with make infra-apply"
       - "Monitor costs and destroy when not needed"
     details_in: ".ai/howto/manage-infrastructure.md"
+
+  manage_roadmap:
+    steps:
+      - "Create new item in roadmap/planning/ at 0%"
+      - "Use templates: progress tracker, AI context, PR breakdown"
+      - "Move to in_progress/ when work starts (>0%)"
+      - "Update percentages as PRs complete"
+      - "/done command auto-moves based on %"
+      - "Move to complete/ at 100%"
+      - "Run /reconcile roadmap to validate organization"
+    details_in: ".ai/howto/create-roadmap-item.md"

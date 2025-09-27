@@ -131,8 +131,12 @@ else
     BRANCH_NAME=$(git branch --show-current)
     if echo "$BRANCH_NAME" | grep -qE "pr[0-9]+|roadmap|feature-pr"; then
         echo "ℹ️  Branch name suggests roadmap work - checking for progress tracker"
-        # Look for the relevant progress tracker
-        PROGRESS_TRACKER=$(find roadmap -name "PROGRESS_TRACKER.md" -type f 2>/dev/null | head -1)
+        # Look for the relevant progress tracker in all roadmap directories
+        PROGRESS_TRACKER=$(find roadmap -path "*/planning/*" -o -path "*/in_progress/*" -o -path "*/complete/*" -name "PROGRESS_TRACKER.md" -type f 2>/dev/null | head -1)
+        if [ -z "$PROGRESS_TRACKER" ]; then
+            # Check legacy location (direct in roadmap/)
+            PROGRESS_TRACKER=$(find roadmap -maxdepth 2 -name "PROGRESS_TRACKER.md" -type f 2>/dev/null | head -1)
+        fi
         if [ -n "$PROGRESS_TRACKER" ]; then
             echo "✅ Found progress tracker: $PROGRESS_TRACKER"
             ROADMAP_WORK=true
@@ -146,10 +150,12 @@ If roadmap work is detected:
 
 ```bash
 # 1. Mark current PR/task as complete
-# 2. Update completion percentage
+# 2. Calculate new completion percentage
 # 3. Add completion timestamp
 # 4. Update "Next PR to Implement" section
 # 5. Document any deviations or learnings
+# 6. Check if directory move is needed based on new percentage
+# 7. Update master ROADMAP.md
 
 # Example update pattern:
 if [ "$ROADMAP_WORK" = true ]; then
@@ -162,6 +168,37 @@ if [ "$ROADMAP_WORK" = true ]; then
     # - Calculate new overall completion percentage
     # - Update the Next PR section
     # - Add notes about implementation details
+
+    # Check if directory move needed based on completion %
+    COMPLETION=$(grep "Total Completion" "$PROGRESS_TRACKER" | grep -oE "[0-9]+%" | tr -d '%')
+    ITEM_NAME=$(basename $(dirname "$PROGRESS_TRACKER"))
+
+    if [ "$COMPLETION" = "0" ]; then
+        # Item should be in planning/
+        if [[ ! "$PROGRESS_TRACKER" =~ "/planning/" ]]; then
+            echo "📁 Moving item to planning/ (0% complete)"
+            mv "$(dirname "$PROGRESS_TRACKER")" "roadmap/planning/$ITEM_NAME"
+        fi
+    elif [ "$COMPLETION" = "100" ]; then
+        # Item should be in complete/
+        if [[ ! "$PROGRESS_TRACKER" =~ "/complete/" ]]; then
+            echo "🎉 Moving item to complete/ (100% complete)"
+            mv "$(dirname "$PROGRESS_TRACKER")" "roadmap/complete/$ITEM_NAME"
+        fi
+    else
+        # Item should be in in_progress/
+        if [[ ! "$PROGRESS_TRACKER" =~ "/in_progress/" ]]; then
+            echo "🚀 Moving item to in_progress/ ($COMPLETION% complete)"
+            mv "$(dirname "$PROGRESS_TRACKER")" "roadmap/in_progress/$ITEM_NAME"
+        fi
+    fi
+
+    # Update master ROADMAP.md with new percentages
+    echo "📊 Updating master ROADMAP.md"
+    # AI agent should update the ROADMAP.md file with:
+    # - New completion percentage for this item
+    # - Recalculated overall project completion
+    # - Updated directory location
     # - Include these updates in the commit
 fi
 ```
@@ -169,9 +206,11 @@ fi
 #### Progress Update Checklist
 When completing roadmap work, ensure:
 - [ ] Current PR marked as 🟢 Complete in dashboard
-- [ ] Completion percentage updated
+- [ ] Completion percentage recalculated and updated
 - [ ] Completion date recorded
 - [ ] "Next PR to Implement" section updated
+- [ ] Item moved to correct directory (planning/in_progress/complete)
+- [ ] Master ROADMAP.md updated with new percentages
 - [ ] Any blockers or deviations documented
 - [ ] Lessons learned captured
 - [ ] Change log updated if significant
