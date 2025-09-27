@@ -67,7 +67,7 @@ class TooManyMethodsRule(ASTLintRule):
 
         if method_count > max_methods:
             return [
-                self.create_violation(
+                self.create_violation_from_node(
                     context=context,
                     node=node,
                     message=f"Class '{node.name}' has {method_count} methods (max: {max_methods})",
@@ -160,7 +160,7 @@ class TooManyResponsibilitiesRule(ASTLintRule):
 
         groups_list = ", ".join(responsibility_groups.keys())
         return [
-            self.create_violation(
+            self.create_violation_from_node(
                 context=context,
                 node=node,
                 message=f"Class '{node.name}' has {len(responsibility_groups)} responsibility groups",
@@ -366,7 +366,7 @@ class LowCohesionRule(ASTLintRule):
             return []
 
         return [
-            self.create_violation(
+            self.create_violation_from_node(
                 context,
                 node,
                 message=f"Class '{node.name}' has low cohesion ({cohesion_score:.2f})",
@@ -449,7 +449,7 @@ class ClassTooBigRule(ASTLintRule):
 
             if line_count > max_lines:
                 return [
-                    self.create_violation(
+                    self.create_violation_from_node(
                         context,
                         node,
                         message=f"Class '{node.name}' is large ({line_count} lines)",
@@ -514,7 +514,7 @@ class TooManyDependenciesRule(ASTLintRule):
 
     def _create_dependency_violation(self, node: ast.ClassDef, context: LintContext, analysis: dict) -> LintViolation:
         """Create a violation for excessive dependencies."""
-        return self.create_violation(
+        return self.create_violation_from_node(
             context,
             node,
             message=f"Class '{node.name}' has {analysis['count']} dependencies",

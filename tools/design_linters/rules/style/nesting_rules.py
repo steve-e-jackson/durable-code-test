@@ -64,7 +64,7 @@ class ExcessiveNestingRule(ASTLintRule):
 
         if max_found_depth > max_depth:
             return [
-                self.create_violation(
+                self.create_violation_from_node(
                     context,
                     node,
                     message=f"Function '{node.name}' has excessive nesting depth ({max_found_depth})",
@@ -159,7 +159,7 @@ class DeepFunctionRule(ASTLintRule):
 
             if line_count > max_lines:
                 violations.append(
-                    self.create_violation(
+                    self.create_violation_from_node(
                         context,
                         node,
                         message=f"Function '{node.name}' is too long ({line_count} lines)",
@@ -177,7 +177,7 @@ class DeepFunctionRule(ASTLintRule):
         nesting_depth = self._calculate_max_nesting_depth(node)
         if nesting_depth > max_depth:
             violations.append(
-                self.create_violation(
+                self.create_violation_from_node(
                     context,
                     node,
                     message=f"Function '{node.name}' has deep nesting ({nesting_depth} levels)",

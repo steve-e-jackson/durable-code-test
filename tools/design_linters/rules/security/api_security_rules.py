@@ -57,7 +57,7 @@ class MissingRateLimitingRule(ASTLintRule):
 
         if not self._has_rate_limiting(func_node):
             violations.append(
-                self.create_violation(
+                self.create_violation_from_node(
                     context=context,
                     node=func_node,
                     message=f"API endpoint '{func_node.name}' is missing rate limiting protection",
@@ -144,7 +144,7 @@ class MissingInputValidationRule(ASTLintRule):
 
         if not self._has_input_validation(func_node):
             violations.append(
-                self.create_violation(
+                self.create_violation_from_node(
                     context=context,
                     node=func_node,
                     message=f"API endpoint '{func_node.name}' accepts user input without validation",
@@ -249,7 +249,7 @@ class InsecureExceptionHandlingRule(ASTLintRule):
 
         if self._is_too_broad(except_node):
             violations.append(
-                self.create_violation(
+                self.create_violation_from_node(
                     context=context,
                     node=except_node,
                     message="Overly broad exception handling can mask security issues",
@@ -308,7 +308,7 @@ class HardcodedSecretsRule(ASTLintRule):
 
         if self._contains_hardcoded_secret(assign_node):
             violations.append(
-                self.create_violation(
+                self.create_violation_from_node(
                     context=context,
                     node=assign_node,
                     message="Hardcoded secret or credential detected",
@@ -395,7 +395,7 @@ class MissingSecurityHeadersRule(ASTLintRule):
         # Only create violation if we didn't find SecurityMiddleware
         if not has_security_middleware:
             violations.append(
-                self.create_violation(
+                self.create_violation_from_node(
                     context=context,
                     node=node,
                     message="Ensure FastAPI application includes security headers middleware",

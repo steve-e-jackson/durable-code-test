@@ -70,7 +70,7 @@ class PrintStatementRule(ASTLintRule):  # design-lint: ignore[solid.srp.too-many
         suggestion = self._generate_logging_suggestion(node, context)
 
         return [
-            self.create_violation(
+            self.create_violation_from_node(
                 context=context,
                 node=node,
                 message="Print statement found - use logging instead",
@@ -244,7 +244,7 @@ class ConsoleOutputRule(ASTLintRule):  # design-lint: ignore[solid.srp.too-many-
         suggestion = self._generate_suggestion(output_method)
 
         return [
-            self.create_violation(
+            self.create_violation_from_node(
                 context,
                 node,
                 message=(f"Console output method '{output_method}' found - use logging instead"),

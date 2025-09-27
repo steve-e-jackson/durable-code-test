@@ -16,8 +16,15 @@ import contextlib
 import pkgutil
 from pathlib import Path
 
-# Analysis and orchestration
 from .analyzer import ContextualASTVisitor, DefaultLintOrchestrator, LintResults, PythonAnalyzer
+from .base_interfaces import (
+    BaseLintAnalyzer,
+    BaseLintContext,
+    BaseLintRule,
+    BaseOrchestrator,
+    FileBasedMultiLanguageRule,
+    MultiLanguageRule,
+)
 from .interfaces import (
     ASTLintRule,
     ConfigurationProvider,
@@ -27,23 +34,21 @@ from .interfaces import (
     LintOrchestrator,
     LintReporter,
     LintRule,
-    LintViolation,
     RuleRegistry,
-    Severity,
 )
-
-# Reporting system
+from .multi_language_orchestrator import DefaultLanguageRegistry, MultiLanguageOrchestrator
 from .reporters import GitHubActionsReporter, JSONReporter, ReporterFactory, SARIFReporter, TextReporter
 
 # Rule management
 from .rule_registry import CategorizedRuleRegistry, DefaultRuleRegistry, RuleDiscoveryService
+from .types import LintViolation, Severity
 
 # Core interfaces
 
 
 # Main public API
 __all__ = [
-    # Core interfaces
+    # Core interfaces (Python-specific, backward compatible)
     "LintRule",
     "ASTLintRule",
     "FileBasedLintRule",
@@ -55,6 +60,16 @@ __all__ = [
     "RuleRegistry",
     "Severity",
     "ConfigurationProvider",
+    # Multi-language base interfaces
+    "BaseLintRule",
+    "BaseLintContext",
+    "BaseLintAnalyzer",
+    "BaseOrchestrator",
+    "MultiLanguageRule",
+    "FileBasedMultiLanguageRule",
+    # Multi-language orchestration
+    "MultiLanguageOrchestrator",
+    "DefaultLanguageRegistry",
     # Rule management
     "DefaultRuleRegistry",
     "CategorizedRuleRegistry",
@@ -72,6 +87,7 @@ __all__ = [
     "LintResults",
     # Factory functions
     "create_orchestrator",
+    "create_multi_language_orchestrator",
     "create_rule_registry",
     "discover_rules",
 ]
@@ -123,6 +139,38 @@ def create_orchestrator(rule_packages: list[str] | None = None) -> LintOrchestra
     reporters = Factory.get_standard_reporters()
 
     return DefaultLintOrchestrator(rule_registry=registry, analyzers=analyzers, reporters=reporters)
+
+
+def create_multi_language_orchestrator(rule_packages: list[str] | None = None) -> MultiLanguageOrchestrator:
+    """Create a fully configured multi-language linter orchestrator.
+
+    Args:
+        rule_packages: List of package names to discover rules from.
+                      If None, will auto-discover from known rule packages.
+
+    Returns:
+        Configured MultiLanguageOrchestrator instance
+    """
+    # Create rule registry and discover rules
+    registry = DefaultRuleRegistry()
+
+    # Auto-discover from all rule packages if no specific packages provided
+    if rule_packages is None:
+        rule_packages = _discover_rule_packages()
+
+    discovery = RuleDiscoveryService()
+    for package in rule_packages:
+        with contextlib.suppress(ImportError):
+            discovery.discover_from_package(package, registry)
+
+    # Create language registry with Python support
+    language_registry = DefaultLanguageRegistry()
+
+    # Create the multi-language orchestrator
+    return MultiLanguageOrchestrator(
+        rule_registry=registry,
+        language_registry=language_registry,
+    )
 
 
 def create_rule_registry(auto_discover: bool = True) -> RuleRegistry:

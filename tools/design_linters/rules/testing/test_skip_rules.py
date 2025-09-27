@@ -189,7 +189,7 @@ class NoSkippedTestsRule(ASTLintRule):
 
     def _create_violation(self, node: ast.AST, context: LintContext, message: str, suggestion: str) -> LintViolation:
         """Create a violation for a skipped test."""
-        return self.create_violation(
+        return self.create_violation_from_node(
             context=context,
             node=node,
             message=message,

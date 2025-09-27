@@ -530,7 +530,7 @@ def test_function():
         import tempfile
         from pathlib import Path
 
-        from design_linters.framework.interfaces import has_file_level_ignore
+        from design_linters.framework.ignore_utils import has_file_level_ignore
 
         # Test that the pattern matching works for both styles
         test_code1 = """#!/usr/bin/env python3

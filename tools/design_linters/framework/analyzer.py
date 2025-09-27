@@ -81,7 +81,7 @@ class PythonAnalyzer(LintAnalyzer):
         )
 
         # Parse ignore directives
-        from .interfaces import parse_ignore_directives  # pylint: disable=import-outside-toplevel
+        from .ignore_utils import parse_ignore_directives
 
         parse_ignore_directives(content, context)
         return context

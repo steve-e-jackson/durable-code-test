@@ -268,7 +268,7 @@ class FileHeaderRule(ASTLintRule):
         header_match = config["header_pattern"].search(content[:2000])  # Check first 2000 chars
         if not header_match:
             violations.append(
-                self.create_violation(
+                self.create_violation_from_node(
                     context=context,
                     node=node,
                     message=f"Missing file header in {file_path.name}",
@@ -286,7 +286,7 @@ class FileHeaderRule(ASTLintRule):
         missing_required = self.REQUIRED_FIELDS - set(fields.keys())
         if missing_required:
             violations.append(
-                self.create_violation(
+                self.create_violation_from_node(
                     context=context,
                     node=node,
                     message=f"Missing required header fields: {', '.join(sorted(missing_required))}",
@@ -298,7 +298,7 @@ class FileHeaderRule(ASTLintRule):
         # Check for Overview field (required but checked separately for better messaging)
         if "overview" not in fields:
             violations.append(
-                self.create_violation(
+                self.create_violation_from_node(
                     context=context,
                     node=node,
                     message="Missing required Overview field in header",
@@ -312,7 +312,7 @@ class FileHeaderRule(ASTLintRule):
             word_count = len(overview_content.split())
             if word_count < self.min_overview_words:
                 violations.append(
-                    self.create_violation(
+                    self.create_violation_from_node(
                         context=context,
                         node=node,
                         message=f"Overview field too brief ({word_count} words, minimum {self.min_overview_words})",
@@ -326,7 +326,7 @@ class FileHeaderRule(ASTLintRule):
             missing_code_fields = self.CODE_REQUIRED_FIELDS - set(fields.keys())
             if missing_code_fields:
                 violations.append(
-                    self.create_violation(
+                    self.create_violation_from_node(
                         context=context,
                         node=node,
                         message=f"Missing required code header fields: {', '.join(sorted(missing_code_fields))}",
@@ -340,7 +340,7 @@ class FileHeaderRule(ASTLintRule):
                 missing_recommended = self.RECOMMENDED_FIELDS - set(fields.keys())
                 if missing_recommended:
                     violations.append(
-                        self.create_violation(
+                        self.create_violation_from_node(
                             context=context,
                             node=node,
                             message="Missing recommended header field: Implementation",
@@ -354,7 +354,7 @@ class FileHeaderRule(ASTLintRule):
             content_issues = self._validate_field_content(fields)
             for issue in content_issues:
                 violations.append(
-                    self.create_violation(
+                    self.create_violation_from_node(
                         context=context,
                         node=node,
                         message=issue["message"],
@@ -368,7 +368,7 @@ class FileHeaderRule(ASTLintRule):
             temporal_issues = self._check_temporal_language(header_content)
             for issue in temporal_issues:
                 violations.append(
-                    self.create_violation(
+                    self.create_violation_from_node(
                         context=context,
                         node=node,
                         message=f"Temporal language found in header: {issue['type']}",
