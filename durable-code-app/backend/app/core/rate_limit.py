@@ -81,7 +81,7 @@ SPAM_THRESHOLDS = {
 class ContributionRateLimiter:
     """Enhanced rate limiter with spam detection for contributions."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the rate limiter with tracking storage."""
         # In production, this would use Redis or similar
         self._submission_counts: dict[str, int] = {}

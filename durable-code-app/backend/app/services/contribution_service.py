@@ -36,7 +36,7 @@ from .github_service import GitHubService
 class ContributionService:
     """Service for managing contribution submissions and reviews."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the service with DynamoDB client."""
         self.db_client = DynamoDBClient()
         self.github_service = GitHubService()

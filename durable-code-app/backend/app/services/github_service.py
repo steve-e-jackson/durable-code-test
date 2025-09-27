@@ -27,7 +27,7 @@ from ..models.contribution import ContributionResponse as Contribution
 class GitHubService:
     """Service for interacting with GitHub API."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize GitHub service with configuration."""
         self.token = os.getenv("GITHUB_TOKEN", "")
         self.repo_owner = os.getenv("GITHUB_REPO_OWNER", "")

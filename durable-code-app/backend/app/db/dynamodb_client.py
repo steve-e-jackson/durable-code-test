@@ -26,7 +26,7 @@ from ..core.exceptions import ResourceNotFoundError, ServiceError
 class DynamoDBClient:
     """Client for DynamoDB operations on contributions table."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize DynamoDB client with configuration."""
         self.table_name = os.getenv("DYNAMODB_TABLE_NAME", "contributions")
         self.region = os.getenv("AWS_REGION", "us-east-1")

@@ -169,7 +169,7 @@ app.include_router(contributions_router)
 
 
 @app.on_event("startup")
-async def startup_event():
+async def startup_event() -> None:
     """Initialize DynamoDB table on startup."""
     logger.info("Initializing DynamoDB...")
     db_client = DynamoDBClient()

@@ -42,22 +42,22 @@ class ContributionSubmit(BaseModel):
         description="Category of the contribution",
     )
     examples: list[str] | None = Field(
-        None,
+        default=None,
         max_items=5,
         description="Example prompts or expected outputs",
     )
     github_username: str | None = Field(
-        None,
+        default=None,
         max_length=255,
         description="GitHub username for attribution",
     )
     email: str | None = Field(
-        None,
+        default=None,
         max_length=255,
         description="Email for updates (optional)",
     )
     captcha_token: str | None = Field(
-        None,
+        default=None,
         description="CAPTCHA verification token for anonymous submissions",
     )
 
@@ -115,6 +115,7 @@ class ContributionResponse(BaseModel):
     id: str  # Using UUID strings for DynamoDB
     prompt: str
     context: str | None
+    examples: str | None  # JSON string of examples list
     category: ContributionCategory
     status: ContributionStatus
     priority: int
@@ -169,12 +170,12 @@ class ContributionFilter(BaseModel):
 
     status: ContributionStatus | None = None
     category: ContributionCategory | None = None
-    priority_min: int | None = Field(None, ge=0, le=10)
-    priority_max: int | None = Field(None, ge=0, le=10)
-    quality_score_min: int | None = Field(None, ge=0, le=100)
+    priority_min: int | None = Field(default=None, ge=0, le=10)
+    priority_max: int | None = Field(default=None, ge=0, le=10)
+    quality_score_min: int | None = Field(default=None, ge=0, le=100)
     has_github_issue: bool | None = None
     is_anonymous: bool | None = None
-    search: str | None = Field(None, max_length=100)
+    search: str | None = Field(default=None, max_length=100)
     limit: int = Field(20, ge=1, le=100)
     offset: int = Field(0, ge=0)
 

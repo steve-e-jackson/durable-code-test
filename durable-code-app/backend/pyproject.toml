@@ -41,6 +41,8 @@ pip-audit = "^2.9.0"
 httpx = "^0.28.0"
 playwright = "^1.40.0"
 pytest-playwright = "^0.4.0"
+types-aiobotocore = "^2.24.2"
+types-boto3 = "^1.40.40"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
