@@ -72,7 +72,7 @@ class UseLoguruRule(ASTLintRule):
 
     def _create_violation(self, node: ast.AST, context: LintContext, logging_type: str) -> LintViolation:
         """Create a violation for standard logging usage."""
-        return self.create_violation(
+        return self.create_violation_from_node(
             context,
             node,
             message=f"Consider using loguru instead of standard {logging_type}",
@@ -123,7 +123,7 @@ class LoguruImportRule(ASTLintRule):
         for alias in node.names:
             if alias.name != "logger":
                 violations.append(
-                    self.create_violation(
+                    self.create_violation_from_node(
                         context,
                         node,
                         message=f"Import loguru.{alias.name} not recommended",
@@ -140,7 +140,7 @@ class LoguruImportRule(ASTLintRule):
         for alias in node.names:
             if alias.name == "loguru":
                 violations.append(
-                    self.create_violation(
+                    self.create_violation_from_node(
                         context,
                         node,
                         message="Use 'from loguru import logger' instead of 'import loguru'",
@@ -280,7 +280,7 @@ class StructuredLoggingRule(ASTLintRule):
             return []
 
         return [
-            self.create_violation(
+            self.create_violation_from_node(
                 context,
                 node,
                 message=f"Use structured logging instead of string formatting in logger.{method_name}()",
@@ -300,7 +300,7 @@ class StructuredLoggingRule(ASTLintRule):
             return []  # Context variables already present
 
         return [
-            self.create_violation(
+            self.create_violation_from_node(
                 context,
                 node,
                 message=f"Consider adding context variables to logger.{method_name}() call",
@@ -407,7 +407,7 @@ class LogLevelConsistencyRule(ASTLintRule):
         )
 
         return [
-            self.create_violation(
+            self.create_violation_from_node(
                 context,
                 node,
                 message=f"Message suggests '{suggested_level}' level but using '{current_level}'",
@@ -504,7 +504,7 @@ class LoguruConfigurationRule(ASTLintRule):
             return []
 
         return [
-            self.create_violation(
+            self.create_violation_from_node(
                 context,
                 node,
                 message="logger.add() called without sink argument",
@@ -547,7 +547,7 @@ class LoguruConfigurationRule(ASTLintRule):
         violations = []
         for option, description in recommended_options.items():
             if option not in keyword_args:
-                violation = self.create_violation(
+                violation = self.create_violation_from_node(
                     context,
                     node,
                     message=f"Consider adding '{option}' parameter to logger.add()",

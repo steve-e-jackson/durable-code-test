@@ -65,7 +65,7 @@ class NoPlainPrintRule(ASTLintRule):
         suggestion = self._get_logging_suggestion(node)
 
         return [
-            self.create_violation(
+            self.create_violation_from_node(
                 context,
                 node,
                 message="Print statement found - use logging instead",
@@ -169,7 +169,7 @@ class ProperLogLevelsRule(ASTLintRule):
         # Check for overuse of certain log levels
         if method_name == "error" and self._is_in_loop(context):
             violations.append(
-                self.create_violation(
+                self.create_violation_from_node(
                     context,
                     node,
                     message="Error logging inside loop may be too verbose",
@@ -182,7 +182,7 @@ class ProperLogLevelsRule(ASTLintRule):
         # Check for debug level in what appears to be production code
         if method_name == "debug" and self._appears_production_critical(node, context):
             violations.append(
-                self.create_violation(
+                self.create_violation_from_node(
                     context,
                     node,
                     message="Debug level used for potentially important information",
@@ -310,7 +310,7 @@ class LoggingInExceptionsRule(ASTLintRule):
 
     def _create_missing_logging_violation(self, context: LintContext, node: ast.ExceptHandler) -> LintViolation:
         """Create violation for missing logging in exception handler."""
-        return self.create_violation(
+        return self.create_violation_from_node(
             context,
             node,
             message="Exception handler without logging or re-raising",
@@ -345,7 +345,7 @@ class LoggingInExceptionsRule(ASTLintRule):
         if not isinstance(call.func, ast.Attribute):
             raise TypeError("Expected attribute access")
         method_name = call.func.attr.lower()
-        violation = self.create_violation(
+        violation = self.create_violation_from_node(
             context,
             call,
             message=f"Using {method_name} level for exception logging",

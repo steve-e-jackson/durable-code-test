@@ -114,6 +114,32 @@ class BaseLintRule(ABC):
         # Empty set means supports all languages
         return not self.supported_languages or language in self.supported_languages
 
+    def create_violation(
+        self,
+        context: BaseLintContext,
+        message: str,
+        description: str,
+        *,
+        line: int = 1,
+        column: int = 0,
+        suggestion: str | None = None,
+        violation_context: dict[str, Any] | None = None,
+    ) -> LintViolation:
+        """Helper method to create a violation with consistent structure."""
+        from .ignore_utils import create_violation_from_data
+
+        return create_violation_from_data(
+            self.rule_id,
+            str(context.file_path) if context.file_path else "<unknown>",
+            line=line,
+            column=column,
+            severity=self.severity,
+            message=message,
+            description=description,
+            suggestion=suggestion,
+            violation_context=violation_context,
+        )
+
 
 class BaseLintAnalyzer(ABC):
     """Base class for language-specific analyzers."""
@@ -181,30 +207,6 @@ class MultiLanguageRule(BaseLintRule):
         """Languages this rule supports."""
         return self._supported_languages
 
-    def create_violation(
-        self,
-        context: BaseLintContext,
-        message: str,
-        description: str,
-        *,
-        line: int = 1,
-        column: int = 0,
-        suggestion: str | None = None,
-        violation_context: dict[str, Any] | None = None,
-    ) -> LintViolation:
-        """Helper method to create a violation with consistent structure."""
-        return LintViolation(
-            rule_id=self.rule_id,
-            file_path=str(context.file_path) if context.file_path else "<unknown>",
-            line=line,
-            column=column,
-            severity=self.severity,
-            message=message,
-            description=description,
-            suggestion=suggestion,
-            context=violation_context,
-        )
-
 
 class FileBasedMultiLanguageRule(MultiLanguageRule):
     """Base class for file-based rules that work across multiple languages."""
@@ -220,20 +222,6 @@ class FileBasedMultiLanguageRule(MultiLanguageRule):
         if not self.supports_language(context.language):
             return []
 
-        # Check for file-level ignore directives
-        if context.file_content:
-            from .interfaces import has_file_level_ignore  # pylint: disable=import-outside-toplevel
+        from .ignore_utils import check_file_with_ignores
 
-            if has_file_level_ignore(context.file_content, self.rule_id):
-                return []
-
-        if context.file_path and context.file_content:
-            violations = self.check_file(context.file_path, context.file_content, context)
-            # Filter out violations on ignored lines
-            if context.file_content:
-                from .interfaces import should_ignore_violation  # pylint: disable=import-outside-toplevel
-
-                violations = [v for v in violations if not should_ignore_violation(v, context.file_content)]
-            return violations
-
-        return []
+        return check_file_with_ignores(self, context, self.check_file)

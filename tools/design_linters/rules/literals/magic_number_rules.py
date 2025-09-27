@@ -331,7 +331,7 @@ class MagicNumberRule(ASTLintRule):
         suggestion = self._suggestion_generator.generate_constant_suggestion(node.value, context)
 
         return [
-            self.create_violation(
+            self.create_violation_from_node(
                 context=context,
                 node=node,
                 message=f"Magic number {node.value} found",
@@ -432,7 +432,7 @@ class MagicComplexRule(ASTLintRule):
             message = f"Magic complex number {node.value} found"
 
         return [
-            self.create_violation(
+            self.create_violation_from_node(
                 context=context,
                 node=node,
                 message=message,

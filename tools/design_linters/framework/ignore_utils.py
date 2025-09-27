@@ -21,7 +21,11 @@ Implementation: Pattern-based detection of ignore comments
 
 import ast
 import re
-from typing import Any
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .interfaces import LintContext
+    from .types import LintViolation
 
 # Common ignore directive patterns
 IGNORE_PATTERNS = [
@@ -87,40 +91,61 @@ def should_ignore_line(file_content: str, line_number: int, rule_id: str | None 
     return bool(rule_id and _has_specific_rule_ignore(line, rule_id))
 
 
-def should_ignore_node(node: ast.AST, file_content: str, rule_id: str | None = None) -> bool:
-    """
-    Check if an AST node should be ignored based on inline comments.
-
-    Args:
-        node: The AST node to check
-        file_content: The full file content
-        rule_id: Optional specific rule ID to check for
-
-    Returns:
-        True if the node should be ignored, False otherwise
-    """
+def should_ignore_node(node: ast.AST, file_content: str, rule_id: str) -> bool:
+    """Check if an AST node should be ignored for a specific rule."""
     if not hasattr(node, "lineno"):
         return False
 
-    return should_ignore_line(file_content, node.lineno, rule_id)
+    line_num = node.lineno
+    lines = file_content.split("\n")
+
+    # Check if line is in ignore_next_line set (previous line had ignore-next-line)
+    if line_num in {
+        line_num
+        for line_num in range(1, len(lines) + 1)
+        if line_num > 1 and "# design-lint: ignore-next-line" in lines[line_num - 2]
+    }:
+        return True
+
+    # Check line-level ignore on same line
+    if line_num <= len(lines):
+        line_content = lines[line_num - 1]  # lines are 1-indexed
+        if "# design-lint: ignore[" in line_content:
+            pattern = _extract_ignore_pattern(line_content, "ignore")
+            if pattern and _matches_rule_pattern(rule_id, pattern):
+                return True
+
+    return False
 
 
-def should_ignore_violation(violation: Any, file_content: str) -> bool:
+def should_ignore_violation(violation: "LintViolation", file_content: str) -> bool:
     """
     Check if a violation should be ignored based on its location.
 
     Args:
-        violation: The violation object (must have line_number and rule_id attributes)
+        violation: The violation object (must have line and rule_id attributes)
         file_content: The full file content
 
     Returns:
         True if the violation should be ignored, False otherwise
     """
-    if not hasattr(violation, "line_number") or not violation.line_number:
-        return False
+    lines = file_content.split("\n")
 
-    rule_id = getattr(violation, "rule_id", None)
-    return should_ignore_line(file_content, violation.line_number, rule_id)
+    # Check line-level ignore on same line
+    if violation.line <= len(lines):
+        line_content = lines[violation.line - 1]  # lines are 1-indexed
+        if "# design-lint: ignore[" in line_content:
+            pattern = _extract_ignore_pattern(line_content, "ignore")
+            if pattern and _matches_rule_pattern(violation.rule_id, pattern):
+                return True
+
+    # Check ignore-next-line directive on previous line
+    if violation.line > 1:
+        prev_line = lines[violation.line - 2]  # previous line
+        if "# design-lint: ignore-next-line" in prev_line:
+            return True
+
+    return False
 
 
 def extract_ignore_next_line_directives(file_content: str) -> set[int]:
@@ -165,7 +190,7 @@ def _find_next_non_empty_line(lines: list[str], start_index: int) -> int | None:
     return None
 
 
-def has_file_level_ignore(file_content: str, rule_id: str | None = None) -> bool:
+def has_file_level_ignore(file_content: str, rule_id: str) -> bool:
     """
     Check if the entire file should be ignored based on file-level directives.
 
@@ -183,20 +208,139 @@ def has_file_level_ignore(file_content: str, rule_id: str | None = None) -> bool
     lines = file_content.splitlines()[:10]  # Check first 10 lines
 
     for line in lines:
-        # Check for file-level ignore pattern
-        if re.search(r"#\s*design-lint:\s*ignore-file", line, re.IGNORECASE):
+        # Check for general file-level ignore pattern (ignore all rules)
+        if re.search(r"#\s*design-lint:\s*ignore-file\s*$", line, re.IGNORECASE):
             return True
 
         # Check for specific rule file-level ignore
-        if not rule_id:
-            continue
-
         match = re.search(r"#\s*design-lint:\s*ignore-file\[([^\]]+)\]", line, re.IGNORECASE)
-        if not match:
-            continue
-
-        ignored_rules = [r.strip() for r in match.group(1).split(",")]
-        if any(_rule_matches_ignore(rule_id, ignored_rule) for ignored_rule in ignored_rules):
-            return True
+        if match and rule_id:
+            ignored_rules = [r.strip() for r in match.group(1).split(",")]
+            if any(_rule_matches_ignore(rule_id, ignored_rule) for ignored_rule in ignored_rules):
+                return True
 
     return False
+
+
+def _extract_ignore_pattern(line: str, directive_type: str) -> str | None:
+    """Extract ignore pattern from directive line."""
+    if directive_type == "ignore-file":
+        match = re.search(r"# design-lint: ignore-file\[([^\]]+)\]", line)
+    elif directive_type == "ignore":
+        match = re.search(r"# design-lint: ignore\[([^\]]+)\]", line)
+    else:
+        return None
+
+    return match.group(1) if match else None
+
+
+def _matches_rule_pattern(rule_id: str, pattern: str) -> bool:
+    """Check if rule ID matches ignore pattern."""
+    # Handle comma-separated patterns
+    patterns = [p.strip() for p in pattern.split(",")]
+
+    for p in patterns:
+        if p == rule_id:
+            return True
+
+        # Handle wildcard patterns like "literals.*"
+        if p.endswith(".*"):
+            prefix = p[:-2]
+            if rule_id.startswith(prefix + "."):
+                return True
+
+    return False
+
+
+# Function removed - using the original version above
+
+
+def parse_ignore_directives(file_content: str, context: "LintContext") -> None:
+    """Parse ignore directives from file content and populate context."""
+    lines = file_content.split("\n")
+
+    for line_num, line in enumerate(lines, 1):
+        _process_file_level_ignore(line_num, line, context)
+        _process_line_level_ignore(line_num, line, context)
+        _process_ignore_next_line(line_num, line, context)
+
+
+def _process_file_level_ignore(line_num: int, line: str, context: "LintContext") -> None:
+    """Process file-level ignore directives."""
+    if line_num > 10 or "# design-lint: ignore-file[" not in line:
+        return
+    pattern = _extract_ignore_pattern(line, "ignore-file")
+    if pattern:
+        context.file_ignores.append(pattern)
+
+
+def _process_line_level_ignore(line_num: int, line: str, context: "LintContext") -> None:
+    """Process line-level ignore directives."""
+    if "# design-lint: ignore[" not in line:
+        return
+    pattern = _extract_ignore_pattern(line, "ignore")
+    if not pattern:
+        return
+    if line_num not in context.line_ignores:
+        context.line_ignores[line_num] = []
+    context.line_ignores[line_num].append(pattern)
+
+
+def _process_ignore_next_line(line_num: int, line: str, context: "LintContext") -> None:
+    """Process ignore-next-line directives."""
+    if "# design-lint: ignore-next-line" in line:
+        context.ignore_next_line.add(line_num + 1)  # Next line
+
+
+def check_file_with_ignores(rule_instance, context, check_file_method):
+    """
+    Common implementation for file-based rule checking with ignore handling.
+
+    Args:
+        rule_instance: The rule instance (must have rule_id attribute)
+        context: The lint context (must have file_content, file_path attributes)
+        check_file_method: The method to call for file checking
+
+    Returns:
+        List of violations after filtering ignored ones
+    """
+    # Check for file-level ignore directives
+    if context.file_content and has_file_level_ignore(context.file_content, rule_instance.rule_id):
+        return []
+
+    if context.file_path and context.file_content:
+        violations = check_file_method(context.file_path, context.file_content, context)
+        # Filter out violations on ignored lines
+        if context.file_content:
+            violations = [v for v in violations if not should_ignore_violation(v, context.file_content)]
+        return violations
+
+    return []
+
+
+def create_violation_from_data(
+    rule_id: str,
+    file_path: str,
+    *,
+    line: int,
+    column: int,
+    severity,
+    message: str,
+    description: str,
+    suggestion: str | None = None,
+    violation_context: dict | None = None,
+):
+    """Helper function to create a LintViolation with consistent structure."""
+    from .types import LintViolation
+
+    return LintViolation(
+        rule_id=rule_id,
+        file_path=file_path,
+        line=line,
+        column=column,
+        severity=severity,
+        message=message,
+        description=description,
+        suggestion=suggestion,
+        context=violation_context,
+    )
