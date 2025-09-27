@@ -38,9 +38,9 @@ RUN pip install poetry==1.7.1
 # Copy poetry configuration
 COPY durable-code-app/backend/pyproject.toml durable-code-app/backend/poetry.lock* ./
 
-# Configure poetry and install dev dependencies only
+# Configure poetry and install all dependencies (main + dev) for proper type checking
 RUN poetry config virtualenvs.create false && \
-    poetry install --only=dev --no-interaction --no-ansi --no-root
+    poetry install --no-interaction --no-ansi --no-root
 
 # Create non-root user for security
 RUN useradd -m -u 1000 linter && \
