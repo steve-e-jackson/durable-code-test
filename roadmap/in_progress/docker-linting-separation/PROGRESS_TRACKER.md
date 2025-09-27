@@ -512,6 +512,61 @@ _Space for team members to add notes, concerns, or suggestions_
 - Monitor memory usage on developer machines with additional containers
 - Document any tool-specific configuration that needs container access
 
+### Future Improvement: Docker Organization Refactoring
+**Suggested by**: Development team
+**Priority**: Medium
+**Proposal**: Consolidate all Docker-related files into a hidden `.docker/` directory for better organization
+
+**Current State** (scattered):
+```
+/docker/linting/                      # Only linting containers
+/durable-code-app/backend/Dockerfile  # Production backend
+/durable-code-app/backend/Dockerfile.dev  # Dev backend
+/durable-code-app/frontend/Dockerfile # Production frontend
+/durable-code-app/frontend/Dockerfile.dev # Dev frontend
+/docker-compose.yml                   # Root level compose files
+/docker-compose.dev.yml
+/docker-compose.lint.yml
+/test/integration_test/Dockerfile.playwright
+```
+
+**Proposed Structure**:
+```
+/.docker/
+├── compose/
+│   ├── dev.yml
+│   ├── prod.yml
+│   ├── lint.yml
+│   └── test.yml
+├── dockerfiles/
+│   ├── backend/
+│   │   ├── Dockerfile.dev
+│   │   └── Dockerfile.prod
+│   ├── frontend/
+│   │   ├── Dockerfile.dev
+│   │   └── Dockerfile.prod
+│   ├── linting/
+│   │   ├── Dockerfile.python-lint
+│   │   └── Dockerfile.js-lint
+│   └── testing/
+│       └── Dockerfile.playwright
+└── README.md
+```
+
+**Benefits**:
+- Cleaner project root
+- All Docker configuration in one place
+- Hidden directory reduces visual clutter
+- Better separation of concerns
+- Easier to manage and maintain
+- Standard practice in many projects
+
+**Implementation Notes**:
+- Would require updating all Makefile targets
+- Need to update CI/CD pipelines
+- Should be done as a separate initiative after linting separation is complete
+- Consider backward compatibility during transition
+
 ---
 
 ## 📋 AI Agent Instructions for Next Task
