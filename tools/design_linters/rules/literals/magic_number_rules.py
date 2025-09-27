@@ -3,7 +3,7 @@
 """
 Purpose: Magic number detection rules for the pluggable framework
 Scope: Framework-based implementation for numeric literal detection
-Overview: Overview: This module detects and reports magic numbers and magic strings in code, encouraging
+Overview: This module detects and reports magic numbers and magic strings in code, encouraging
     the use of named constants for better code maintainability and self-documentation. It identifies
     numeric literals used in comparisons, calculations, and configurations that should be extracted
     to constants with meaningful names. The rule intelligently filters out acceptable literals like

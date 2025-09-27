@@ -1,8 +1,27 @@
 # How to Run Unit Tests
 
+**Purpose**: Guide for executing unit tests using Make targets and Docker-based testing workflows
+
+**Scope**: Unit test execution, coverage analysis, test automation, Docker-based testing requirements
+
+**Overview**: Comprehensive testing guide that enforces Docker/Make usage requirements for consistent
+    test execution across development environments. Covers test execution patterns, coverage analysis,
+    debugging approaches, and automated testing workflows that ensure reliable test results and
+    maintain testing standards across all development scenarios.
+
+**Dependencies**: Docker containers, Make build system, testing frameworks, coverage tools
+
+**Exports**: Test execution workflows, coverage analysis procedures, debugging approaches
+
+**Related**: Testing framework documentation, development tooling, quality assurance standards
+
+**Implementation**: Make-based test automation, Docker-containerized test execution, coverage reporting
+
+---
+
 ## Primary Method: Make Targets (Required)
 
-The project enforces Docker/Make usage per `CLAUDE.md`. **Always use make targets first.**
+The project enforces Docker/Make usage requirements for consistent testing. **Always use make targets first.**
 
 ```bash
 # See all available test commands

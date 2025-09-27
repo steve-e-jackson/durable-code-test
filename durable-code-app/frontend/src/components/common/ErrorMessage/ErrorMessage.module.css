@@ -1,3 +1,19 @@
+/*
+Purpose: Error message component styles with accessible alerts and variant support
+Scope: ErrorMessage component styling for user feedback and system notifications across the application
+Overview: Provides comprehensive styling for error, warning, and info message variants with proper
+    accessibility patterns. Implements consistent visual hierarchy with icons, titles, messages,
+    and optional dismiss functionality. Uses semantic color schemes and supports custom content
+    areas. Includes focus management for dismiss buttons and proper alignment for screen reader
+    compatibility. Integrates with design system color tokens for consistent theming.
+Dependencies: CSS custom properties from design system, error message component markup structure
+Exports: Styling for errorMessage container, variants, content layout, and interactive elements
+Interfaces: CSS classes for errorMessage, variants, content areas, icons, titles, and dismiss buttons
+Environment: Accessible design patterns with ARIA support and keyboard navigation compliance
+Related: ErrorMessage.tsx component, design system tokens, and accessibility guidelines
+Implementation: CSS Modules with semantic styling and component-scoped accessibility features
+*/
+
 .errorMessage {
   border-radius: 6px;
   padding: 16px;

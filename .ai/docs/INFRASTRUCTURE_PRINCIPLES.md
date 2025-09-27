@@ -1,9 +1,26 @@
 # Infrastructure Principles
 
 **Purpose**: Define the core principles and philosophy for infrastructure design
-**Scope**: All infrastructure decisions and implementations
 
-## Why We Build Infrastructure This Way
+**Scope**: All infrastructure decisions and implementations across all environments
+
+**Overview**: Establishes foundational principles that guide all infrastructure design decisions,
+    emphasizing cost optimization, reliability, and maintainability. Defines the architectural
+    philosophy for Infrastructure as Code implementation, resource management, security practices,
+    and operational excellence that supports scalable and cost-effective deployment strategies.
+
+**Dependencies**: Terraform infrastructure code, AWS services, cost monitoring tools, security frameworks
+
+**Exports**: Infrastructure design principles, architectural guidelines, cost optimization strategies
+
+**Related**: TERRAFORM_STANDARDS.md, AWS deployment documentation, cost management guidelines
+
+**Implementation**: Infrastructure as Code patterns, cost-first design decisions, automated resource management
+
+---
+
+## Infrastructure Philosophy
+Core principles and philosophy that guide infrastructure design decisions and implementation strategies.
 
 ### Infrastructure as Code
 We treat infrastructure as software - versioned, tested, and reproducible. Every resource exists as code, enabling consistent deployments across environments.

@@ -1,7 +1,15 @@
+#!/usr/bin/env python3
 """
 Purpose: Error handling and resilience pattern linting rules for code quality enforcement
 Scope: Linting rules for exception handling, retry logic, circuit breakers, and structured error patterns
-Overview: Comprehensive collection of AST-based linting rules that enforce proper error handling patterns including prevention of broad exception catching, requirement of retry logic for external operations, structured exception class validation, mandatory error logging, and circuit breaker usage recommendations for resilient system design and robust error management.
+Overview: Comprehensive collection of AST-based linting rules that enforce proper error handling
+    patterns including prevention of broad exception catching, requirement of retry logic for
+    external operations, structured exception class validation, mandatory error logging, and
+    circuit breaker usage recommendations for resilient system design and robust error management.
+    The rules analyze AST nodes to detect error handling anti-patterns, validate exception
+    structure, and recommend resilience patterns for external service interactions. Each rule
+    provides specific guidance for improving error handling practices and building more robust
+    applications that gracefully handle failures and provide appropriate logging and recovery.
 Dependencies: ast module for AST traversal, design_linters framework interfaces for rule implementation
 Exports: NoBroadExceptionsRule, RequireRetryLogicRule, StructuredExceptionsRule, RequireErrorLoggingRule, CircuitBreakerUsageRule
 Interfaces: ASTLintRule interface implementations with check methods for AST node analysis

@@ -1,13 +1,24 @@
 # File Header Standards
 
-**Purpose**: Define practical and maintainable file headers for all documentation and code files
-**Scope**: Documentation files in `/docs` directory and code files throughout the project
+**Purpose**: Define comprehensive header standards for all document types ensuring consistent documentation across the entire repository
+
+**Scope**: All documentation, configuration, and code files throughout the project
+
+**Overview**: Establishes unified header standards for all file types in the repository, providing consistent documentation patterns across markdown, configuration files, code files, and all other document types. Includes detailed formatting guidelines, line break rules, field requirements, and file-type specific templates. Ensures every file is self-documenting with proper readability optimization while focusing on essential operational information that Git doesn't track.
+
+**Dependencies**: Existing file header linter, design linter framework, and CI/CD validation tools
+
+**Exports**: Header format standards, validation rules, formatting guidelines, and implementation templates
+
+**Related**: Links to file placement standards, development standards, and automated linting documentation
+
+**Implementation**: Comprehensive field definitions, line break guidelines, and automated validation integration
 
 ---
 
 ## Overview
 
-This document establishes a simplified, practical format for file headers that focuses on essential operational information. Git already tracks creation dates, modification history, and authorship, so headers should focus on describing what the file does and how it fits into the system.
+This document establishes unified header standards for all file types in the repository, providing consistent documentation patterns across markdown, configuration files, code files, and all other document types. The goal is to ensure every file is self-documenting with proper line breaks for readability and consistent formatting, while focusing on essential operational information that Git doesn't already track.
 
 ## Atemporal Documentation Principle
 
@@ -66,23 +77,53 @@ File headers must be written in an atemporal manner - avoiding language that ref
 ```markdown
 # Document Title
 
-**Purpose**: Brief description of what this document covers
-**Scope**: What areas/components this document applies to
+**Purpose**: Brief description of what this document covers and its primary function
 
+**Scope**: What areas/components this document applies to and target audience
+
+**Overview**: Comprehensive explanation of the document's content, structure, and purpose.
+    Detailed description of what readers will learn, how the document fits into the larger
+    documentation ecosystem, key topics covered, and important concepts explained.
+    This should be sufficient for readers to understand the document's value and relevance
+    without reading the entire content.
+
+**Dependencies**: Related documents, external resources, or prerequisite knowledge required
+
+**Exports**: Key information, standards, procedures, or guidelines this document provides
+
+**Related**: Links to related documentation, external resources, or cross-references
+
+**Implementation**: Notable documentation patterns, structures, or organizational approaches used
 ---
 
 ## Overview
-Document content starts here...
+
+Document content starts here with proper spacing and structure...
 ```
+
+**Line Break Rules for Markdown:**
+- **Double line breaks**: After each header field for visual separation and readability
+- **Horizontal rule (---)**: Separates header from main content
+- **Single line breaks**: Within multi-line field descriptions for natural reading flow
+- **Consistent spacing**: Maintains readability across different markdown viewers
 
 ### HTML Files (.html)
 
 ```html
 <!DOCTYPE html>
 <!--
-Purpose: Brief description of this HTML file's purpose and operation
-Scope: What this file is used for (UI component, documentation, etc.)
-Dependencies: Key libraries or frameworks used
+Purpose: Brief description of this HTML file's purpose, target users, and primary functionality
+Scope: What this file is used for (UI component, documentation page, landing page, etc.)
+Overview: Comprehensive description of the HTML file's content, user interactions,
+    accessibility features, responsive behavior, and integration with stylesheets
+    or JavaScript. Should include information about key sections, navigation patterns,
+    and content organization. This should help developers understand the page structure
+    and functionality without examining all markup.
+Dependencies: Key libraries, frameworks, stylesheets, or JavaScript files used
+Exports: Web page, component, or interface for specific use case and target audience
+Interfaces: User interactions, form submissions, API integrations, or navigation patterns
+Related: Links to related pages, stylesheets, or documentation
+Implementation: Notable accessibility features, responsive design patterns, or performance optimizations
 -->
 <html lang="en">
 ```
@@ -92,14 +133,20 @@ Dependencies: Key libraries or frameworks used
 ```python
 """
 Purpose: Brief description of module/script functionality (1-2 lines)
+
 Scope: What this module handles (API endpoints, data models, business logic, etc.)
+
 Overview: Comprehensive summary of what this module does and its role in the system.
     Detailed explanation of the module's responsibilities, how it fits into the larger
     architecture, key workflows it supports, and important behavioral characteristics.
     This should be sufficient for a developer to understand the module without reading code.
+
 Dependencies: Key external dependencies or internal modules required
+
 Exports: Main classes, functions, or constants this module provides
+
 Interfaces: Key APIs, endpoints, or methods this module exposes
+
 Implementation: Notable algorithms, patterns, or architectural decisions
 """
 ```
@@ -109,14 +156,20 @@ Implementation: Notable algorithms, patterns, or architectural decisions
 ```typescript
 /**
  * Purpose: Brief description of component/module functionality (1-2 lines)
+ *
  * Scope: What this file handles (React component, utility functions, API service, etc.)
+ *
  * Overview: Comprehensive summary of what this component/module does and its role in the application.
  *     Detailed explanation of the component's responsibilities, how it fits into the UI/system,
  *     key user interactions it supports, and important behavioral characteristics.
  *     This should be sufficient for a developer to understand the component without reading code.
+ *
  * Dependencies: Key libraries, components, or services this file depends on
+ *
  * Exports: Main components, functions, types, or constants this file provides
+ *
  * Props/Interfaces: Key interfaces this component accepts or module provides
+ *
  * State/Behavior: Important state management or behavioral patterns used
  */
 ```
@@ -124,9 +177,175 @@ Implementation: Notable algorithms, patterns, or architectural decisions
 ### Configuration Files (.yml, .yaml, .json, .toml)
 
 ```yaml
-# Purpose: Brief description of configuration file and what it configures
-# Scope: What this configuration applies to (development, production, specific services)
-# Dependencies: Services or tools that use this configuration
+# Purpose: Brief description of configuration file and what it configures in the system
+# Scope: What this configuration applies to (development, production, specific services, global settings)
+# Overview: Comprehensive explanation of the configuration's role in the system,
+#     what services consume these settings, how it integrates with other configurations,
+#     key behavioral characteristics it controls, and operational impact of changes.
+#     Should include information about configuration validation, reload behavior,
+#     and any special handling requirements. This should help developers and operators
+#     understand the configuration's importance without examining all individual values.
+# Dependencies: Services, tools, or other configuration files that depend on or use this configuration
+# Exports: Key configuration sections, environment variables, or settings this file provides
+# Environment: Target deployment environments (dev, staging, prod, all) and environment-specific behavior
+# Related: Links to related configuration files, documentation, or external configuration sources
+# Implementation: Configuration management patterns, validation rules, or update procedures used
+```
+
+### Infrastructure as Code (.tf, .hcl)
+
+```hcl
+# Purpose: Brief description of infrastructure component and its primary function in the architecture
+# Scope: What infrastructure this manages (networking, storage, compute, security, monitoring, etc.)
+# Overview: Comprehensive explanation of the infrastructure component's role in the overall architecture,
+#     how it integrates with other AWS/cloud resources, scaling characteristics, security considerations,
+#     cost implications, and operational requirements. Should include information about resource
+#     dependencies, state management, and deployment patterns. This should help infrastructure engineers
+#     and operators understand the component's importance without examining all resource configurations.
+# Dependencies: Required configuration files, modules, providers, or external resources
+# Exports: Key infrastructure outputs, resource IDs, or configuration values this module provides
+# Configuration: Variable sources, environment-specific settings, and configuration patterns used
+# Environment: Target deployment environments and environment-specific behavior or optimizations
+# Related: Links to related Terraform modules, AWS documentation, or infrastructure diagrams
+# Implementation: Key architectural decisions, resource organization patterns, or deployment strategies
+```
+
+### Docker and Container Files (.dockerfile, docker-compose.yml)
+
+```yaml
+# Purpose: Brief description of container orchestration, build configuration, and deployment setup
+# Scope: What services/containers this manages (backend, frontend, databases, caching, monitoring, etc.)
+# Overview: Comprehensive explanation of the containerization strategy, service dependencies,
+#     networking topology, volume mount strategies, environment variable handling, scaling
+#     characteristics, and deployment patterns. Should include information about health checks,
+#     restart policies, resource limits, and security configurations. This should help DevOps
+#     engineers and developers understand the complete containerization approach without
+#     examining all individual service definitions and configurations.
+# Dependencies: Docker engine, Docker Compose, service Dockerfiles, external images, or registries
+# Exports: Docker services configuration, networks, volumes, and orchestration for target environment
+# Interfaces: Service ports, networking configuration, API endpoints, and inter-service communication
+# Environment: Target deployment environments and environment-specific container configurations
+# Related: Links to Dockerfiles, container registries, monitoring configurations, or deployment guides
+# Implementation: Container orchestration patterns, security practices, and performance optimizations
+```
+
+### Script Files (.sh, .ps1, .bat)
+
+```bash
+#!/bin/bash
+# Purpose: Brief description of script functionality, primary use cases, and automation purpose
+# Scope: What operations this script performs (deployment, testing, utilities, monitoring, setup, etc.)
+# Overview: Comprehensive explanation of the script's operations, workflow steps, prerequisites,
+#     expected inputs and outputs, error handling strategies, and integration with other scripts
+#     or systems. Should include information about execution context, required permissions,
+#     logging behavior, and failure scenarios. This should help operators and developers
+#     understand the script's role and requirements without examining all implementation details.
+# Dependencies: Required tools, runtime environments, system permissions, or external services
+# Exports: Generated files, environment changes, or system state modifications this script produces
+# Usage: Script invocation examples, parameter descriptions, and common usage patterns
+# Environment: Target execution environments and environment-specific behavior or requirements
+# Related: Links to related scripts, documentation, or system components
+# Implementation: Key operational patterns, error handling approaches, and automation strategies
+```
+
+### CSS/SCSS Style Files (.css, .scss, .sass)
+
+```css
+/*
+Purpose: Brief description of stylesheet's scope, target components, and styling objectives
+Scope: What UI elements this stylesheet covers (global styles, component-specific, theme, layout, utilities, etc.)
+Overview: Comprehensive explanation of the styling approach, responsive design strategy,
+    design system integration, accessibility considerations, browser support requirements,
+    and maintenance patterns. Should include information about CSS architecture, naming
+    conventions, performance optimizations, and interaction with JavaScript. This should
+    help designers and developers understand the styling strategy without examining all rules.
+Dependencies: CSS frameworks, design tokens, parent stylesheets, or build tools
+Exports: Styling for specific components, utility classes, or global design system elements
+Interfaces: CSS custom properties, class naming conventions, or component APIs
+Environment: Target browsers, device types, and environment-specific styling considerations
+Related: Links to design system documentation, component libraries, or style guides
+Implementation: CSS methodologies (BEM, OOCSS), naming conventions, or optimization techniques
+*/
+```
+
+### JSON Configuration and Data Files (.json)
+
+For JSON files that support comments:
+```json
+{
+  "_header": {
+    "purpose": "Brief description of JSON file's purpose, data structure, and primary use cases",
+    "scope": "What this JSON file configures or contains (app settings, data schema, API responses, etc.)",
+    "overview": "Comprehensive explanation of the JSON structure, how it's consumed by applications, data validation requirements, update procedures, and integration patterns. Should include information about data types, required vs optional fields, and relationship to other configuration files. This should help developers understand the data structure and usage without examining all properties.",
+    "dependencies": "Applications, systems, or services that consume or generate this JSON data",
+    "exports": "Key configuration sections, data structures, or settings this file provides",
+    "interfaces": "APIs, applications, or systems that interact with this JSON structure",
+    "environment": "Target environments and environment-specific data variations",
+    "related": "Links to related configuration files, schemas, or documentation",
+    "implementation": "Data validation rules, schema location, or update/migration procedures"
+  }
+}
+```
+
+For JSON files without comment support, place header in adjacent README or documentation file with the same comprehensive structure.
+
+## Line Break and Formatting Guidelines
+
+### Universal Readability Rules
+
+1. **Double Line Breaks**: Use between major sections and header fields for visual separation
+2. **Single Line Breaks**: Use within multi-line field descriptions for natural reading flow
+3. **Consistent Indentation**: Maintain proper indentation for continuation lines
+4. **Line Length**: Keep lines under 100 characters when possible for readability across different viewers
+
+### File-Type Specific Formatting
+
+#### Markdown Documents
+- **Double line breaks**: After each header field (Purpose, Scope, etc.)
+- **Horizontal rule (---)**: Separates header from main content
+- **Consistent spacing**: Maintains readability across different markdown viewers
+- **Natural flow**: Single line breaks within field descriptions for easy reading
+
+#### Code File Comments (Python, TypeScript, JavaScript)
+- **Blank lines**: Between field sections within comment blocks for visual organization
+- **Consistent indentation**: Maintain language-appropriate comment formatting
+- **Multi-line descriptions**: Use proper continuation indentation for readability
+
+#### Configuration Files (YAML, Terraform, Docker)
+- **Line continuation**: Use proper indentation with continuation characters for multi-line descriptions
+- **Visual alignment**: Align continuation lines for consistent formatting
+- **Comment spacing**: Single space after comment character (#) and field colon (:)
+
+#### Example of Proper Line Breaks in Markdown:
+```markdown
+# Document Title
+
+**Purpose**: Clear, concise description of what this document covers
+
+**Scope**: What areas/components this document applies to
+
+---
+
+## Overview
+
+Document content begins here with proper spacing...
+```
+
+#### Example of Proper Line Breaks in Python:
+```python
+"""
+Purpose: Brief description of module functionality
+
+Scope: What this module handles in the system
+
+Overview: Comprehensive explanation of the module's role and responsibilities.
+    Multi-line descriptions use proper indentation for continuation lines
+    and maintain readability across different development environments.
+
+Dependencies: Key external dependencies or internal modules required
+
+Exports: Main classes, functions, or constants this module provides
+"""
 ```
 
 ## Required Header Fields

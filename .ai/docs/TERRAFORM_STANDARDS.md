@@ -1,13 +1,27 @@
 # Terraform Standards and Best Practices
 
 **Purpose**: Define coding standards, naming conventions, and best practices for Terraform infrastructure code
+
 **Scope**: All Terraform configurations in the infra/ directory across all environments
+
+**Overview**: Establishes comprehensive standards for Terraform infrastructure code that ensure
+    consistency, maintainability, and cost-effectiveness across all deployment environments. Covers
+    resource naming conventions, module organization, state management, security practices, and
+    deployment patterns that support reliable infrastructure automation and collaborative development.
+
+**Dependencies**: Terraform CLI, AWS provider, state management backend, deployment automation tools
+
+**Exports**: Terraform coding standards, naming conventions, module patterns, deployment best practices
+
+**Related**: INFRASTRUCTURE_PRINCIPLES.md, AWS deployment guides, state management documentation
+
+**Implementation**: Terraform modules, naming conventions, validation rules, automated deployment patterns
 
 ---
 
-## Overview
+## Standards Overview
 
-This document establishes Terraform standards for the Durable Code Test infrastructure, ensuring consistent, maintainable, and cost-effective infrastructure as code. All Terraform code must follow these standards to maintain quality, security, and cost optimization.
+These standards ensure consistent, maintainable, and cost-effective infrastructure as code across all environments and deployment scenarios.
 
 ## Core Principles
 

@@ -2,7 +2,7 @@
 """
 Purpose: API security rules for FastAPI applications
 Scope: Rate limiting, input validation, and endpoint security checks
-Overview: Overview: This module provides comprehensive security validation for API implementations, focusing
+Overview: This module provides comprehensive security validation for API implementations, focusing
     on FastAPI applications but applicable to other frameworks. It detects missing or inadequate
     security controls including absent input validation, missing rate limiting, lack of security
     headers, unprotected endpoints, and potential injection vulnerabilities. The rules check for

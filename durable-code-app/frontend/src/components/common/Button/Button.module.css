@@ -1,3 +1,19 @@
+/*
+Purpose: Comprehensive button component styles with variants, sizes, and interactive states
+Scope: Button component styling across the application with full accessibility support
+Overview: Provides complete styling for the reusable Button component including multiple variants
+    (primary, secondary, danger, ghost, link), size options (small, medium, large), and interactive
+    states. Implements focus-visible accessibility patterns, loading states with spinners, and
+    smooth transitions. Uses CSS custom properties for theming and design system integration.
+    Supports full-width layouts and disabled states with proper visual feedback.
+Dependencies: CSS custom properties from design system, button component markup structure
+Exports: Styling for Button component variants, sizes, states, and accessibility features
+Interfaces: CSS classes for button, variants, sizes, fullWidth, loading, and spinner elements
+Environment: Responsive design patterns with mobile-first approach and accessibility compliance
+Related: Button.tsx component, design system tokens, and global CSS variables
+Implementation: CSS Modules approach with BEM-inspired naming and component isolation
+*/
+
 .button {
   display: inline-flex;
   align-items: center;

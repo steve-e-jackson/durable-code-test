@@ -1,11 +1,24 @@
 # Development Tools
 
 **Purpose**: Documentation for development and linting tools used in the project
+
 **Scope**: Custom tools, scripts, and utilities for code quality enforcement
-**Created**: 2025-09-12
-**Updated**: 2025-09-12
-**Author**: Development Team
-**Version**: 1.0
+
+**Overview**: Comprehensive documentation for the design linter framework and related development tools.
+    Provides detailed usage instructions for the unified design linter, including CLI options, output
+    formats, rule categories, and integration patterns. Documents the pluggable architecture that
+    enables extensible rule-based linting with framework components for orchestration, reporting,
+    and rule discovery. Includes configuration guidelines, exit codes, supported file types, and
+    pre-commit integration. This documentation helps developers understand how to effectively use
+    the linting tools to maintain code quality and design standards across the entire project.
+
+**Dependencies**: Design linter framework components, pre-commit hooks, and CLI argument parsing
+
+**Exports**: Documentation for linter usage, configuration patterns, and integration approaches
+
+**Related**: FILE_HEADER_STANDARDS.md for header requirements, framework implementation in design_linters/
+
+**Implementation**: Documentation follows standard markdown patterns with clear examples and usage instructions
 
 ---
 
@@ -63,14 +76,18 @@ pre-commit install
 
 ### Required Fields
 All files must include:
-- **Purpose**: Brief description of file's functionality
-- **Created**: Creation date (YYYY-MM-DD format)
-- **Author**: Creator's name or team
+- **Purpose**: Brief description of file's functionality (1-2 lines)
+- **Scope**: What areas/components this file covers or affects
+- **Overview**: Comprehensive summary explaining the file's role and operation
+
+### Code Files Additional Fields
+- **Dependencies**: Key dependencies, libraries, or related files
+- **Exports**: Main classes, functions, components, or constants this file provides
+- **Interfaces**: Key APIs, interfaces, or methods this file exposes or accepts
 
 ### Recommended Fields
-- **Scope**: What the file covers
-- **Updated**: Last update date (YYYY-MM-DD format)
-- **Version**: Semantic version number
+- **Implementation**: Notable algorithms, patterns, or architectural decisions
+- **Related**: Links to related files, documentation, or external resources
 
 ### Example Headers
 
@@ -79,11 +96,18 @@ All files must include:
 # Document Title
 
 **Purpose**: Brief description of what this document covers
+
 **Scope**: What areas/components this document applies to
-**Created**: 2025-09-12
-**Updated**: 2025-09-12
-**Author**: Development Team
-**Version**: 1.0
+
+**Overview**: Comprehensive explanation of the document's content, structure, and purpose.
+    Detailed description of what readers will learn and how the document fits into the larger
+    documentation ecosystem.
+
+**Dependencies**: Related documents, external resources, or prerequisite knowledge required
+
+**Exports**: Key information, standards, procedures, or guidelines this document provides
+
+**Related**: Links to related documentation, external resources, or cross-references
 
 ---
 
@@ -94,11 +118,20 @@ Content starts here...
 ```python
 """
 Purpose: Brief description of module functionality
-Scope: What this module handles
-Created: 2025-09-12
-Updated: 2025-09-12
-Author: Development Team
-Version: 1.0
+
+Scope: What this module handles (API endpoints, data models, business logic, etc.)
+
+Overview: Comprehensive summary of what this module does and its role in the system.
+    Detailed explanation of the module's responsibilities, how it fits into the larger
+    architecture, key workflows it supports, and important behavioral characteristics.
+
+Dependencies: Key external dependencies or internal modules required
+
+Exports: Main classes, functions, or constants this module provides
+
+Interfaces: Key APIs, endpoints, or methods this module exposes
+
+Implementation: Notable algorithms, patterns, or architectural decisions
 """
 ```
 

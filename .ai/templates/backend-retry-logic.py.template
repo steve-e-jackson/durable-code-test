@@ -1,12 +1,22 @@
 """
-{{SERVICE_NAME}} Retry Logic Template
+Purpose: {{SERVICE_NAME}} retry logic template for resilient backend operations
 
-This template provides retry decorators for resilient backend operations.
-Replace {{PLACEHOLDER}} variables with your specific values.
+Scope: External service integration with automatic retry capabilities and exponential backoff
 
-Purpose: Add retry logic with exponential backoff for external operations
-Location: durable-code-app/backend/app/core/retry.py or service-specific module
-Example: app/core/retry.py
+Overview: Provides retry decorator templates for resilient backend operations that handle
+    transient failures gracefully. Implements configurable retry strategies with exponential
+    backoff, specific exception handling, and comprehensive logging. Supports both synchronous
+    and asynchronous operations with proper resource management and failure tracking.
+    Template includes service-specific configuration and pre-configured decorators for
+    common retry scenarios.
+
+Dependencies: tenacity library, custom exception classes, async/await support, logging
+
+Exports: Retry decorator functions and service class templates with retry logic
+
+Interfaces: Decorator functions for retry behavior and service class patterns
+
+Implementation: Template-based retry logic with configurable parameters and exception handling
 """
 
 import asyncio

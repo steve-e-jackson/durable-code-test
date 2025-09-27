@@ -1,5 +1,25 @@
 # CI/CD Pipeline Implementation Steps
 
+**Purpose**: Detailed implementation guide for GitHub Actions CI/CD pipeline with concrete workflows and deployment automation
+
+**Scope**: Complete CI/CD pipeline setup including build, test, deployment, and validation stages for AWS ECS infrastructure
+
+**Overview**: Comprehensive implementation guide providing concrete GitHub Actions workflows for automated
+    CI/CD pipeline setup. Covers build and test stages, Docker image creation, deployment automation,
+    health checks, and rollback procedures. Includes specific YAML configurations, environment variables,
+    secrets management, and integration with AWS services. Based on lessons learned from durable-code
+    deployment experience and optimized for ECS Fargate deployments with proper error handling.
+
+**Dependencies**: GitHub Actions, AWS CLI, Docker, Terraform, ECR repositories, ECS cluster, and OIDC authentication
+
+**Exports**: Complete GitHub Actions workflow files, deployment scripts, environment configurations, and validation procedures
+
+**Related**: DEPLOYMENT_CHECKLIST.md for validation steps, CICD_DEPLOYMENT_LESSONS.md for implementation lessons
+
+**Implementation**: Step-by-step workflow creation with testing validation, environment-specific configurations, and automated deployment integration
+
+---
+
 ## Overview
 This document provides concrete implementation steps for setting up CI/CD pipelines based on lessons learned from the durable-code deployment.
 

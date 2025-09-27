@@ -1,13 +1,20 @@
 """
-Purpose: Unit tests for FastAPI main application.
+Purpose: Validates FastAPI main application functionality
 
-Scope: Testing API endpoints and application setup
+Scope: API endpoint testing and application setup verification
+
 Overview: Unit test suite for the FastAPI main application module covering core endpoint functionality, health
-check responses, CORS configuration validation, and application initialization to ensure proper API behavior
-and middleware configuration across development and production environments.
+    check responses, CORS configuration validation, and application initialization to ensure proper API behavior
+    and middleware configuration across development and production environments. Tests verify root endpoint
+    responses, health check status reporting, CORS header presence and configuration, and overall application
+    bootstrapping process. The suite ensures consistent API behavior and proper middleware integration.
+
 Dependencies: pathlib, FastAPI TestClient, sys for path manipulation, main application module
+
 Exports: Unit test functions for root endpoint, health check, and CORS header validation
+
 Interfaces: Standard pytest test functions using FastAPI TestClient for endpoint testing
+
 Implementation: Uses FastAPI TestClient with path manipulation to import backend modules and validate responses
 """
 

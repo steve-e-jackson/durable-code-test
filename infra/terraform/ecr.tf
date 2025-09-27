@@ -1,20 +1,19 @@
-/*
- * Purpose: AWS ECR (Elastic Container Registry) configuration for Docker image storage
- * Scope: Creates and configures ECR repositories for frontend and backend containers
- * Overview:
- *   - Creates ECR repositories with image scanning enabled
- *   - Implements lifecycle policies for cost optimization
- *   - Configures repository policies for secure access
- *   - Enables tag immutability to prevent image overwrites
- * Dependencies:
- *   - AWS provider configuration
- *   - Variables from variables.tf
- * Exports:
- *   - ECR repository URLs for container image push/pull
- *   - Repository ARNs for IAM policy configuration
- * Interfaces: Resources consumed by ECS task definitions and CI/CD pipeline
- * Implementation: Cost-optimized with automatic cleanup of old/unused images
- */
+# Purpose: AWS ECR (Elastic Container Registry) configuration for Docker image storage and lifecycle management
+# Scope: Creates and configures ECR repositories for frontend and backend container image storage
+# Overview: This file establishes ECR repositories for storing Docker images with comprehensive
+#     security and cost optimization features. It creates separate repositories for frontend and
+#     backend services with image scanning enabled for vulnerability detection, tag immutability
+#     to prevent accidental overwrites, and encryption at rest for security. Lifecycle policies
+#     automatically clean up old and untagged images to control storage costs while retaining
+#     important release versions. Repository policies provide secure access control for ECS task
+#     execution and CI/CD pipeline operations. The configuration supports multiple environments
+#     with proper tagging and naming conventions for resource organization.
+# Dependencies: AWS provider configuration, variables from variables.tf, and IAM roles for access control
+# Exports: ECR repository URLs for container image push/pull operations, repository ARNs for IAM policies
+# Configuration: Uses environment-specific naming and tagging through local values
+# Environment: Supports dev, staging, and prod environments with consistent repository patterns
+# Related: Links to ECS task definitions, CI/CD pipeline configurations, and IAM role policies
+# Implementation: Cost-optimized with automated lifecycle policies, security scanning, and access controls
 
 # Frontend ECR Repository
 resource "aws_ecr_repository" "frontend" {

@@ -2,7 +2,7 @@
 """
 Purpose: Single Responsibility Principle rules for pluggable framework
 Scope: Implements SRP violation detection as individual, focused rules
-Overview: Overview: This module enforces the Single Responsibility Principle (SRP) from SOLID design
+Overview: This module enforces the Single Responsibility Principle (SRP) from SOLID design
     principles, ensuring classes and functions maintain focused, cohesive responsibilities. It
     detects violations such as classes handling multiple unrelated concerns, functions performing
     too many distinct operations, mixed business logic with infrastructure code, and coupled

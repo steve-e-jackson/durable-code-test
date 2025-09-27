@@ -1,5 +1,25 @@
 # Deployment Checklist for CI/CD
 
+**Purpose**: Comprehensive deployment validation checklist for CI/CD pipeline ensuring reliable and consistent deployments
+
+**Scope**: Complete deployment process from pre-deployment validation through post-deployment verification and troubleshooting
+
+**Overview**: Systematic checklist covering all critical deployment phases including code quality validation,
+    Docker build preparation, environment setup, infrastructure updates, service deployment, and post-deployment
+    validation. Provides specific commands, troubleshooting procedures, and rollback strategies for AWS ECS
+    deployments. Includes detailed validation steps for health checks, API endpoints, WebSocket connections,
+    and performance verification to ensure successful deployment completion.
+
+**Dependencies**: AWS CLI, Docker, Terraform, Make targets, ECS services, ALB configuration, and CloudWatch logging
+
+**Exports**: Step-by-step deployment procedures, validation commands, troubleshooting guidelines, and rollback procedures
+
+**Related**: CICD_PIPELINE_STEPS.md for detailed implementation, CICD_DEPLOYMENT_LESSONS.md for lessons learned
+
+**Implementation**: Checklist-based validation process with specific commands and success criteria for each deployment phase
+
+---
+
 ## Pre-Deployment Validation ✅
 
 ### Code Quality

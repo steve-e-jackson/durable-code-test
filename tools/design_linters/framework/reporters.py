@@ -2,15 +2,17 @@
 """
 Purpose: Unified reporting system for linting violations
 Scope: Provides multiple output formats and filtering capabilities
-Overview: Overview: This module provides comprehensive reporting capabilities for the design linter framework,
+Overview: This module provides comprehensive reporting capabilities for the design linter framework,
     implementing various output formats to suit different use cases and integration requirements.
-    It includes a text reporter for human-readable console output with colored formatting and
-    clear violation grouping, a JSON reporter for machine-readable output suitable for CI/CD
-    integration and automated processing, and extensibility for custom formats. Each reporter
+    It includes a TextReporter for human-readable console output with colored formatting and
+    clear violation grouping, a JSONReporter for machine-readable output suitable for CI/CD
+    integration and automated processing, a SARIFReporter for Static Analysis Results Interchange
+    Format compliance, and a GitHubActionsReporter for workflow annotations. Each reporter
     handles violation aggregation, sorting, filtering by severity, and summary statistics
-    generation. The module ensures consistent output formatting across all rules while allowing
-    customization of display styles, verbosity levels, and output destinations. All reporters
-    follow the same interface for seamless integration with the orchestrator.
+    generation with consistent metadata handling. The module ensures consistent output formatting
+    across all rules while allowing customization of display styles, verbosity levels, and output
+    destinations. All reporters follow the same LintReporter interface for seamless integration
+    with the orchestrator, enabling flexible reporting strategies for different environments.
 Dependencies: json for JSON output, typing for type hints
 Exports: TextReporter, JSONReporter, SARIFReporter, GitHubActionsReporter
 Interfaces: Implements LintReporter interface

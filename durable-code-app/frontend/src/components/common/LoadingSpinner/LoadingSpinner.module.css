@@ -1,3 +1,18 @@
+/*
+Purpose: Loading spinner component styles with size variants and accessibility features
+Scope: LoadingSpinner component styling for async state indication across the application
+Overview: Provides complete styling for the loading spinner component with multiple size options
+    and color variants. Implements smooth CSS animations for visual feedback during async operations.
+    Includes accessibility-friendly visually hidden text for screen readers and reduced motion
+    support. Uses CSS custom properties for consistent theming and design system integration.
+Dependencies: CSS custom properties from design system, spinner component markup structure
+Exports: Styling for spinner container, circle animation, size variants, and accessibility features
+Interfaces: CSS classes for spinner, circle, visuallyHidden, size variants, and color variants
+Environment: Cross-browser animation support with fallbacks and accessibility considerations
+Related: LoadingSpinner.tsx component, design system tokens, and animation preferences
+Implementation: CSS Modules with optimized animations and accessibility-first design patterns
+*/
+
 .spinner {
   display: inline-flex;
   align-items: center;

@@ -1,11 +1,21 @@
 # CSS Layout Stability Guide
 
 **Purpose**: Guide for preventing jarring page width changes and maintaining stable layouts in dynamic UIs
+
 **Scope**: CSS layout patterns, React components with dynamic content, responsive design
-**Created**: 2024-11-20
-**Updated**: 2025-09-12
-**Author**: Frontend Team
-**Version**: 1.2
+
+**Overview**: Provides comprehensive guidelines for maintaining visual stability in dynamic user
+    interfaces by preventing layout shifts, width changes, and jarring content movements. Covers
+    CSS techniques, React component patterns, and responsive design strategies that ensure smooth
+    user experiences during content updates, state changes, and dynamic loading scenarios.
+
+**Dependencies**: CSS Modules, React components, responsive design framework, browser compatibility standards
+
+**Exports**: Layout stability patterns, CSS techniques, component design guidelines, responsive design standards
+
+**Related**: STYLING_SYSTEM_GUIDE.md, React components, CSS Modules implementation, responsive design patterns
+
+**Implementation**: CSS layout techniques, component-scoped styling, width preservation strategies, animation patterns
 
 ---
 

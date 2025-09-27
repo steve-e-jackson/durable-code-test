@@ -1,11 +1,28 @@
 # Infrastructure as Code
 
-**Purpose**: Treat infrastructure as a software engineering discipline
-**Scope**: Complete infrastructure lifecycle management through code
+**Purpose**: Treat infrastructure as a software engineering discipline with complete lifecycle management through code
 
-## Overview
+**Scope**: Complete infrastructure lifecycle management, deployment automation, environment management, cost optimization
 
-Infrastructure as Code (IaC) is not just tooling - it's a fundamental capability that enables reliable, repeatable, and auditable infrastructure management. Every piece of infrastructure can be created, modified, and destroyed through code, providing the same benefits we expect from application development: version control, code review, testing, and automation.
+**Overview**: Infrastructure as Code implementation that enables reliable, repeatable, and auditable
+    infrastructure management through software engineering practices. Provides complete infrastructure
+    lifecycle management with the same benefits as application development: version control, code
+    review, testing, and automation. Supports declarative infrastructure definition, environment
+    parity, and cost-effective deployment strategies.
+
+**Dependencies**: Terraform infrastructure code, AWS services, deployment automation, environment configuration
+
+**Exports**: Infrastructure management patterns, deployment workflows, environment configuration, automation tools
+
+**Related**: TERRAFORM_STANDARDS.md, INFRASTRUCTURE_PRINCIPLES.md, deployment documentation
+
+**Implementation**: Terraform-based infrastructure definitions, automated deployment pipelines, environment management
+
+---
+
+## Infrastructure Management Overview
+
+Infrastructure as Code capability that enables reliable, repeatable, and auditable infrastructure management through software engineering discipline.
 
 ## The Feature
 

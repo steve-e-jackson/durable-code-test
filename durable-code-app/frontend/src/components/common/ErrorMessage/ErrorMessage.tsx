@@ -1,3 +1,16 @@
+/**
+ * Purpose: Reusable error message component for displaying alerts and notifications
+ * Scope: UI components across the application for error handling and user feedback
+ * Overview: Provides an accessible error message component with multiple variants (error, warning, info)
+ *     for communicating system states and user feedback. Implements proper ARIA attributes with role="alert"
+ *     and aria-live="polite" for screen reader compatibility. Features optional dismiss functionality,
+ *     contextual icons, and support for both message text and additional content. Integrates with the
+ *     design system for consistent visual communication of different alert types and severity levels.
+ * Dependencies: React, CSS modules for styling, ErrorMessageProps interface from types file
+ * Exports: ErrorMessage component as named export with React.memo optimization
+ * Props/Interfaces: ErrorMessageProps extending HTMLDivElement with message, title, variant, and onDismiss options
+ * State/Behavior: No internal state, controlled component with optional dismiss callback handling
+ */
 import React from 'react';
 import styles from './ErrorMessage.module.css';
 import type { ErrorMessageProps } from './ErrorMessage.types';

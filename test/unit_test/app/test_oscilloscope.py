@@ -1,13 +1,21 @@
 """
-Purpose: Unit tests for oscilloscope WebSocket streaming endpoint.
+Purpose: Validates oscilloscope WebSocket streaming endpoint functionality
 
-Scope: Test WebSocket connection, command processing, and data streaming functionality
+Scope: WebSocket connection testing, command processing validation, and data streaming verification
+
 Overview: Comprehensive test suite for the oscilloscope module including connection tests, command validation,
-waveform generation verification, and error handling scenarios, ensuring robust WebSocket communication and
-accurate signal generation capabilities for real-time data streaming and visualization.
+    waveform generation verification, and error handling scenarios, ensuring robust WebSocket communication and
+    accurate signal generation capabilities for real-time data streaming and visualization. Tests verify WebSocket
+    connectivity, command message processing, waveform data generation accuracy, streaming performance, and
+    error resilience. The suite covers various waveform types, parameter configurations, and communication
+    protocols between frontend and backend components.
+
 Dependencies: pytest, pytest-asyncio, FastAPI test client, WebSocket test support
+
 Exports: Test cases for oscilloscope functionality
+
 Interfaces: pytest test functions
+
 Implementation: Async test functions using FastAPI test client
 """
 

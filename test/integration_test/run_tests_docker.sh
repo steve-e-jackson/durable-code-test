@@ -1,4 +1,18 @@
 #!/bin/bash
+# Purpose: Shell script for executing Playwright integration tests in Docker containers
+# Scope: Automated test execution orchestration for browser-based integration testing
+# Overview: This script coordinates the execution of Playwright integration tests within
+#     Docker containers, providing network connectivity to application services and
+#     ensuring proper browser automation setup. It handles container networking,
+#     dependency installation, browser setup, and test execution with comprehensive
+#     error handling and status reporting for CI/CD pipeline integration.
+# Dependencies: Docker engine, bash shell, network connectivity to application containers
+# Exports: Test execution results and exit codes for CI/CD pipeline integration
+# Usage: ./run_tests_docker.sh (executed from project root or CI/CD environment)
+# Environment: Development testing, CI/CD pipelines, automated integration testing
+# Related: Dockerfile.playwright for container configuration and test files for execution
+# Implementation: Docker container orchestration with network setup and dependency management
+
 # Script to run Playwright tests in Docker using a simpler approach
 
 # Colors for output

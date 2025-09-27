@@ -1,5 +1,26 @@
 # React Frontend Upgrade - AI Agent Context
 
+**Purpose**: AI agent context document for React frontend upgrade transforming poorly structured code into professional, maintainable application
+
+**Scope**: Complete frontend architecture transformation from functional demo code to production-quality React application following industry best practices
+
+**Overview**: Comprehensive context document for AI agents working on React frontend upgrade project. Addresses
+    critical code quality issues including monolithic components, missing error boundaries, performance problems,
+    and architectural deficiencies. Provides target architecture with feature-based organization, proper state
+    management, comprehensive testing strategies, and performance optimization. Includes specific implementation
+    guidance, technical decisions, success criteria, and development workflow for systematic transformation
+    to production-ready application.
+
+**Dependencies**: React 19, TypeScript 5.8, Vite 7.1, Vitest 3.2, Zustand, TanStack Query, CSS Modules, testing frameworks
+
+**Exports**: Frontend architecture patterns, implementation strategies, testing approaches, and development workflow guidance
+
+**Related**: PR breakdown documents for implementation phases, testing strategies, performance optimization guidelines
+
+**Implementation**: Phased upgrade approach with atomic PRs, comprehensive testing, and systematic architecture improvement
+
+---
+
 ## Project Overview
 **Repository**: durable-code-test
 **Location**: `/home/stevejackson/Projects/durable-code-test/durable-code-app/frontend`

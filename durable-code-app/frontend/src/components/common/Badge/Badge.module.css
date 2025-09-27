@@ -1,3 +1,19 @@
+/*
+Purpose: Badge component styles with size and variant theming support
+Scope: CSS module styles for badge components across the application
+Overview: Provides comprehensive styling for badge components with multiple size variants
+    (small, medium, large) and semantic color variants (success, warning, error, info, neutral).
+    Implements design system color variables with fallback values for consistent theming.
+    Includes accessibility-focused styling with proper contrast ratios and responsive design
+    patterns. Supports inline layout integration with proper vertical alignment and spacing.
+Dependencies: CSS custom properties from design system for colors and spacing tokens
+Exports: Badge component styling with size and variant classes
+Interfaces: CSS class selectors for badge, size variants, and color variants
+Environment: All browsers supporting CSS custom properties and flexbox layout
+Related: Badge component TypeScript implementation and design system color tokens
+Implementation: CSS Modules pattern with BEM-inspired naming and design system integration
+*/
+
 .badge {
   display: inline-flex;
   align-items: center;

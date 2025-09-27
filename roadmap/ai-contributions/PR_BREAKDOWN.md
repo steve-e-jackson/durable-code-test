@@ -1,5 +1,26 @@
 # AI-Powered Community Contributions - PR Breakdown
 
+**Purpose**: Detailed implementation breakdown of AI-powered community contribution feature into manageable, atomic pull requests
+
+**Scope**: Complete feature implementation from backend infrastructure through frontend integration and final documentation
+
+**Overview**: Comprehensive breakdown of the AI-powered community contribution feature into six manageable, atomic
+    pull requests. Each PR is designed to be self-contained, testable, and maintains application functionality
+    while incrementally building toward the complete feature. Includes detailed implementation steps, file
+    structures, testing requirements, and success criteria for each PR. Covers backend infrastructure,
+    authentication systems, frontend components, admin interfaces, UI integration, and final documentation
+    with comprehensive testing strategies.
+
+**Dependencies**: FastAPI backend, React frontend, GitHub API, PostgreSQL database, authentication systems
+
+**Exports**: PR implementation plans, file structures, testing strategies, and success criteria for each development phase
+
+**Related**: AI_CONTEXT.md for feature overview, SECURITY_STRATEGY.md for security requirements, PROGRESS_TRACKER.md for status tracking
+
+**Implementation**: Atomic PR approach with detailed step-by-step implementation guidance and comprehensive testing validation
+
+---
+
 ## 🚀 PROGRESS TRACKER - MUST BE UPDATED AFTER EACH PR!
 
 ### ✅ Completed PRs
