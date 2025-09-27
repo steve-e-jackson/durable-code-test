@@ -198,6 +198,34 @@ aws ecs describe-task-definition \
 2. **Least Privilege**: IAM role has minimal required permissions
 3. **Branch Protection**: Restrict deployments to protected branches
 4. **Manual Approval**: Add environment protection rules for production
+5. **Automated Security Scanning**:
+   - AWS secrets detection prevents accidental credential commits
+   - Comprehensive security linting as part of CI/CD pipeline
+   - All code must pass security checks before deployment
+
+### AWS Secrets Detection
+
+The pipeline includes automated AWS secrets detection that scans for:
+- AWS Access Keys (AKIA*, ASIA*)
+- AWS Secret Access Keys
+- AWS Session Tokens
+- AWS Account IDs in sensitive contexts
+- AWS Resource ARNs and IDs
+
+**Configuration**:
+```bash
+# Security scanning is automatically run on all commits
+make lint-all  # Includes AWS secrets detection
+
+# Manual security scan using Docker
+docker exec durable-code-backend-$(git branch --show-current)-dev bash -c "cd /app && PYTHONPATH=/app/tools python -m design_linters.cli --rules security.aws.secrets-detection --format text --recursive ."
+```
+
+**Detection Patterns**:
+- Detects keys in code, comments, and configuration files
+- Identifies suspicious patterns and contexts
+- Skips test files and example documentation by default
+- Configurable severity levels and detection rules
 
 ## Cost Optimization
 

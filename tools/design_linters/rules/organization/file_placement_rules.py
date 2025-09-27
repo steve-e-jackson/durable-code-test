@@ -321,6 +321,8 @@ class FileOrganizationRule(ASTLintRule):
             return "Move to 'scripts/debug/' or remove if no longer needed"
         elif re.match(r"test_.*\.py$|.*_test\.py$", filename):
             return "Move to 'test/unit_test/' following the project test structure"
+        elif filename.lower() == "readme.md" or filename.endswith(".md"):
+            return "Documentation should be created in the .ai folder (e.g., .ai/docs/ or .ai/howto/)"
         elif filename.endswith(".tsx") or filename.endswith(".ts"):
             if "service" in filename.lower():
                 return "Move to 'features/[feature-name]/services/'"

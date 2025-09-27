@@ -147,6 +147,7 @@ class FileHeaderRule(ASTLintRule):
             "field_pattern": re.compile(r"^\*\*(\w+)\*\*:\s*(.+)$", re.MULTILINE),
             "is_code": False,
             "min_header_lines": 3,
+            "require_main_heading": True,
         },
         ".html": {
             "header_pattern": re.compile(r"^<!DOCTYPE html>\s*\n<!--[\s\S]*?-->", re.MULTILINE),
@@ -263,6 +264,20 @@ class FileHeaderRule(ASTLintRule):
             except Exception as e:
                 logger.error(f"Could not read file {file_path}: {e}")
                 return violations
+
+        # Special check for markdown files to ensure they have a main heading
+        if file_ext == ".md" and config.get("require_main_heading", False):
+            lines = content.split("\n")
+            if not lines or not lines[0].startswith("# "):
+                violations.append(
+                    self.create_violation(
+                        context=context,
+                        node=node,
+                        message=f"Missing main heading in markdown file {file_path.name}",
+                        description="Markdown files must start with a main heading (# Title)",
+                        suggestion="Add a main heading at the top of the file: # [Document Title]",
+                    )
+                )
 
         # Extract header
         header_match = config["header_pattern"].search(content[:2000])  # Check first 2000 chars

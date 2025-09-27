@@ -259,3 +259,64 @@ class TestFileOrganizationRule:
                 module_node = ast.parse("# Test")
                 violations = self.rule.check_node(module_node, context)
                 assert len(violations) == 0, f"Properly placed file {path} should not trigger violations"
+
+    def test_readme_files_in_infra_directory(self):
+        """Test that README.md files in infra directory are detected with custom layout."""
+        # Create a rule with custom layout configuration
+        import tempfile
+        import yaml
+
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+            layout_config = {
+                'linter_rules': {
+                    'paths': {
+                        'infra/': {
+                            'deny': ['README\\.md$', '\\.md$']
+                        }
+                    }
+                }
+            }
+            yaml.dump(layout_config, f)
+            temp_layout_file = f.name
+
+        try:
+            rule = FileOrganizationRule({'layout_rules_file': temp_layout_file})
+
+            # Test README.md in infra directory
+            with patch("pathlib.Path.cwd", return_value=Path("/project")):
+                context = self.create_context("/project/infra/README.md")
+                module_node = ast.parse("# Test")
+                violations = rule.check_node(module_node, context)
+
+                assert len(violations) == 1, "README.md in infra/ should trigger violation"
+                violation = violations[0]
+                assert "forbidden in infra/" in violation.message
+                assert ".ai folder" in violation.suggestion
+        finally:
+            import os
+            os.unlink(temp_layout_file)
+
+    def test_markdown_files_get_ai_folder_suggestion(self):
+        """Test that markdown files get suggestion to move to .ai folder."""
+        # Test the suggestion generation directly
+        suggestion = self.rule._get_suggestion_for_file("README.md", None)
+        assert ".ai folder" in suggestion
+        assert "e.g., .ai/docs/ or .ai/howto/" in suggestion
+
+        suggestion = self.rule._get_suggestion_for_file("documentation.md", None)
+        assert ".ai folder" in suggestion
+
+    def test_documentation_files_in_ai_folder(self):
+        """Test that documentation files in .ai folder don't trigger violations."""
+        ai_folder_files = [
+            "/project/.ai/docs/setup.md",
+            "/project/.ai/howto/deploy.md",
+            "/project/.ai/features/feature1.md",
+        ]
+
+        for path in ai_folder_files:
+            with patch("pathlib.Path.cwd", return_value=Path("/project")):
+                context = self.create_context(path)
+                module_node = ast.parse("# Test")
+                violations = self.rule.check_node(module_node, context)
+                assert len(violations) == 0, f"Documentation in .ai folder {path} should be allowed"

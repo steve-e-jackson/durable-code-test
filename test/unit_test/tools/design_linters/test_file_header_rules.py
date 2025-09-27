@@ -363,6 +363,46 @@ def test_function():
         # Should detect the file type and check for violations
         assert len(violations) > 0  # Missing required fields
 
+    def test_markdown_file_missing_main_heading(self, rule, context):
+        """Test that markdown files without main heading are detected."""
+        content = """**Purpose**: Documentation
+**Scope**: Testing
+
+This is a markdown file without a main heading at the start.
+"""
+        context.file_path = "test.md"
+        context.file_content = content
+        context.ast_tree = ast.parse("")
+
+        violations = rule.check(context)
+
+        # Should have violation for missing main heading
+        assert any("Missing main heading" in v.message for v in violations)
+        assert any("must start with a main heading" in v.description for v in violations)
+
+    def test_markdown_file_with_main_heading(self, rule, context):
+        """Test that markdown files with proper main heading pass validation."""
+        content = """# Test Document
+
+**Purpose**: Documentation for testing
+**Scope**: Unit tests
+
+This markdown file has a proper main heading.
+"""
+        context.file_path = "test.md"
+        context.file_content = content
+        context.ast_tree = ast.parse("")
+
+        violations = rule.check(context)
+
+        # Should not have violation for main heading, but may have other violations
+        assert not any("Missing main heading" in v.message for v in violations)
+
+    def test_markdown_header_requirement_flag(self, rule):
+        """Test that markdown header requirement is properly configured."""
+        config = rule.FILE_CONFIGS.get(".md", {})
+        assert config.get("require_main_heading") is True
+
 
 class TestFileHeaderFieldParsing:
     """Test the field parsing logic specifically."""
