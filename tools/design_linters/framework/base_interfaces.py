@@ -16,15 +16,10 @@ Implementation: Inheritance-based multi-language support with backward compatibi
 """
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Generic, TypeVar
 
 # Import common types
 from .types import LintViolation, Severity
-
-# Generic type for language-specific syntax tree nodes
-SyntaxNodeType = TypeVar("SyntaxNodeType")
 
 
 class BaseLintContext(ABC):

@@ -17,7 +17,6 @@ Implementation: File-based analysis with language-agnostic line checking
 """
 
 from pathlib import Path
-from typing import Any
 
 from tools.design_linters.framework import BaseLintContext, FileBasedMultiLanguageRule
 from tools.design_linters.framework.types import LintViolation, Severity

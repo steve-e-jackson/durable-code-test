@@ -16,11 +16,17 @@ import contextlib
 import pkgutil
 from pathlib import Path
 
-# Core types
-from .types import LintViolation, Severity
-
 # Analysis and orchestration
 from .analyzer import ContextualASTVisitor, DefaultLintOrchestrator, LintResults, PythonAnalyzer
+# Multi-language support
+from .base_interfaces import (
+    BaseLintAnalyzer,
+    BaseLintContext,
+    BaseLintRule,
+    BaseOrchestrator,
+    FileBasedMultiLanguageRule,
+    MultiLanguageRule,
+)
 from .interfaces import (
     ASTLintRule,
     ConfigurationProvider,
@@ -32,17 +38,9 @@ from .interfaces import (
     LintRule,
     RuleRegistry,
 )
-
-# Multi-language support
-from .base_interfaces import (
-    BaseLintAnalyzer,
-    BaseLintContext,
-    BaseLintRule,
-    BaseOrchestrator,
-    FileBasedMultiLanguageRule,
-    MultiLanguageRule,
-)
 from .multi_language_orchestrator import DefaultLanguageRegistry, MultiLanguageOrchestrator
+# Core types
+from .types import LintViolation, Severity
 
 # Reporting system
 from .reporters import GitHubActionsReporter, JSONReporter, ReporterFactory, SARIFReporter, TextReporter
