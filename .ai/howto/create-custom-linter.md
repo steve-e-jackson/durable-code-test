@@ -1,12 +1,10 @@
 # How to Create a Custom Linter Rule
 
 **Purpose**: Comprehensive guide for creating custom linting rules for the pluggable design linter framework
-**Scope**: Rule implementation, testing, configuration, and integration
-**Created**: 2025-01-17
-**Author**: Development Team
-**Version**: 1.0
 
----
+**Scope**: Rule implementation, testing, configuration, and integration
+
+**Overview**: This comprehensive guide covers creating custom linting rules for the pluggable design linter framework, including rule implementation patterns, testing strategies, configuration management, and integration workflows. It provides step-by-step instructions for developing new linter rules, implementing validation logic, writing comprehensive tests, and integrating rules into the existing linter infrastructure to maintain code quality and enforce project standards.
 
 ## Table of Contents
 

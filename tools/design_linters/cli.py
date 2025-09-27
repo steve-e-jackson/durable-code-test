@@ -376,9 +376,29 @@ class LintingExecutor:
         violations = []
         if path.is_file():
             violations.extend(self.orchestrator.lint_file(path, config))
+            self.files_analyzed += 1
         elif path.is_dir() and args.recursive:
-            for py_file in path.rglob("*.py"):
-                violations.extend(self.orchestrator.lint_file(py_file, config))
+            # Use orchestrator's lint_directory method which respects include patterns
+            dir_violations = self.orchestrator.lint_directory(path, config, recursive=True)
+            violations.extend(dir_violations)
+            # Count files that were analyzed - extract from violations
+            analyzed_files = {v.file_path for v in dir_violations if v.file_path}
+            if analyzed_files:
+                self.files_analyzed += len(analyzed_files)
+            else:
+                # Even if no violations, we should count the files that were checked
+                # Try to access the file discovery to get the count
+                try:
+                    if hasattr(self.orchestrator, "_file_discovery"):
+                        files = self.orchestrator._file_discovery.find_files_to_analyze(
+                            path,
+                            config.get("include", ["**/*.py"]),
+                            config.get("exclude", ["__pycache__/**", ".git/**", ".venv/**"]),
+                            recursive=True,
+                        )
+                        self.files_analyzed += len(files)
+                except Exception:  # pylint: disable=broad-exception-caught # noqa: S110
+                    pass  # nosec B110 - Silently fail if we can't get the count
         return violations
 
     def _apply_severity_filter(self, violations: list[LintViolation], args: argparse.Namespace) -> list[LintViolation]:

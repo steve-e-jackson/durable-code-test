@@ -1,6 +1,10 @@
 # How to Add a New API Endpoint
 
-This guide explains how to add a new API endpoint to the FastAPI backend, ensuring it appears in the auto-generated documentation at http://localhost:8000/docs.
+**Purpose**: Guide for adding new API endpoints to the FastAPI backend with proper documentation
+
+**Scope**: FastAPI backend development, API routing, endpoint documentation, and integration patterns
+
+**Overview**: This guide explains how to add a new API endpoint to the FastAPI backend, ensuring it appears in the auto-generated documentation at http://localhost:8000/docs. It covers the complete workflow from creating router modules and defining endpoints to integrating with the main application, implementing proper request/response models, adding authentication, and ensuring endpoints are properly documented with OpenAPI specifications for automatic documentation generation.
 
 ## Prerequisites
 

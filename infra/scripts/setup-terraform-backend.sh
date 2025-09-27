@@ -1,8 +1,10 @@
 #!/bin/bash
-
-# Setup script for Terraform backend infrastructure
-# This script creates the S3 bucket and DynamoDB table required for Terraform state management
-# Must be run once before initializing Terraform
+# Purpose: Initialize Terraform backend infrastructure for secure state management
+# Scope: AWS S3 bucket and DynamoDB table creation for Terraform remote state storage
+# Overview: Essential setup script that creates the required AWS infrastructure for Terraform remote state management.
+#     Creates an S3 bucket with encryption, versioning, and public access blocking for state storage,
+#     and a DynamoDB table for state locking to prevent concurrent modifications. Validates AWS credentials,
+#     configures proper naming conventions, and ensures idempotent execution for reliable infrastructure setup.
 
 set -e  # Exit on any error
 

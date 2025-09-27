@@ -1,5 +1,10 @@
 #!/bin/bash
-# Deploy application to AWS ECS
+# Purpose: Deploy containerized application to AWS ECS infrastructure
+# Scope: Complete application deployment pipeline for AWS ECS with ECR container registry
+# Overview: Automated deployment script that handles the full container deployment lifecycle to AWS ECS.
+#     Authenticates with ECR, builds and pushes Docker images with timestamped tags, updates ECS service definitions,
+#     and manages blue-green deployments. Includes environment-specific configuration, health checks,
+#     and rollback capabilities for production-ready container orchestration on AWS infrastructure.
 
 set -e
 

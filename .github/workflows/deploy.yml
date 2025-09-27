@@ -1,3 +1,9 @@
+# Purpose: Deploy application services to Amazon ECS with zero-downtime deployment
+# Scope: Manual deployment triggers and automatic deployment from main branch pushes
+# Overview: This workflow handles deployment of frontend and backend services to AWS ECS
+#     clusters using task definition updates. It supports multiple environments (dev, staging,
+#     prod), downloads current task definitions, updates them with new container images,
+#     deploys with rolling updates, and verifies deployment success with health checks.
 name: Deploy to ECS
 
 on:

@@ -1,5 +1,11 @@
 # AI Agent Expanded Documentation
 
+**Purpose**: Detailed information referenced by index.yaml for AI agent documentation and templates
+
+**Scope**: AI agent templates, usage guides, documentation patterns, and implementation examples
+
+**Overview**: This file provides detailed information referenced by index.yaml for quick navigation and comprehensive understanding of AI agent documentation patterns. It includes template usage guides, implementation examples, documentation standards, and best practices for AI-assisted development workflows. The content serves as an expanded reference for understanding how to effectively use AI agent templates and documentation patterns throughout the project.
+
 > **Note**: This file provides detailed information referenced by `index.yaml`. Read the YAML file first for quick navigation.
 
 ## Templates

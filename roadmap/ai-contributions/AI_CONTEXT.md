@@ -1,7 +1,10 @@
 # AI-Powered Community Contributions - AI Context
 
-## Overview
-This document provides context for AI agents working on the community contribution feature for the Durable Code Test application. The feature enables community members to submit AI prompts that, when approved, can be used to generate code contributions to the project.
+**Purpose**: Provide comprehensive context for AI agents working on community contribution feature
+
+**Scope**: Community contribution system architecture, decisions, and implementation guidance for AI agents
+
+**Overview**: This document serves as the primary context and guidance resource for AI agents developing the community contribution feature for the Durable Code Test application. It covers the complete system architecture that enables community members to submit AI prompts for code contributions, explains key architectural decisions and their rationale, defines integration patterns with existing systems, and provides implementation guidance for maintaining consistency with the project's AI-first philosophy while ensuring security and quality control.
 
 ## Project Background
 The Durable Code Test application demonstrates AI-ready development practices with a fully AI-authored codebase. By extending this concept, we're creating a unique contribution model where community members can contribute through AI prompts rather than direct code submissions, democratizing open-source contributions for non-programmers while maintaining code quality standards.

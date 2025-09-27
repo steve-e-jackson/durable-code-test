@@ -1,5 +1,11 @@
 # AI-Powered Community Contributions - Progress Tracker & AI Agent Handoff Document
 
+**Purpose**: Primary handoff document for AI agents working on AI-powered community contribution feature
+
+**Scope**: Complete progress tracking and development coordination for community contribution system
+
+**Overview**: This comprehensive handoff document serves as the central coordination point for AI agents working on the community contribution feature. It tracks current progress through all development phases, maintains status updates for each pull request, provides clear next-step guidance, and ensures seamless handoff between AI agents. The document covers the complete development lifecycle from backend infrastructure and authentication to frontend interfaces and deployment, enabling community members to contribute AI prompts that can be reviewed and implemented as GitHub issues.
+
 ## 🤖 Document Purpose
 This is the **PRIMARY HANDOFF DOCUMENT** for AI agents working on the AI-powered community contribution feature. When starting work on any PR, the AI agent should:
 1. **Read this document FIRST** to understand current progress and feature requirements

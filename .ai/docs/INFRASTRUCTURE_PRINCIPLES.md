@@ -1,7 +1,10 @@
 # Infrastructure Principles
 
 **Purpose**: Define the core principles and philosophy for infrastructure design
+
 **Scope**: All infrastructure decisions and implementations
+
+**Overview**: This document defines the core principles and philosophy for infrastructure design that guide all infrastructure decisions and implementations. It establishes fundamental concepts for treating infrastructure as code, implementing cost optimization strategies, ensuring security and compliance, and maintaining reliable, scalable, and maintainable infrastructure systems that support the application lifecycle and business requirements.
 
 ## Why We Build Infrastructure This Way
 

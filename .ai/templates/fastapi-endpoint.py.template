@@ -1,4 +1,4 @@
-"""
+2"""
 Purpose: {{ENDPOINT_PURPOSE}} API endpoint for the durable code application
 Scope: {{ENDPOINT_SCOPE}} functionality with proper validation and error handling
 Overview: This module provides {{ENDPOINT_DESCRIPTION}}. It follows FastAPI best practices

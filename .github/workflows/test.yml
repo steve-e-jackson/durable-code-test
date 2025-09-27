@@ -1,5 +1,9 @@
-# GitHub Actions workflow for comprehensive testing with Docker caching
-# Runs all tests using cached Docker images for faster execution
+# Purpose: Execute comprehensive test suite covering backend, frontend, and integration tests
+# Scope: All pull requests and pushes to main branch for code quality assurance
+# Overview: This workflow runs the complete test suite using Docker-cached environments for
+#     optimal performance. It executes backend tests with pytest coverage, frontend tests with
+#     Jest/Vitest coverage, integration tests, and design linter framework tests. Coverage
+#     reports are uploaded as artifacts and test summaries are generated for visibility.
 name: Testing
 
 on:

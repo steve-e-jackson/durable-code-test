@@ -1,7 +1,10 @@
 # Docker Linting Separation - AI Context
 
-## Overview
-This document provides context for AI agents working on the Docker linting separation project for the Durable Code Test application. The goal is to separate linting toolchains from development containers to improve development experience and deployment reliability.
+**Purpose**: Provide context for AI agents working on Docker linting separation project
+
+**Scope**: Separation of linting toolchains from development containers to improve development experience
+
+**Overview**: This document provides comprehensive context for AI agents working on the Docker linting separation project for the Durable Code Test application. The goal is to separate linting toolchains from development containers to improve development experience and deployment reliability by creating dedicated linting containers, reducing container startup times, minimizing memory footprint, and optimizing CI/CD pipeline efficiency. The project addresses current architecture problems including slow container startup, bloated deployment images, and mixed runtime/tooling concerns.
 
 ## Project Background
 The Durable Code Test application currently uses monolithic development containers that include both runtime dependencies and comprehensive linting toolchains. This approach has served well for development but creates issues:

@@ -1,9 +1,10 @@
 # How to Manage Infrastructure
 
 **Purpose**: Provide step-by-step instructions for managing AWS infrastructure using Docker-based Terraform Make targets
+
 **Scope**: Infrastructure deployment, state management, cost control, and troubleshooting procedures
 
----
+**Overview**: This guide provides comprehensive step-by-step instructions for managing AWS infrastructure using Docker-based Terraform Make targets. It covers infrastructure deployment procedures, state management best practices, cost control strategies, and troubleshooting procedures that ensure reliable and cost-effective infrastructure operations while maintaining consistency across development, staging, and production environments.
 
 ## Prerequisites
 

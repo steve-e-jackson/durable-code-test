@@ -1,7 +1,10 @@
 # GitHub Merge Workflow with Make Targets
 
-## Purpose
-This guide provides AI agents and developers with comprehensive instructions for using Make targets to interact with GitHub during PR creation, monitoring, and merging workflows.
+**Purpose**: Guide providing AI agents and developers with comprehensive instructions for using Make targets to interact with GitHub during PR creation, monitoring, and merging workflows
+
+**Scope**: GitHub workflow automation, Make targets, PR management, CI/CD monitoring, and merge processes
+
+**Overview**: This guide provides AI agents and developers with comprehensive instructions for using Make targets to interact with GitHub during PR creation, monitoring, and merging workflows. It covers automated GitHub interactions, pull request management, CI/CD check monitoring, and merge process automation that streamlines development workflows while maintaining quality standards and compliance with project requirements.
 
 ## Quick Reference
 

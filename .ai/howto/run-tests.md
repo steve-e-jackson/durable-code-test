@@ -1,5 +1,11 @@
 # How to Run Unit Tests
 
+**Purpose**: Guide for running unit tests using the project's standardized testing framework
+
+**Scope**: Unit testing procedures, Make targets, Docker-based testing, and test execution workflows
+
+**Overview**: This guide explains how to run unit tests using the project's standardized testing framework that enforces Docker and Make usage per project standards. It covers all testing procedures from basic unit test execution to comprehensive test suites, including frontend React testing, backend Python testing, and integration testing workflows that ensure code quality and reliability across the entire application stack.
+
 ## Primary Method: Make Targets (Required)
 
 The project enforces Docker/Make usage per `CLAUDE.md`. **Always use make targets first.**

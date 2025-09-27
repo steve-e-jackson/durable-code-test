@@ -566,8 +566,54 @@ class DefaultLintOrchestrator(LintOrchestrator):
         if self.config_provider:
             return self.config_provider.load_config()
 
+        # Check if any FileBasedLintRules are enabled
+        from .interfaces import FileBasedLintRule
+
+        has_file_based_rules = any(isinstance(rule, FileBasedLintRule) for rule in self.rule_registry.get_all_rules())
+
+        # If FileBasedLintRules are present, include all supported text files
+        if has_file_based_rules:
+            include_patterns = [
+                "**/*.py",
+                "**/*.md",
+                "**/*.markdown",
+                "**/*.rst",
+                "**/*.txt",
+                "**/*.yaml",
+                "**/*.yml",
+                "**/*.json",
+                "**/*.jsonc",
+                "**/*.xml",
+                "**/*.html",
+                "**/*.htm",
+                "**/*.css",
+                "**/*.scss",
+                "**/*.less",
+                "**/*.js",
+                "**/*.jsx",
+                "**/*.ts",
+                "**/*.tsx",
+                "**/*.sh",
+                "**/*.bash",
+                "**/*.zsh",
+                "**/*.toml",
+                "**/*.ini",
+                "**/*.cfg",
+                "**/*.conf",
+                "**/*.tf",
+                "**/*.tfvars",
+                "**/*.hcl",
+                "**/*.sql",
+                "**/*.env",
+                "**/*.env.example",
+                "**/.gitignore",
+                "**/.dockerignore",
+            ]
+        else:
+            include_patterns = ["**/*.py"]
+
         return {
             "rules": {},  # All rules enabled by default
-            "include": ["**/*.py"],
-            "exclude": ["__pycache__/**", ".git/**", ".venv/**", "**/.pytest_cache/**"],
+            "include": include_patterns,
+            "exclude": ["__pycache__/**", ".git/**", ".venv/**", "**/.pytest_cache/**", "**/node_modules/**"],
         }

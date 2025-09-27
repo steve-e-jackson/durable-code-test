@@ -1,13 +1,10 @@
 # Setup direnv for Automatic Environment Variables
 
 **Purpose**: Configure direnv to automatically load environment variables when entering the project directory
+
 **Scope**: Development environment setup for secure token and configuration management
 
----
-
-## Overview
-
-direnv is a shell extension that automatically loads and unloads environment variables based on the current directory. This guide explains how to set up direnv for the project, ensuring GitHub tokens and other sensitive configuration are automatically available without manual exports.
+**Overview**: direnv is a shell extension that automatically loads and unloads environment variables based on the current directory. This guide explains how to set up direnv for the project, ensuring GitHub tokens and other sensitive configuration are automatically available without manual exports. It provides comprehensive instructions for installation, configuration, and security best practices for managing environment variables in development workflows.
 
 ## Prerequisites
 

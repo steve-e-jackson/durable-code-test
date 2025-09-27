@@ -1,3 +1,18 @@
+/**
+ * Purpose: HTTP request service for link validation and URL health checking
+ * Scope: HTTP request utilities with strategy pattern for flexible request handling
+ * Overview: This module provides a comprehensive HTTP request service designed for link
+ *     validation and URL health checking. It implements the strategy pattern to allow
+ *     different request implementations, includes timeout handling, redirect control,
+ *     and response validation. The service is used primarily for validating links and
+ *     checking the health of external resources, providing detailed response information
+ *     including status codes, response times, and error handling.
+ * Dependencies: Fetch API for HTTP requests, AbortController for timeout handling
+ * Exports: HttpRequestService class, request strategy interfaces, validation result types
+ * Props/Interfaces: HttpRequestOptions, HttpResponse, RequestStrategy, ValidationResult
+ * State/Behavior: Stateless service with configurable request strategies and timeout handling
+ */
+
 export interface HttpRequestOptions {
   timeout?: number;
   followRedirects?: boolean;

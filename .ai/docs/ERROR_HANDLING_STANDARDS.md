@@ -1,7 +1,10 @@
 # Error Handling Standards
 
-## Overview
-This document defines standards for error handling across the codebase to ensure robust, maintainable, and debuggable applications.
+**Purpose**: Define standards for error handling across the codebase to ensure robust, maintainable, and debuggable applications
+
+**Scope**: All code files including Python backend, TypeScript frontend, error logging, exception handling, and debugging practices
+
+**Overview**: This document defines comprehensive error handling standards across the entire codebase to ensure robust, maintainable, and debuggable applications. It covers exception handling patterns, error logging practices, debugging strategies, and recovery mechanisms that provide consistent error management across Python backend services and TypeScript frontend components, enabling effective troubleshooting and system reliability.
 
 ## Core Principles
 

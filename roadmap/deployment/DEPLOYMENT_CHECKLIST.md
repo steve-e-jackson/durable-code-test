@@ -1,5 +1,11 @@
 # Deployment Checklist for CI/CD
 
+**Purpose**: Comprehensive deployment checklist for CI/CD pipeline validation and troubleshooting
+
+**Scope**: Pre-deployment validation, deployment process, post-deployment validation, and rollback procedures
+
+**Overview**: This comprehensive checklist provides step-by-step validation procedures for CI/CD deployments to AWS ECS Fargate infrastructure. It covers pre-deployment code quality checks, Docker build preparation, infrastructure updates, service deployment validation, health checks, API validation, and troubleshooting procedures. The checklist includes specific commands for monitoring ECS services, ALB health, and container logs, along with rollback procedures and common issue resolution strategies to ensure reliable deployments.
+
 ## Pre-Deployment Validation ✅
 
 ### Code Quality

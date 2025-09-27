@@ -1,3 +1,16 @@
+/**
+ * Purpose: ESLint configuration for TypeScript React application with strict rules
+ * Scope: All TypeScript and TSX files in the frontend application
+ * Overview: Comprehensive ESLint configuration that enforces code quality, type safety,
+ *     and React best practices. Includes TypeScript strict rules, React hooks rules,
+ *     accessibility standards, and custom rules for import organization and code style.
+ *     Configured to work with modern React development including React Refresh.
+ * Dependencies: ESLint, TypeScript ESLint, React plugins, globals configuration
+ * Exports: ESLint configuration array for typescript-eslint config system
+ * Props/Interfaces: ESLint configuration format with rules, plugins, and settings
+ * Implementation: Flat config format with TypeScript parser and comprehensive rule set
+ */
+
 import js from '@eslint/js';
 import globals from 'globals';
 import reactHooks from 'eslint-plugin-react-hooks';

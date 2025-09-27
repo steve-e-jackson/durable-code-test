@@ -1,5 +1,11 @@
 # AWS Deployment Infrastructure - PR Breakdown
 
+**Purpose**: Break down AWS deployment infrastructure into manageable, atomic pull requests
+
+**Scope**: Complete AWS ECS Fargate deployment roadmap from foundation to production readiness
+
+**Overview**: This document provides a comprehensive breakdown of the AWS deployment infrastructure into eleven manageable, atomic pull requests. Each PR is designed to be self-contained, testable, and revertible while incrementally building toward a production-ready AWS ECS Fargate deployment. The roadmap covers Terraform foundation, ECR setup, ECS configuration, load balancer setup, CI/CD pipelines, monitoring, security hardening, cost optimization with scheduled infrastructure, backup/disaster recovery, and final production readiness with comprehensive documentation.
+
 ## 🚀 PROGRESS TRACKER - MUST BE UPDATED AFTER EACH PR!
 
 ### ✅ Completed PRs
@@ -22,14 +28,9 @@
 
 **Progress**: 36% Complete (4/11 PRs)
 
----
-
-## Overview
-This document breaks down the AWS deployment setup into manageable, atomic PRs. Each PR is designed to be:
-- Self-contained and testable
-- Maintains a working application
-- Incrementally builds toward production deployment
-- Revertible if needed
+**Purpose**: Break down AWS deployment infrastructure into manageable, atomic pull requests
+**Scope**: Complete AWS ECS Fargate deployment roadmap from foundation to production readiness
+**Overview**: This document provides a comprehensive breakdown of the AWS deployment infrastructure into eleven manageable, atomic pull requests. Each PR is designed to be self-contained, testable, and revertible while incrementally building toward a production-ready AWS ECS Fargate deployment. The roadmap covers Terraform foundation, ECR setup, ECS configuration, load balancer setup, CI/CD pipelines, monitoring, security hardening, cost optimization with scheduled infrastructure, backup/disaster recovery, and final production readiness with comprehensive documentation.
 
 ---
 

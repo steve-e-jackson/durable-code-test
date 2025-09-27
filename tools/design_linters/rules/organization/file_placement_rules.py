@@ -50,8 +50,13 @@ class FileOrganizationRule(ASTLintRule):
 
         # Fallback to default config if no JSON file found
         if not self.layout_rules:
-            logger.warning(f"Layout rules file not found: {layout_file}, using default configuration")
+            logger.error(f"Layout rules file not found: {layout_file}, using default configuration")
+            # Store that we failed to load the layout file
+            self.layout_file_missing = True
+            self.missing_layout_file = layout_file
             self._use_default_config()
+        else:
+            self.layout_file_missing = False
 
     def _load_layout_rules(self, layout_file: str) -> None:
         """Load layout rules from JSON or YAML file."""
@@ -133,6 +138,24 @@ class FileOrganizationRule(ASTLintRule):
     def check_node(self, node: Any, context: LintContext) -> list[LintViolation]:
         """Check if the file is properly placed according to layout rules."""
         violations = []
+
+        # Report missing layout file as an error on the first file checked
+        if hasattr(self, "layout_file_missing") and self.layout_file_missing and context.file_path:
+            violations.append(
+                LintViolation(
+                    rule_id=self.rule_id,
+                    file_path=str(context.file_path),
+                    line=1,
+                    column=0,
+                    severity=Severity.ERROR,
+                    message=f"Required layout configuration file not found: {self.missing_layout_file}",
+                    description="Project layout rules file is missing, cannot validate file organization",
+                    suggestion="Ensure the layout rules file exists at the specified location, or create it with proper configuration",
+                )
+            )
+            # Only report once per run
+            self.layout_file_missing = False
+            return violations  # Don't check placement if layout file is missing
 
         if not context.file_path or not self.layout_rules:
             return violations
@@ -289,7 +312,9 @@ class FileOrganizationRule(ASTLintRule):
 
         # Check against allow patterns (if specified)
         if "allow" in matched_rule:
-            file_allowed = any(re.search(pattern, path_str) for pattern in matched_rule["allow"])
+            # For root directory patterns, check against filename only
+            check_target = rel_path.name if matched_path == "." else path_str
+            file_allowed = any(re.search(pattern, check_target) for pattern in matched_rule["allow"])
             if not file_allowed:
                 # File doesn't match any allow pattern
                 # Special handling for Python files in root

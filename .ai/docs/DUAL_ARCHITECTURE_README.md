@@ -1,18 +1,10 @@
 # PR4.5: Dual-Architecture Terraform Configuration
 
 **Purpose**: Documentation of the dual-architecture infrastructure approach for fast recovery
-**Scope**: Terraform configuration patterns for separating base and runtime resources
-**Status**: Implemented and operational
-**Overview**: This document comprehensively describes the dual-architecture approach that separates
-    persistent "base" infrastructure resources from ephemeral "runtime" resources, solving the
-    30+ minute certificate validation delays and enabling rapid infrastructure recovery in under
-    5 minutes. It details the resource categorization strategy, usage workflows, cost optimization
-    techniques, and implementation patterns that allow developers to destroy expensive runtime
-    resources during off-hours while preserving slow-to-provision base resources like validated
-    certificates and NAT gateways.
 
-## Overview
-This PR implements a dual-architecture approach to infrastructure management, separating persistent "base" resources from ephemeral "runtime" resources. This solves the 30+ minute certificate validation delays and enables fast infrastructure recovery (<5 minutes).
+**Scope**: Terraform configuration patterns for separating base and runtime resources
+
+**Overview**: This document comprehensively describes the dual-architecture approach that separates persistent "base" infrastructure resources from ephemeral "runtime" resources, solving the 30+ minute certificate validation delays and enabling rapid infrastructure recovery in under 5 minutes. It details the resource categorization strategy, usage workflows, cost optimization techniques, and implementation patterns that allow developers to destroy expensive runtime resources during off-hours while preserving slow-to-provision base resources like validated certificates and NAT gateways.
 
 ## Problem Solved
 - **Certificate Validation Delays**: ACM certificates can take 30+ minutes to validate

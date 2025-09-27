@@ -1,5 +1,11 @@
 # React Frontend Upgrade - AI Agent Context
 
+**Purpose**: Provide comprehensive context for AI agents working on React frontend upgrade project
+
+**Scope**: Transform frontend from functional but poorly structured code into professional, maintainable React application
+
+**Overview**: This document provides comprehensive context for AI agents working on transforming the React frontend from functional but poorly structured code into a professional, maintainable React application following industry best practices. The upgrade addresses monolithic components, poor code organization, missing error boundaries, and performance issues while implementing proper component architecture, state management, testing infrastructure, and modern React patterns with TypeScript.
+
 ## Project Overview
 **Repository**: durable-code-test
 **Location**: `/home/stevejackson/Projects/durable-code-test/durable-code-app/frontend`

@@ -1,3 +1,12 @@
+/**
+ * Purpose: Main application styles with reset and base typography
+ * Scope: Global application styling and component base styles
+ * Overview: Provides foundational styles for the main application including CSS reset,
+ *     base typography using Georgia serif font, responsive design utilities, and
+ *     component-specific styling. Establishes the visual foundation for the entire
+ *     application with consistent spacing, typography, and layout patterns.
+ */
+
 /* Reset and base styles */
 * {
   box-sizing: border-box;

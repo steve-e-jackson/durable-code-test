@@ -1,3 +1,17 @@
+/**
+ * Purpose: Puppeteer test script for automated page testing and console output capture
+ * Scope: Browser automation testing utilities for the frontend application
+ * Overview: This script provides automated browser testing capabilities using Puppeteer
+ *     to launch a headless browser, navigate to pages, capture console output, and perform
+ *     basic interaction testing. It's designed for development testing and debugging,
+ *     allowing developers to test page functionality without manual browser interaction.
+ *     The script includes console message forwarding for debugging purposes.
+ * Dependencies: Puppeteer for browser automation and headless Chrome control
+ * Exports: No exports - this is a standalone test execution script
+ * Props/Interfaces: No interfaces - uses Puppeteer API directly
+ * Implementation: Async/await pattern with headless browser launch and page navigation
+ */
+
 const puppeteer = require('puppeteer');
 
 (async () => {

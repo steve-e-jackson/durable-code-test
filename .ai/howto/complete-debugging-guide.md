@@ -1,8 +1,10 @@
 # Complete Debugging Guide
 
-A comprehensive guide for debugging both repository and code issues in the durable-code-test project.
+**Purpose**: Comprehensive guide for debugging both repository and code issues in the durable-code-test project
 
-## Overview
+**Scope**: Repository debugging, code debugging, Docker troubleshooting, development workflow issues, and diagnostic procedures
+
+**Overview**: A comprehensive guide for debugging both repository and code issues in the durable-code-test project. This guide covers two main debugging scenarios: repository debugging for Docker containers, services, networking, and environment issues, and code debugging for design linter rules, test failures, and development workflow issues, providing systematic approaches to identify and resolve common development problems.
 
 This guide covers two main debugging scenarios:
 

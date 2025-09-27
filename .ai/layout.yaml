@@ -63,42 +63,43 @@ linter_rules:
   paths:
     .ai/:
       allow:
-        - '^\\.ai/[^/]+\\.json$'
-        - '^\\.ai/[^/]+\\.yaml$'
-        - '^\\.ai/[^/]+\\.md$'
-        - '^\\.ai/docs/[^/]+\\.md$'
-        - '^\\.ai/features/[^/]+\\.md$'
-        - '^\\.ai/howto/[^/]+\\.md$'
-        - '^\\.ai/templates/[^/]+\\.template$'
+        - '^\.ai/[^/]+\.json$'
+        - '^\.ai/[^/]+\.yaml$'
+        - '^\.ai/[^/]+\.md$'
+        - '^\.ai/docs/[^/]+\.md$'
+        - '^\.ai/features/[^/]+\.md$'
+        - '^\.ai/howto/[^/]+\.md$'
+        - '^\.ai/templates/[^/]+\.template$'
+        - '^\.ai/templates/[^/]+\.html$'
       deny:
-        - '\\.py$'
-        - '\\.js$'
-        - '\\.ts$'
-        - '\\.tsx$'
-        - '\\.jsx$'
+        - '\.py$'
+        - '\.js$'
+        - '\.ts$'
+        - '\.tsx$'
+        - '\.jsx$'
         - 'test'
 
     .claude/commands/:
       allow:
         - '^\\.claude/commands/[^/]+\\.md$'
       deny:
-        - '\\.py$'
+        - '\.py$'
         - '\\.js$'
         - '\\.ts$'
-        - '\\.tsx$'
+        - '\.tsx$'
 
     durable-code-app/frontend/src/app/:
       allow:
-        - '/app/App\\.tsx$'
-        - '/app/main\\.tsx$'
+        - '/app/App\.tsx$'
+        - '/app/main\.tsx$'
         - '/app/[^/]+\\.ts$'
-        - '/app/[^/]+\\.tsx$'
+        - '/app/[^/]+\.tsx$'
       deny:
         - '[Ff]eature'
         - '[Ss]ervice'
         - '[Aa]pi'
         - '[Ww]ebsocket'
-        - '\\.test\\.'
+        - '\.test\.'
         - '\\.spec\\.'
 
     durable-code-app/frontend/src/assets/:
@@ -113,13 +114,13 @@ linter_rules:
         - '\\.css$'
       deny:
         - '\\.ts$'
-        - '\\.tsx$'
+        - '\.tsx$'
         - '\\.js$'
         - '\\.jsx$'
 
     durable-code-app/frontend/src/components/:
       allow:
-        - '/components/[^/]+/[^/]+\\.tsx$'
+        - '/components/[^/]+/[^/]+\.tsx$'
         - '/components/[^/]+/[^/]+\\.ts$'
         - '/components/[^/]+/[^/]+\\.module\\.css$'
         - '/components/[^/]+/index\\.ts$'
@@ -128,7 +129,7 @@ linter_rules:
         - '[Ss]ervice\\.'
         - '[Aa]pi\\.'
         - '[Ss]tore\\.'
-        - '\\.test\\.'
+        - '\.test\.'
         - '\\.spec\\.'
 
     durable-code-app/frontend/src/features/:
@@ -142,9 +143,9 @@ linter_rules:
         - '/features/[^/]+/store/'
         - '/features/[^/]+/index\\.ts$'
       deny:
-        - '\\.test\\.'
+        - '\.test\.'
         - '\\.spec\\.'
-        - '/features/[^/]+/[^/]+\\.tsx$'
+        - '/features/[^/]+/[^/]+\.tsx$'
 
     durable-code-app/frontend/src/core/:
       allow:
@@ -153,26 +154,26 @@ linter_rules:
         - '/core/auth/'
         - '/core/routing/'
       deny:
-        - '\\.test\\.'
+        - '\.test\.'
         - '\\.spec\\.'
         - '[Ff]eature'
 
     durable-code-app/frontend/src/hooks/:
       allow:
         - '/hooks/use[A-Z].*\\.ts$'
-        - '/hooks/use[A-Z].*\\.tsx$'
+        - '/hooks/use[A-Z].*\.tsx$'
       deny:
         - '/hooks/(?!use)'
-        - '\\.test\\.'
+        - '\.test\.'
         - '\\.spec\\.'
 
     durable-code-app/frontend/src/pages/:
       allow:
-        - 'Page\\.tsx$'
-        - '/pages/[^/]+/index\\.tsx$'
+        - 'Page\.tsx$'
+        - '/pages/[^/]+/index\.tsx$'
       deny:
         - '\\.ts$'
-        - '[Cc]omponent\\.tsx$'
+        - '[Cc]omponent\.tsx$'
         - '[Ss]ervice\\.'
 
     durable-code-app/frontend/src/styles/:
@@ -187,18 +188,18 @@ linter_rules:
       allow:
         - '/utils/[^/]+\\.ts$'
       deny:
-        - '\\.tsx$'
+        - '\.tsx$'
         - '\\.jsx$'
         - '\\.css$'
         - '[Ff]eature'
-        - '\\.test\\.'
+        - '\.test\.'
         - '\\.spec\\.'
 
     durable-code-app/backend/app/:
       allow:
-        - '/app/main\\.py$'
-        - '/app/__init__\\.py$'
-        - '/app/[^/]+\\.py$'
+        - '/app/main\.py$'
+        - '/app/__init__\.py$'
+        - '/app/[^/]+\.py$'
         - '/app/api/'
         - '/app/core/'
         - '/app/models/'
@@ -209,68 +210,69 @@ linter_rules:
       deny:
         - '\\.(js|ts|tsx)$'
         - 'test_'
-        - '_test\\.py$'
+        - '_test\.py$'
 
     durable-code-app/backend/app/core/:
       allow:
-        - '/core/[^/]+\\.py$'
-        - '/core/__init__\\.py$'
+        - '/core/[^/]+\.py$'
+        - '/core/__init__\.py$'
       deny:
         - 'test_'
-        - '_test\\.py$'
+        - '_test\.py$'
         - '\\.(js|ts|tsx)$'
 
     durable-code-app/backend/app/services/:
       allow:
-        - '_service\\.py$'
-        - '/services/[^/]+\\.py$'
-        - '/services/__init__\\.py$'
+        - '_service\.py$'
+        - '/services/[^/]+\.py$'
+        - '/services/__init__\.py$'
       deny:
         - 'test_'
-        - '_test\\.py$'
+        - '_test\.py$'
         - '\\.(js|ts|tsx)$'
 
     tools/:
       description: "Tools root directory - Python files must be in subdirectories"
       allow:
-        - '^tools/__init__\\.py$'
+        - '^tools/__init__\.py$'
         - '^tools/\\.flake8$'
         - '^tools/.*\\.md$'
         - '^tools/[^/]+/.*$'
       deny:
-        - '^tools/[^/]+\\.py$'
+        - '^tools/[^/]+\.py$'
 
     tools/design_linters/framework/:
       allow:
-        - '/framework/[^/]+\\.py$'
-        - '/framework/__init__\\.py$'
+        - '/framework/[^/]+\.py$'
+        - '/framework/__init__\.py$'
       deny:
         - 'test_'
-        - '_test\\.py$'
+        - '_test\.py$'
         - '\\.(js|ts|tsx)$'
 
     tools/design_linters/rules/:
       allow:
-        - '/rules/[^/]+/[^/]+\\.py$'
-        - '/rules/[^/]+/__init__\\.py$'
+        - 'tools/design_linters/rules/[^/]+\.py$'
+        - 'tools/design_linters/rules/[^/]+/[^/]+\.py$'
+        - 'tools/design_linters/rules/[^/]+/__init__\.py$'
       deny:
         - 'test_'
-        - '_test\\.py$'
+        - '_test\.py$'
         - '\\.(js|ts|tsx)$'
 
     test/:
       allow:
-        - '/test/.*/test_[^/]+\\.py$'
-        - '/test/.*\\.test\\.(ts|tsx|js)$'
-        - '/test/.*\\.spec\\.(ts|tsx|js)$'
-        - '/test/.*/__init__\\.py$'
-        - '/test/fixtures/.*\\.json$'
+        - 'test/.*/test_[^/]+\.py$'
+        - 'test/.*\.test\.(ts|tsx|js)$'
+        - 'test/.*\\.spec\\.(ts|tsx|js)$'
+        - 'test/.*/__init__\.py$'
+        - 'test/fixtures/.*\\.json$'
       deny:
-        - '/test/[^/]+\\.(py|js|ts)$'
+        - '^test/[^/]+\.(py|js|ts)$'
 
     scripts/:
       allow:
-        - '^scripts/[^/]+\\.(sh|py|js)$'
+        - '^scripts/[^/]+\.(sh|py|js)$'
       deny:
         - '\\.(ts|tsx)$'
         - '\\.css$'
@@ -286,7 +288,7 @@ linter_rules:
         - '^infra/terraform/\\.terraform/'
         - '^infra/environments/[^/]+\\.tfvars$'
         - '^infra/scripts/[^/]+\\.sh$'
-        - '^infra/scripts/[^/]+\\.py$'
+        - '^infra/scripts/[^/]+\.py$'
       deny:
         - '\\.(ts|tsx|js|jsx)$'
         - 'test_'
@@ -321,7 +323,7 @@ linter_rules:
     infra/scripts/:
       allow:
         - '/scripts/[^/]+\\.sh$'
-        - '/scripts/[^/]+\\.py$'
+        - '/scripts/[^/]+\.py$'
       deny:
         - '\\.tf$'
         - '\\.(ts|tsx|js|jsx)$'
@@ -340,15 +342,16 @@ linter_rules:
         - '^\\.gitignore$'
         - '^\\.env'
         - '^requirements.*\\.txt$'
-        - '^setup\\.py$'
-        - '^conftest\\.py$'
+        - '^setup\.py$'
+        - '^conftest\.py$'
+        - '^manage\.py$'
       deny:
-        - '^test[_-].*\\.py$'
-        - '^debug[_-].*\\.py$'
-        - '^tmp[_-].*\\.py$'
-        - '^temp[_-].*\\.py$'
-        - '_test\\.py$'
-        - '_spec\\.py$'
+        - '^test[_-].*\.py$'
+        - '^debug[_-].*\.py$'
+        - '^tmp[_-].*\.py$'
+        - '^temp[_-].*\.py$'
+        - '_test\.py$'
+        - '_spec\.py$'
 
   global_patterns:
     description: "Patterns that apply across the entire codebase"
@@ -364,9 +367,9 @@ linter_rules:
 
     test_files:
       patterns:
-        - 'test_.*\\.py$'
-        - '.*_test\\.py$'
-        - '.*\\.test\\.(js|ts|tsx)$'
+        - 'test_.*\.py$'
+        - '.*_test\.py$'
+        - '.*\.test\.(js|ts|tsx)$'
         - '.*\\.spec\\.(js|ts|tsx)$'
       must_be_in:
         - '^test/'

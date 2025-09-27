@@ -1,5 +1,11 @@
 # How to Deploy Application
 
+**Purpose**: Guide for deploying the application to production environments
+
+**Scope**: Application deployment procedures, production environment setup, and deployment verification
+
+**Overview**: This guide provides comprehensive instructions for deploying the application to production environments using containerized deployment strategies. It covers the complete deployment workflow from building production images and configuring environments to starting services, verifying deployments, and monitoring application health. The guide includes both quick deployment procedures and detailed troubleshooting steps for production deployment scenarios.
+
 ## Quick Deployment
 
 ```bash

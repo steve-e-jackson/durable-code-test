@@ -1,3 +1,17 @@
+/**
+ * Purpose: Oscilloscope demo state management for WebSocket connection and waveform data
+ * Scope: Demo feature state including WebSocket connection, waveform data, and oscilloscope parameters
+ * Overview: This Zustand store manages the state for the oscilloscope demonstration feature,
+ *     handling WebSocket connection status, real-time waveform data, and oscilloscope parameters
+ *     like amplitude and frequency. The store provides reactive state updates for the demo
+ *     components and maintains connection state throughout the user session. It includes
+ *     actions for connecting/disconnecting, updating waveform data, and resetting demo state.
+ * Dependencies: Zustand for state management, zustand/middleware for devtools integration
+ * Exports: useDemoStore hook for accessing and updating demo state
+ * Props/Interfaces: WaveformPoint for data points, DemoState for complete store interface
+ * State/Behavior: Reactive store with WebSocket connection management and real-time data updates
+ */
+
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 

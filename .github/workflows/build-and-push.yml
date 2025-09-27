@@ -1,3 +1,9 @@
+# Purpose: Build Docker images and push them to Amazon ECR for deployment
+# Scope: Main and develop branches, plus pull requests for Docker image validation
+# Overview: This workflow builds production Docker images for frontend and backend services,
+#     pushes them to Amazon ECR with multiple tags (latest, commit SHA, branch name), and
+#     supports multi-platform builds (AMD64/ARM64). It waits for test completion before
+#     building and uses GitHub Actions cache for efficient Docker layer caching.
 name: Build and Push to ECR
 
 on:

@@ -1,7 +1,10 @@
 # AWS Deployment Infrastructure - AI Context
 
-## Overview
-This document provides context for AI agents working on the AWS deployment infrastructure for the Durable Code Test application. The deployment uses AWS ECS Fargate for container orchestration, with Terraform for infrastructure as code.
+**Purpose**: Provide comprehensive context for AI agents working on AWS deployment infrastructure
+
+**Scope**: AWS ECS Fargate deployment architecture, Terraform infrastructure, and cost optimization strategies
+
+**Overview**: This document serves as the primary context and guidance resource for AI agents working on the AWS deployment infrastructure for the Durable Code Test application. It covers the complete AWS ECS Fargate deployment architecture with Terraform-managed infrastructure, cost optimization strategies including scheduled infrastructure management, CI/CD pipeline integration, and operational best practices. The deployment targets a cost-efficient (~$35-60/month) serverless container solution with minimal operational overhead while maintaining scalability and security best practices.
 
 ## Project Background
 The Durable Code Test application is a full-stack React/FastAPI application currently running locally with Docker Compose. We're deploying it to AWS for production use with a focus on:

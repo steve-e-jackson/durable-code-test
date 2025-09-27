@@ -144,7 +144,9 @@ class FileHeaderRule(FileBasedLintRule):
         },
         ".md": {
             "header_pattern": re.compile(
-                r"^# .+?\n\n(?:\*\*\w+\*\*:.*(?:\n(?!(?:\*\*\w+\*\*:|##|\n)).*)*\n?)+", re.MULTILINE | re.DOTALL
+                # Strict format: Title, then fields with blank lines between them
+                r"^# .+?\n\n\*\*Purpose\*\*:.*\n\n\*\*Scope\*\*:.*\n\n\*\*Overview\*\*:(?:.*\n?)+",
+                re.MULTILINE,
             ),
             "field_pattern": re.compile(r"^\*\*(\w+)\*\*:\s*(.+)$", re.MULTILINE),
             "is_code": False,
@@ -231,6 +233,11 @@ class FileHeaderRule(FileBasedLintRule):
     def check_file(self, file_path: Path, content: str, context: LintContext) -> list[LintViolation]:
         """Check if the file has a proper header."""
         violations = []
+
+        # Convert string to Path if needed
+        if isinstance(file_path, str):
+            file_path = Path(file_path)
+
         if self._should_skip_file(file_path):
             return violations
 
@@ -311,7 +318,7 @@ class FileHeaderRule(FileBasedLintRule):
                     file_path=str(file_path),
                     line=1,
                     column=0,
-                    severity=self.severity,
+                    severity=Severity.ERROR,  # Missing Overview is an ERROR, not just a warning
                     message="Missing required Overview field in header",
                     description="Overview field must provide comprehensive summary of the file's role",
                     suggestion="Add an Overview field with detailed explanation of what this file does and how it fits into the system",

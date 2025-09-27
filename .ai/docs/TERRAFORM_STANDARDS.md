@@ -1,13 +1,13 @@
 # Terraform Standards and Best Practices
 
 **Purpose**: Define coding standards, naming conventions, and best practices for Terraform infrastructure code
+
 **Scope**: All Terraform configurations in the infra/ directory across all environments
 
----
-
-## Overview
-
-This document establishes Terraform standards for the Durable Code Test infrastructure, ensuring consistent, maintainable, and cost-effective infrastructure as code. All Terraform code must follow these standards to maintain quality, security, and cost optimization.
+**Overview**: This document establishes Terraform standards for the Durable Code Test infrastructure,
+    ensuring consistent, maintainable, and cost-effective infrastructure as code. All Terraform code
+    must follow these standards to maintain quality, security, and cost optimization. It covers
+    naming conventions, tagging strategies, resource organization, and cost optimization patterns.
 
 ## Core Principles
 

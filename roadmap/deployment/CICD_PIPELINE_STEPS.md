@@ -1,7 +1,10 @@
 # CI/CD Pipeline Implementation Steps
 
-## Overview
-This document provides concrete implementation steps for setting up CI/CD pipelines based on lessons learned from the durable-code deployment.
+**Purpose**: Provide concrete implementation steps for setting up CI/CD pipelines for AWS ECS Fargate deployment
+
+**Scope**: GitHub Actions workflows, Docker build processes, deployment automation, and rollback procedures
+
+**Overview**: This comprehensive document provides concrete implementation steps for setting up robust CI/CD pipelines based on lessons learned from the durable-code deployment to AWS ECS Fargate. It includes complete GitHub Actions workflow configurations for build/test/deploy cycles, Docker image building with clean contexts, ECS deployment automation, health check validation, rollback procedures, and integration with AWS services. The implementation ensures reliable, automated deployments with proper error handling and monitoring.
 
 ## GitHub Actions Workflow Structure
 

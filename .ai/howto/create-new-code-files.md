@@ -1,10 +1,10 @@
----
-description: Create a new code file with proper structure and error handling
-original_location: .claude/commands/new-code.md
-purpose: Step-by-step guide for creating production-ready code files
----
-
 # Creating New Code Files with /new-code Command
+
+**Purpose**: Step-by-step guide for creating production-ready code files with proper structure and error handling
+
+**Scope**: Code file creation, project structure, error handling patterns, and development workflow integration
+
+**Overview**: This guide provides comprehensive instructions for creating production-ready code files with proper structure and error handling using the /new-code command. It covers the complete workflow from initial file creation through testing and integration, ensuring all new code follows project standards, includes appropriate error handling, and integrates seamlessly with the existing codebase architecture and development processes.
 
 **CRITICAL: Follow this EXACT order when creating new code:**
 

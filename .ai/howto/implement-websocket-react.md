@@ -1,7 +1,10 @@
 # How to Implement WebSocket in React with StrictMode
 
-## Overview
-This guide explains how to implement WebSocket connections in React applications while maintaining compatibility with React StrictMode. The approach uses a singleton pattern to prevent connection thrashing during component re-renders.
+**Purpose**: Guide for implementing WebSocket connections in React applications while maintaining compatibility with React StrictMode
+
+**Scope**: React WebSocket implementation, StrictMode compatibility, singleton patterns, and real-time communication
+
+**Overview**: This guide explains how to implement WebSocket connections in React applications while maintaining compatibility with React StrictMode. The approach uses a singleton pattern to prevent connection thrashing during component re-renders, ensuring stable real-time communication and proper connection management in development and production environments.
 
 ## Problem Statement
 React StrictMode intentionally double-invokes effects in development to help detect side effects. This causes WebSocket connections to connect and immediately disconnect, breaking real-time features. The singleton pattern solves this by maintaining a persistent connection outside the React component lifecycle.

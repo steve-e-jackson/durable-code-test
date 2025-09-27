@@ -1,6 +1,17 @@
-# Purpose: Automate NS delegation from parent domain to subdomain
-# This ensures the subdomain's hosted zone is properly delegated
-# Required for ACM certificate DNS validation to work
+# Purpose: Configure DNS delegation from parent domain to subdomain hosted zones
+# Scope: NS record creation in parent domain for proper subdomain delegation
+# Overview: This file automates the DNS delegation process when using subdomains by creating
+#     NS records in the parent domain that point to the subdomain's hosted zone name servers.
+#     This delegation is critical for DNS resolution and ACM certificate validation to function
+#     properly. The configuration automatically detects the parent domain, locates its hosted
+#     zone, and creates the necessary delegation records. Without proper delegation, subdomain
+#     DNS queries would fail and SSL certificate validation would be impossible. This setup
+#     ensures seamless DNS resolution from the parent domain to the subdomain infrastructure,
+#     enabling automated certificate provisioning and domain management. The delegation records
+#     are created with appropriate TTL values for optimal DNS propagation and performance.
+# Dependencies: Requires route53.tf (subdomain hosted zone) and parent domain hosted zone
+# Configuration: Uses domain name variables to detect parent-child relationships
+# Implementation: Creates NS delegation records with automated parent domain detection
 
 # Data source to get parent domain's hosted zone
 data "aws_route53_zone" "parent" {

@@ -1,7 +1,10 @@
 # How to Implement Backend Error Handling
 
-## Overview
-This guide covers implementing robust error handling in FastAPI backend applications, including structured exceptions, retry logic, circuit breakers, and global exception handlers.
+**Purpose**: Guide for implementing robust error handling in FastAPI backend applications
+
+**Scope**: FastAPI error handling, structured exceptions, retry logic, circuit breakers, and global exception handlers
+
+**Overview**: This guide covers implementing robust error handling in FastAPI backend applications, including structured exceptions, retry logic, circuit breakers, and global exception handlers. It provides comprehensive patterns for managing errors, implementing resilience mechanisms, and ensuring reliable backend service operation with proper error propagation, logging, and recovery strategies.
 
 ## Key Principles
 1. **No broad exception catching** - Always catch specific exception types

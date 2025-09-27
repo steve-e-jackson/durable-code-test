@@ -1,3 +1,12 @@
+/**
+ * Purpose: Button component styles with variants and interactive states
+ * Scope: Styling for the reusable Button component across the application
+ * Overview: Comprehensive button styling including size variants (small, medium, large),
+ *     theme variants (primary, secondary, outline), interactive states (hover, focus, active),
+ *     and accessibility features. Uses CSS variables for consistent theming and provides
+ *     smooth transitions for enhanced user experience.
+ */
+
 .button {
   display: inline-flex;
   align-items: center;

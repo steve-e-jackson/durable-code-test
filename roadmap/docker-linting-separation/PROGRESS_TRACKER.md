@@ -1,5 +1,11 @@
 # Docker Linting Separation - Progress Tracker & AI Agent Handoff Document
 
+**Purpose**: Primary handoff document for AI agents working on Docker linting separation project
+
+**Scope**: Complete progress tracking and development coordination for Docker linting container separation
+
+**Overview**: This comprehensive handoff document serves as the central coordination point for AI agents working on the Docker linting separation project. It tracks current progress through all development phases, maintains status updates for each task, provides clear next-step guidance, and ensures seamless handoff between AI agents. The document covers the complete separation lifecycle from dedicated linting container creation to CI/CD integration and performance optimization, aiming to improve development experience and deployment reliability.
+
 ## 🤖 Document Purpose
 This is the **PRIMARY HANDOFF DOCUMENT** for AI agents working on Docker linting separation. When starting work on any task, the AI agent should:
 1. **Read this document FIRST** to understand current progress and architecture decisions

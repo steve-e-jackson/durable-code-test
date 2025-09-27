@@ -1,7 +1,10 @@
 # Docker Execution Standards
 
-## Overview
-All development tools, scripts, and testing utilities MUST run within Docker containers. Local developer systems may not have the proper configuration, dependencies, or versions required.
+**Purpose**: Enforce containerized execution for all development tools, scripts, and testing utilities
+
+**Scope**: All development workflows, testing procedures, script execution, and tool usage across the project
+
+**Overview**: All development tools, scripts, and testing utilities must run within Docker containers to ensure consistent environments across all developer systems. This standard prevents configuration drift, dependency conflicts, and version mismatches that can cause inconsistent behavior between local development and production environments. The containerized approach guarantees reproducible builds, reliable testing, and consistent tooling regardless of the underlying host system configuration.
 
 ## Core Principle
 **Never assume local system configuration**. All development workflows must be containerized.

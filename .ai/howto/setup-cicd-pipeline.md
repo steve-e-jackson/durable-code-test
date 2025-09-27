@@ -1,10 +1,10 @@
 # CI/CD Pipeline Setup
 
-This document describes the GitHub Actions CI/CD pipeline for automated building and deployment to AWS ECS.
+**Purpose**: Description of the GitHub Actions CI/CD pipeline for automated building and deployment to AWS ECS
 
-## Overview
+**Scope**: CI/CD pipeline configuration, GitHub Actions workflows, AWS integration, and deployment automation
 
-The CI/CD pipeline uses GitHub Actions with AWS OIDC (OpenID Connect) for secure, passwordless authentication. This eliminates the need for long-lived AWS credentials in GitHub secrets.
+**Overview**: This document describes the GitHub Actions CI/CD pipeline for automated building and deployment to AWS ECS. The CI/CD pipeline uses GitHub Actions with AWS OIDC (OpenID Connect) for secure, passwordless authentication that eliminates the need for long-lived AWS credentials in GitHub secrets, providing automated build, test, and deployment workflows with comprehensive security and reliability features.
 
 ## Architecture
 

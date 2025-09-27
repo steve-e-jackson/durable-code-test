@@ -1,3 +1,9 @@
+# Purpose: Run Playwright integration tests for frontend and backend services
+# Scope: Integration testing across development, main, and feature branches
+# Overview: This workflow executes comprehensive Playwright integration tests against the full
+#     application stack including frontend and backend services. It starts services using Docker,
+#     dynamically determines ports based on branch names, waits for services to be ready, runs
+#     oscilloscope tests, and uploads test results as artifacts for analysis.
 name: Playwright Integration Tests
 
 on:

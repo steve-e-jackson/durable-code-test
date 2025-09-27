@@ -1,5 +1,11 @@
 # How to Setup Development Environment
 
+**Purpose**: Guide for setting up the complete development environment for the project
+
+**Scope**: Development environment setup, dependency installation, configuration, and initialization procedures
+
+**Overview**: This guide provides comprehensive instructions for setting up the complete development environment including Docker setup, dependency installation, environment configuration, and project initialization. It covers all necessary steps from initial system requirements through final verification to ensure developers can quickly establish a fully functional development environment that matches production standards and supports all project features.
+
 ## Quick Start
 
 ```bash

@@ -1,5 +1,9 @@
-# GitHub Actions workflow for comprehensive linting with Docker caching
-# Runs all linting checks using cached Docker images for faster execution
+# Purpose: Execute comprehensive code quality and linting checks across the entire codebase
+# Scope: All pull requests and pushes to main branch for quality assurance
+# Overview: This workflow performs extensive linting and code quality checks using Docker-cached
+#     environments for optimal performance. It runs Python linting (Black, isort, Ruff, Flake8,
+#     MyPy, Pylint, Bandit, Xenon), TypeScript/React linting (ESLint, Prettier), and custom
+#     design linters for SOLID principles, style consistency, and security best practices.
 name: Linting
 
 on:

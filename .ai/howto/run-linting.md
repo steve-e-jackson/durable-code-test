@@ -1,5 +1,11 @@
 # How to Run Linting
 
+**Purpose**: Guide for running linting tools to ensure code quality and standards compliance
+
+**Scope**: Linting procedures, Make targets, code quality checks, and automated formatting workflows
+
+**Overview**: This guide explains how to run linting tools to ensure code quality and standards compliance across the entire codebase. It covers all linting procedures using standardized Make targets that enforce Docker-based execution for consistent results. The guide includes frontend TypeScript linting, backend Python linting, custom design linters, and automated formatting workflows that maintain code quality and project standards.
+
 ## Important: Always Check Available Make Targets First
 
 ```bash

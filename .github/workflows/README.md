@@ -1,4 +1,10 @@
-# Open-Closed Principle (OCP) Violation Checker
+# GitHub Workflows Documentation
+
+**Purpose**: Comprehensive documentation for all GitHub Actions workflows and automation setup
+**Scope**: Applies to CI/CD pipeline, automated testing, linting, building, and deployment processes
+**Overview**: This document provides detailed setup instructions and explanations for the GitHub Actions workflows that power the project's continuous integration and deployment pipeline. It covers the automated Open-Closed Principle violation checker, testing workflows, linting processes, and deployment automation to AWS infrastructure.
+
+## Open-Closed Principle (OCP) Violation Checker
 
 This GitHub Action automatically checks pull requests for violations of the SOLID Open-Closed Principle using Claude AI.
 

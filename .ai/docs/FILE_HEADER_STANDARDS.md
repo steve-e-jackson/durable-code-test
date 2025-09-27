@@ -1,13 +1,13 @@
 # File Header Standards
 
-**Purpose**: Define practical and maintainable file headers for all documentation and code files
-**Scope**: Documentation files in `/docs` directory and code files throughout the project
+**Purpose**: Define strict, mandatory file header format requirements for all code and documentation files
 
----
+**Scope**: All source files including Python, TypeScript, JavaScript, Markdown, YAML, Terraform, and shell scripts
 
-## Overview
-
-This document establishes a simplified, practical format for file headers that focuses on essential operational information. Git already tracks creation dates, modification history, and authorship, so headers should focus on describing what the file does and how it fits into the system.
+**Overview**: This document specifies the exact format required for file headers to ensure consistency,
+    traceability, and maintainability across the codebase. Every file must include a properly formatted
+    header with three required fields (Purpose, Scope, Overview) in a specific format that the linter
+    validates. Headers must be atemporal and focus on what the file does and how it fits into the system.
 
 ## Atemporal Documentation Principle
 
@@ -59,21 +59,32 @@ File headers must be written in an atemporal manner - avoiding language that ref
 - ✅ "Exports reusable UI components"
 - ✅ "Integrates with the authentication service"
 
-## Standard Header Formats
+## STRICT Header Format Requirements
 
 ### Markdown Documentation Files (.md)
+
+**REQUIRED FORMAT - NO VARIATIONS ALLOWED:**
 
 ```markdown
 # Document Title
 
-**Purpose**: Brief description of what this document covers
+**Purpose**: Brief one-line description of what this document covers
+
 **Scope**: What areas/components this document applies to
 
----
-
-## Overview
-Document content starts here...
+**Overview**: Comprehensive multi-line explanation of the document's content,
+    its role in the system, and important context. This must be detailed enough
+    that someone new to the codebase understands the file's significance.
 ```
+
+**CRITICAL REQUIREMENTS:**
+- All three fields (Purpose, Scope, Overview) MUST be present
+- Fields MUST appear immediately after the title with NO separator lines between title and fields
+- Each field MUST have a blank line AFTER it (line break between fields)
+- Each field MUST use the exact format: `**FieldName**: content`
+- NO `---` separators between title and fields
+- NO section headers like `## Overview` - Overview MUST be a field
+- Overview field MUST be comprehensive (minimum 100 characters)
 
 ### HTML Files (.html)
 

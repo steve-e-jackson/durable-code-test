@@ -27,6 +27,7 @@ services:
       - ./durable-code-app/backend:/app
       - ./test:/app/test
       - ./tools:/app/tools
+      - ./.ai:/app/.ai
       - /app/__pycache__
     networks:
       - durable-network-dev

@@ -1,5 +1,11 @@
 # AI-Powered Community Contributions - PR Breakdown
 
+**Purpose**: Break down AI-powered community contribution feature into manageable, atomic pull requests
+
+**Scope**: Complete development roadmap covering backend infrastructure, authentication, frontend, admin interface, and deployment
+
+**Overview**: This document provides a comprehensive breakdown of the AI-powered community contribution feature into six manageable, atomic pull requests. Each PR is designed to be self-contained and testable while maintaining a working application state. The roadmap covers backend infrastructure setup, authentication systems (GitHub OAuth and CAPTCHA), frontend form development, admin review interfaces, UI integration, and final documentation with testing. The approach ensures incremental progress toward enabling community members to contribute AI prompts that can be reviewed and implemented as GitHub issues.
+
 ## 🚀 PROGRESS TRACKER - MUST BE UPDATED AFTER EACH PR!
 
 ### ✅ Completed PRs
@@ -18,14 +24,9 @@
 
 **Progress**: 0% Complete (0/6 PRs)
 
----
-
-## Overview
-This document breaks down the AI-powered community contribution feature into manageable, atomic PRs. Each PR is designed to be:
-- Self-contained and testable
-- Maintains a working application
-- Incrementally builds toward the complete feature
-- Revertible if needed
+**Purpose**: Break down AI-powered community contribution feature into manageable, atomic pull requests
+**Scope**: Complete development roadmap covering backend infrastructure, authentication, frontend, admin interface, and deployment
+**Overview**: This document provides a comprehensive breakdown of the AI-powered community contribution feature into six manageable, atomic pull requests. Each PR is designed to be self-contained and testable while maintaining a working application state. The roadmap covers backend infrastructure setup, authentication systems (GitHub OAuth and CAPTCHA), frontend form development, admin review interfaces, UI integration, and final documentation with testing. The approach ensures incremental progress toward enabling community members to contribute AI prompts that can be reviewed and implemented as GitHub issues.
 
 ---
 

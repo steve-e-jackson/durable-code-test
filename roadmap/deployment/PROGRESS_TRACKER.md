@@ -1,5 +1,11 @@
 # AWS Deployment Infrastructure - Progress Tracker & AI Agent Handoff Document
 
+**Purpose**: Primary handoff document for AI agents working on AWS deployment infrastructure
+
+**Scope**: Complete progress tracking and development coordination for AWS ECS Fargate deployment
+
+**Overview**: This comprehensive handoff document serves as the central coordination point for AI agents working on the AWS deployment infrastructure. It tracks current progress through all infrastructure development phases, maintains status updates for each pull request, provides clear next-step guidance, and ensures seamless handoff between AI agents. The document covers the complete deployment lifecycle from Terraform foundation and ECR setup to production readiness with monitoring, security, and cost optimization features.
+
 ## 🤖 Document Purpose
 This is the **PRIMARY HANDOFF DOCUMENT** for AI agents working on the AWS deployment infrastructure. When starting work on any PR, the AI agent should:
 1. **Read this document FIRST** to understand current progress and cost optimization requirements

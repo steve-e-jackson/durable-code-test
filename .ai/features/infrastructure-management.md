@@ -1,11 +1,10 @@
 # Infrastructure as Code
 
 **Purpose**: Treat infrastructure as a software engineering discipline
+
 **Scope**: Complete infrastructure lifecycle management through code
 
-## Overview
-
-Infrastructure as Code (IaC) is not just tooling - it's a fundamental capability that enables reliable, repeatable, and auditable infrastructure management. Every piece of infrastructure can be created, modified, and destroyed through code, providing the same benefits we expect from application development: version control, code review, testing, and automation.
+**Overview**: Infrastructure as Code (IaC) is not just tooling - it's a fundamental capability that enables reliable, repeatable, and auditable infrastructure management. Every piece of infrastructure can be created, modified, and destroyed through code, providing the same benefits we expect from application development: version control, code review, testing, and automation. This approach ensures consistent deployment patterns, cost optimization, and scalable infrastructure management across all environments.
 
 ## The Feature
 

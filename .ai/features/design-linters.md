@@ -1,8 +1,10 @@
 # Design Linters Framework
 
-## Overview
+**Purpose**: Comprehensive, pluggable design linting framework that enforces SOLID principles, coding standards, and best practices across Python codebases
 
-A comprehensive, pluggable design linting framework that enforces SOLID principles, coding standards, and best practices across Python codebases. The framework provides a unified CLI replacing multiple individual linters with a single, extensible tool.
+**Scope**: Python code quality enforcement, design pattern validation, SOLID principles checking, and coding standards compliance
+
+**Overview**: A comprehensive, pluggable design linting framework that enforces SOLID principles, coding standards, and best practices across Python codebases. The framework provides a unified CLI replacing multiple individual linters with a single, extensible tool that validates code architecture, enforces design patterns, and ensures consistent coding practices throughout the development process.
 
 ## Core Components
 

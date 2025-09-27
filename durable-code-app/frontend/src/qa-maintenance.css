@@ -1,3 +1,12 @@
+/**
+ * Purpose: Quality assurance and maintenance tab styling with rustic theme integration
+ * Scope: Styling for QA and maintenance components with consistent design language
+ * Overview: Provides specialized styling for quality assurance and maintenance tabs,
+ *     incorporating the rustic theme with warm colors, textured backgrounds, and
+ *     sophisticated visual elements. Includes demo tab styling, content cards, and
+ *     component-specific design patterns that maintain visual consistency.
+ */
+
 /* Quality Assurance Tab Styles - Updated for Rustic Theme */
 .qa-content {
   padding: 0;

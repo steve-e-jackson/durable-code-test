@@ -1,4 +1,18 @@
-# GitHub Actions OIDC Provider and IAM Roles for CI/CD
+# Purpose: Configure IAM roles and policies for GitHub Actions CI/CD integration
+# Scope: OIDC provider, IAM roles, and policies for secure GitHub Actions authentication
+# Overview: This file establishes secure authentication between GitHub Actions and AWS using
+#     OpenID Connect (OIDC) to eliminate the need for long-lived AWS credentials. It creates
+#     an OIDC identity provider for GitHub, IAM roles with specific trust policies that restrict
+#     access to designated repositories and branches, and granular permissions for ECR image
+#     management, ECS service updates, and CloudWatch logging. The configuration follows AWS
+#     security best practices with principle of least privilege, enabling GitHub Actions to
+#     deploy applications, update task definitions, and manage container lifecycle without
+#     storing sensitive credentials in GitHub secrets. All policies are scoped to specific
+#     resources and include conditions for enhanced security. This setup supports automated
+#     CI/CD workflows while maintaining strict access controls and audit trails.
+# Dependencies: Requires ECS resources (task execution and task roles) for IAM policy references
+# Configuration: Uses project-specific variables for repository access and environment scoping
+# Implementation: Creates OIDC provider, GitHub Actions role, and service-specific IAM policies
 
 # GitHub OIDC Provider for secure authentication without long-lived credentials
 resource "aws_iam_openid_connect_provider" "github" {
