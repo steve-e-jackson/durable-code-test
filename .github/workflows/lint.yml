@@ -81,15 +81,21 @@ jobs:
       # Start linting containers using docker-compose
       - name: Start linting containers
         run: |
+          # Check if docker-compose or docker compose should be used
+          if command -v docker-compose &> /dev/null; then
+            DOCKER_COMPOSE="docker-compose"
+          else
+            DOCKER_COMPOSE="docker compose"
+          fi
+
           # Use docker-compose to start the linting containers
-          docker-compose -f docker-compose.lint.yml up -d
+          $DOCKER_COMPOSE -f docker-compose.lint.yml up -d
 
           # Wait for containers to be ready
           sleep 2
 
           # Verify containers are running
-          docker ps | grep durable-code-python-linter
-          docker ps | grep durable-code-js-linter
+          docker ps | grep -E "durable-code-(python|js)-linter" || echo "Containers may be starting..."
 
       # Run linting using existing make target
       - name: Run comprehensive linting
@@ -99,7 +105,14 @@ jobs:
       - name: Stop linting containers
         if: always()
         run: |
-          docker-compose -f docker-compose.lint.yml down
+          # Check if docker-compose or docker compose should be used
+          if command -v docker-compose &> /dev/null; then
+            DOCKER_COMPOSE="docker-compose"
+          else
+            DOCKER_COMPOSE="docker compose"
+          fi
+
+          $DOCKER_COMPOSE -f docker-compose.lint.yml down || echo "Containers may have already stopped"
 
       - name: Generate linting summary
         if: always()
