@@ -1,50 +1,59 @@
 # Purpose: Pre-commit hooks configuration for code quality enforcement
 # Scope: Repository-wide automated code quality checks before commits
-# Overview: Configures pre-commit hooks to run comprehensive linting and testing via Make targets.
-#     Uses `make lint-all` for all code quality checks (Python linting, frontend linting,
-#     complexity analysis, security scanning, and custom design linters) and `make test` for
-#     full test suite execution. Also includes basic file quality checks like trailing whitespace,
-#     file endings, and YAML/JSON validation.
-# Dependencies: pre-commit, make, and all tools specified in Makefile targets
+# Overview: Configures pre-commit hooks to prevent main branch commits, auto-fix issues,
+#     and run fast linting on only the changed files being committed.
+# Dependencies: pre-commit, make, ruff, eslint, prettier
 # Exports: Pre-commit hook configuration for the repository
 # Interfaces: Triggered automatically on git commit, can be run manually with pre-commit run
-# Implementation: Uses Make targets for comprehensive linting and testing, plus basic file checks
+# Implementation: Branch protection, auto-fixes, then fast file-specific linting
 
 repos:
 
-  # General hooks
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
-    hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: check-yaml
-      - id: check-added-large-files
-        args: ['--maxkb=500']
-      - id: check-json
-        exclude: tsconfig.*\.json$
-      - id: check-merge-conflict
-      - id: check-toml
-      - id: debug-statements
-      - id: mixed-line-ending
-        args: ['--fix=lf']
-
-  # Comprehensive linting and testing
+  # Local hooks
   - repo: local
     hooks:
 
-      - id: make-lint-all
-        name: Run comprehensive linting suite
-        entry: make lint-all
+      # Prevent commits to main branch
+      - id: no-commit-to-main
+        name: Prevent commits to main branch
+        entry: bash -c 'branch=$(git rev-parse --abbrev-ref HEAD); if [ "$branch" = "main" ] || [ "$branch" = "master" ]; then echo "❌ Direct commits to main/master branch are not allowed! Create a feature branch instead."; exit 1; fi'
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+        always_run: true
+
+      # Auto-fix linting issues first
+      - id: make-lint-fix
+        name: Auto-fix linting issues
+        entry: bash -c 'make lint-fix && git add -u'
         language: system
         pass_filenames: false
         stages: [pre-commit]
         verbose: true
 
-      - id: make-test
-        name: Run full test suite
-        entry: make test
+  # Python linting with Ruff (fast, only checks staged Python files)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      - id: ruff-format
+        name: Check Python formatting (Ruff)
+        args: [--check]
+      - id: ruff
+        name: Lint Python files (Ruff)
+
+  # JavaScript/TypeScript linting (only checks staged files)
+  - repo: local
+    hooks:
+      - id: eslint
+        name: Lint TypeScript/JavaScript files
+        entry: bash -c 'if [ -n "$(git diff --cached --name-only --diff-filter=ACM | grep -E "\.(ts|tsx|js|jsx)$")" ]; then cd frontend && npm run lint -- $(git diff --cached --name-only --diff-filter=ACM | grep -E "\.(ts|tsx|js|jsx)$" | sed "s|^frontend/||"); fi'
         language: system
+        files: \.(ts|tsx|js|jsx)$
         pass_filenames: false
-        stages: [pre-commit]
-        verbose: true
+
+      - id: prettier-check
+        name: Check frontend formatting
+        entry: bash -c 'if [ -n "$(git diff --cached --name-only --diff-filter=ACM | grep -E "\.(ts|tsx|js|jsx|css)$")" ]; then cd frontend && npm run format:check -- $(git diff --cached --name-only --diff-filter=ACM | grep -E "\.(ts|tsx|js|jsx|css)$" | sed "s|^frontend/||"); fi'
+        language: system
+        files: \.(ts|tsx|js|jsx|css)$
+        pass_filenames: false
