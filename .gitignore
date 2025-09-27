@@ -89,3 +89,6 @@ terraform.rc
 **/*_override.tf.json
 .envrc.local
 
+
+# Tool caches
+.cache/

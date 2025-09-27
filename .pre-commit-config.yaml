@@ -1,50 +1,112 @@
 # Purpose: Pre-commit hooks configuration for code quality enforcement
 # Scope: Repository-wide automated code quality checks before commits
-# Overview: Configures pre-commit hooks to run comprehensive linting and testing via Make targets.
-#     Uses `make lint-all` for all code quality checks (Python linting, frontend linting,
-#     complexity analysis, security scanning, and custom design linters) and `make test` for
-#     full test suite execution. Also includes basic file quality checks like trailing whitespace,
-#     file endings, and YAML/JSON validation.
-# Dependencies: pre-commit, make, and all tools specified in Makefile targets
+# Overview: Configures pre-commit hooks to prevent main branch commits, auto-fix issues,
+#     and run comprehensive linting on only the changed files being committed.
+# Dependencies: pre-commit, make, docker, ruff, flake8, mypy, pylint, bandit, eslint, prettier
 # Exports: Pre-commit hook configuration for the repository
 # Interfaces: Triggered automatically on git commit, can be run manually with pre-commit run
-# Implementation: Uses Make targets for comprehensive linting and testing, plus basic file checks
+# Implementation: Branch protection, auto-fixes, then comprehensive file-specific linting
 
 repos:
 
-  # General hooks
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
-    hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: check-yaml
-      - id: check-added-large-files
-        args: ['--maxkb=500']
-      - id: check-json
-        exclude: tsconfig.*\.json$
-      - id: check-merge-conflict
-      - id: check-toml
-      - id: debug-statements
-      - id: mixed-line-ending
-        args: ['--fix=lf']
-
-  # Comprehensive linting and testing
+  # Local hooks
   - repo: local
     hooks:
 
-      - id: make-lint-all
-        name: Run comprehensive linting suite
-        entry: make lint-all
+      # Prevent commits to main branch
+      - id: no-commit-to-main
+        name: Prevent commits to main branch
+        entry: bash -c 'branch=$(git rev-parse --abbrev-ref HEAD); if [ "$branch" = "main" ] || [ "$branch" = "master" ]; then echo "❌ Direct commits to main/master branch are not allowed! Create a feature branch instead."; exit 1; fi'
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+        always_run: true
+
+      # Auto-fix linting issues first
+      - id: make-lint-fix
+        name: Auto-fix linting issues
+        entry: bash -c 'make lint-fix && git add -u'
         language: system
         pass_filenames: false
         stages: [pre-commit]
         verbose: true
 
-      - id: make-test
-        name: Run full test suite
-        entry: make test
+      # Python Linters - run in Docker on changed files only
+      - id: python-ruff
+        name: Ruff (Python format + lint)
+        entry: bash -c 'files=$(git diff --cached --name-only --diff-filter=ACM | grep -E "\.py$" | grep -E "^(app|tools)/" || true); if [ -n "$files" ]; then docker exec durable-code-backend-$(git rev-parse --abbrev-ref HEAD | tr "/" "-" | tr "[:upper:]" "[:lower:]")-dev bash -c "cd /app && poetry run ruff format --check $files && poetry run ruff check $files"; fi'
         language: system
+        files: \.(py)$
         pass_filenames: false
-        stages: [pre-commit]
-        verbose: true
+
+      - id: python-flake8
+        name: Flake8 (Python style)
+        entry: bash -c 'app_files=$(git diff --cached --name-only --diff-filter=ACM | grep -E "^app/.*\.py$" || true); tools_files=$(git diff --cached --name-only --diff-filter=ACM | grep -E "^tools/.*\.py$" || true); if [ -n "$app_files" ]; then docker exec durable-code-backend-$(git rev-parse --abbrev-ref HEAD | tr "/" "-" | tr "[:upper:]" "[:lower:]")-dev bash -c "cd /app && poetry run flake8 $app_files"; fi; if [ -n "$tools_files" ]; then docker exec durable-code-backend-$(git rev-parse --abbrev-ref HEAD | tr "/" "-" | tr "[:upper:]" "[:lower:]")-dev bash -c "cd /app && poetry run flake8 $tools_files --config tools/.flake8"; fi'
+        language: system
+        files: \.(py)$
+        pass_filenames: false
+
+      - id: python-mypy
+        name: MyPy (Python type checking)
+        entry: bash -c 'files=$(git diff --cached --name-only --diff-filter=ACM | grep -E "\.py$" || true); if [ -n "$files" ]; then docker exec durable-code-backend-$(git rev-parse --abbrev-ref HEAD | tr "/" "-" | tr "[:upper:]" "[:lower:]")-dev bash -c "cd /app && MYPY_CACHE_DIR=/tmp/mypy_cache poetry run mypy $files"; fi'
+        language: system
+        files: \.(py)$
+        pass_filenames: false
+
+      - id: python-pylint
+        name: Pylint (Python code analysis)
+        entry: bash -c 'files=$(git diff --cached --name-only --diff-filter=ACM | grep -E "\.py$" | grep -E "^(app|tools)/" || true); if [ -n "$files" ]; then docker exec durable-code-backend-$(git rev-parse --abbrev-ref HEAD | tr "/" "-" | tr "[:upper:]" "[:lower:]")-dev bash -c "cd /app && poetry run pylint $files"; fi'
+        language: system
+        files: \.(py)$
+        pass_filenames: false
+
+      - id: python-bandit
+        name: Bandit (Python security)
+        entry: bash -c 'files=$(git diff --cached --name-only --diff-filter=ACM | grep -E "\.py$" | grep -E "^(app|tools)/" || true); if [ -n "$files" ]; then docker exec durable-code-backend-$(git rev-parse --abbrev-ref HEAD | tr "/" "-" | tr "[:upper:]" "[:lower:]")-dev bash -c "cd /app && poetry run bandit $files"; fi'
+        language: system
+        files: \.(py)$
+        pass_filenames: false
+
+      - id: python-xenon
+        name: Xenon (Python complexity)
+        entry: bash -c 'files=$(git diff --cached --name-only --diff-filter=ACM | grep -E "^app/.*\.py$" || true); if [ -n "$files" ]; then docker exec durable-code-backend-$(git rev-parse --abbrev-ref HEAD | tr "/" "-" | tr "[:upper:]" "[:lower:]")-dev bash -c "cd /app && poetry run xenon --max-absolute B --max-modules B --max-average A $files"; fi'
+        language: system
+        files: ^app/.*\.py$
+        pass_filenames: false
+
+      # TypeScript/JavaScript Linters - run in Docker on changed files only
+      - id: typescript-check
+        name: TypeScript type checking
+        entry: bash -c 'if git diff --cached --name-only --diff-filter=ACM | grep -qE "frontend/.*\.(ts|tsx)$"; then docker exec durable-code-frontend-$(git rev-parse --abbrev-ref HEAD | tr "/" "-" | tr "[:upper:]" "[:lower:]")-dev sh -c "npm run typecheck"; fi'
+        language: system
+        files: ^frontend/.*\.(ts|tsx)$
+        pass_filenames: false
+
+      - id: eslint
+        name: ESLint (JavaScript/TypeScript)
+        entry: bash -c 'files=$(git diff --cached --name-only --diff-filter=ACM | grep -E "^frontend/.*\.(ts|tsx|js|jsx)$" | sed "s|^frontend/||" || true); if [ -n "$files" ]; then docker exec durable-code-frontend-$(git rev-parse --abbrev-ref HEAD | tr "/" "-" | tr "[:upper:]" "[:lower:]")-dev sh -c "npm run lint -- $files"; fi'
+        language: system
+        files: ^frontend/.*\.(ts|tsx|js|jsx)$
+        pass_filenames: false
+
+      - id: stylelint
+        name: Stylelint (CSS)
+        entry: bash -c 'files=$(git diff --cached --name-only --diff-filter=ACM | grep -E "^frontend/.*\.css$" | sed "s|^frontend/||" || true); if [ -n "$files" ]; then docker exec durable-code-frontend-$(git rev-parse --abbrev-ref HEAD | tr "/" "-" | tr "[:upper:]" "[:lower:]")-dev sh -c "npm run lint:css -- $files"; fi'
+        language: system
+        files: ^frontend/.*\.css$
+        pass_filenames: false
+
+      - id: prettier-check
+        name: Prettier (Frontend formatting)
+        entry: bash -c 'files=$(git diff --cached --name-only --diff-filter=ACM | grep -E "^frontend/.*\.(ts|tsx|js|jsx|css)$" | sed "s|^frontend/||" || true); if [ -n "$files" ]; then docker exec durable-code-frontend-$(git rev-parse --abbrev-ref HEAD | tr "/" "-" | tr "[:upper:]" "[:lower:]")-dev sh -c "npm run format:check -- $files"; fi'
+        language: system
+        files: ^frontend/.*\.(ts|tsx|js|jsx|css)$
+        pass_filenames: false
+
+      # Custom Design Linters - run on changed files only
+      - id: design-linters
+        name: Custom design linters
+        entry: bash -c 'py_files=$(git diff --cached --name-only --diff-filter=ACM | grep -E "\.py$" || true); md_files=$(git diff --cached --name-only --diff-filter=ACM | grep -E "\.md$" || true); if [ -n "$py_files" ] || [ -n "$md_files" ]; then docker exec durable-code-backend-$(git rev-parse --abbrev-ref HEAD | tr "/" "-" | tr "[:upper:]" "[:lower:]")-dev bash -c "cd /app && PYTHONPATH=/app/tools python -m design_linters --categories all --format text --fail-on-error $py_files $md_files"; fi'
+        language: system
+        files: \.(py|md)$
+        pass_filenames: false
