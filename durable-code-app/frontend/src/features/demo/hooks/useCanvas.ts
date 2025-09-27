@@ -104,7 +104,7 @@ export function useCanvas(
     return () => {
       stopAnimation();
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [width, height, autoResize, stopAnimation]);
 
   // Redraw when draw function changes (i.e., when data changes)
   useEffect(() => {

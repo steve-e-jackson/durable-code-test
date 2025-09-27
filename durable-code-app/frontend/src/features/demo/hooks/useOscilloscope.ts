@@ -227,27 +227,30 @@ export function useOscilloscope(): UseOscilloscopeReturn {
 
   // Reset only UI parameters to default values (like adjusting dials by hand)
   const resetToDefaults = useCallback(() => {
-    setState((prev) => ({
-      ...prev,
-      waveType: DEFAULT_OSCILLOSCOPE_STATE.waveType,
-      frequency: DEFAULT_OSCILLOSCOPE_STATE.frequency,
-      amplitude: DEFAULT_OSCILLOSCOPE_STATE.amplitude,
-      offset: DEFAULT_OSCILLOSCOPE_STATE.offset,
-      timeScale: DEFAULT_OSCILLOSCOPE_STATE.timeScale,
-      voltScale: DEFAULT_OSCILLOSCOPE_STATE.voltScale,
-      triggerLevel: DEFAULT_OSCILLOSCOPE_STATE.triggerLevel,
-    }));
+    // Use functional update to access current state and avoid stale closure
+    setState((prev) => {
+      // Send configuration update if streaming
+      if (isConnected && prev.isStreaming) {
+        sendConfiguration({
+          waveType: DEFAULT_OSCILLOSCOPE_STATE.waveType,
+          frequency: DEFAULT_OSCILLOSCOPE_STATE.frequency,
+          amplitude: DEFAULT_OSCILLOSCOPE_STATE.amplitude,
+          offset: DEFAULT_OSCILLOSCOPE_STATE.offset,
+        });
+      }
 
-    // If streaming, send the configuration update to backend
-    if (isConnected && state.isStreaming) {
-      sendConfiguration({
+      return {
+        ...prev,
         waveType: DEFAULT_OSCILLOSCOPE_STATE.waveType,
         frequency: DEFAULT_OSCILLOSCOPE_STATE.frequency,
         amplitude: DEFAULT_OSCILLOSCOPE_STATE.amplitude,
         offset: DEFAULT_OSCILLOSCOPE_STATE.offset,
-      });
-    }
-  }, [isConnected, state.isStreaming, sendConfiguration]);
+        timeScale: DEFAULT_OSCILLOSCOPE_STATE.timeScale,
+        voltScale: DEFAULT_OSCILLOSCOPE_STATE.voltScale,
+        triggerLevel: DEFAULT_OSCILLOSCOPE_STATE.triggerLevel,
+      };
+    });
+  }, [isConnected, sendConfiguration]);
 
   return {
     state,
