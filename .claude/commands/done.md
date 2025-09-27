@@ -116,9 +116,69 @@ fi
 - Frontend: Minimum 70% coverage required
 - Critical paths: 95% coverage required
 
-### 5. AI Documentation Update Opportunities
+### 5. Roadmap Progress Document Updates (When Working on Roadmap Items)
 
-Before committing, analyze changes for AI documentation updates:
+If working on a roadmap item, update the progress tracker before proceeding:
+
+#### Detecting Roadmap Work
+```bash
+# Check if we're working on a roadmap item
+if git diff --name-only | grep -q "roadmap/.*/PROGRESS_TRACKER.md"; then
+    echo "✅ Detected roadmap item work - progress tracker updates required"
+    ROADMAP_WORK=true
+else
+    # Check if branch name indicates roadmap work
+    BRANCH_NAME=$(git branch --show-current)
+    if echo "$BRANCH_NAME" | grep -qE "pr[0-9]+|roadmap|feature-pr"; then
+        echo "ℹ️  Branch name suggests roadmap work - checking for progress tracker"
+        # Look for the relevant progress tracker
+        PROGRESS_TRACKER=$(find roadmap -name "PROGRESS_TRACKER.md" -type f 2>/dev/null | head -1)
+        if [ -n "$PROGRESS_TRACKER" ]; then
+            echo "✅ Found progress tracker: $PROGRESS_TRACKER"
+            ROADMAP_WORK=true
+        fi
+    fi
+fi
+```
+
+#### Update Progress Tracker
+If roadmap work is detected:
+
+```bash
+# 1. Mark current PR/task as complete
+# 2. Update completion percentage
+# 3. Add completion timestamp
+# 4. Update "Next PR to Implement" section
+# 5. Document any deviations or learnings
+
+# Example update pattern:
+if [ "$ROADMAP_WORK" = true ]; then
+    echo "📊 Updating roadmap progress tracker..."
+
+    # The AI agent should:
+    # - Read the current PROGRESS_TRACKER.md
+    # - Identify which PR/task was being worked on
+    # - Update status from 🟡 In Progress to 🟢 Complete
+    # - Calculate new overall completion percentage
+    # - Update the Next PR section
+    # - Add notes about implementation details
+    # - Include these updates in the commit
+fi
+```
+
+#### Progress Update Checklist
+When completing roadmap work, ensure:
+- [ ] Current PR marked as 🟢 Complete in dashboard
+- [ ] Completion percentage updated
+- [ ] Completion date recorded
+- [ ] "Next PR to Implement" section updated
+- [ ] Any blockers or deviations documented
+- [ ] Lessons learned captured
+- [ ] Change log updated if significant
+
+### 6. AI Documentation Update Opportunities
+
+Analyze changes for general AI documentation updates:
 
 #### IMPORTANT: Check Existing AI Documentation First
 ```bash
@@ -265,7 +325,7 @@ Would you like me to update any of these?
 # 3. Mention updates in commit message and PR description
 ```
 
-### 6. Build Verification
+### 7. Build Verification
 Ensure production builds work correctly:
 
 ```bash
@@ -279,7 +339,7 @@ cd durable-code-app/frontend && npm run build
 docker-compose build --no-cache
 ```
 
-### 7. Commit Changes
+### 8. Commit Changes
 Create meaningful commit with proper formatting:
 
 #### Commit Message Format
@@ -324,7 +384,7 @@ EOF
 )"
 ```
 
-### 8. Push and Create Pull Request
+### 9. Push and Create Pull Request
 Push changes and create PR with comprehensive details:
 
 #### Push to Remote
@@ -385,7 +445,7 @@ EOF
 )"
 ```
 
-### 9. CI/CD Verification - CRITICAL: USE 'make gh-watch-checks'
+### 10. CI/CD Verification - CRITICAL: USE 'make gh-watch-checks'
 
 **🚨 IMPORTANT: ALWAYS USE THE 'make gh-watch-checks' TARGET AFTER CREATING A PR 🚨**
 
@@ -460,7 +520,7 @@ gh run view $(gh run list --branch $(git branch --show-current) --json databaseI
 - ✅ Coverage requirements met
 - ✅ Performance benchmarks met
 
-### 10. Auto-Merge Decision (if 'with merge' specified)
+### 11. Auto-Merge Decision (if 'with merge' specified)
 If the `with merge` argument was provided, proceed with automatic merge:
 
 #### Pre-Merge Validation
@@ -526,7 +586,7 @@ git branch -d feature/branch-name
 git fetch --prune
 ```
 
-### 11. Handle Check Failures
+### 12. Handle Check Failures
 If any checks fail, address them systematically:
 
 #### Failed Build
@@ -595,7 +655,7 @@ git add . && git commit -m "style: Fix linting violations
 Co-Authored-By: Claude <noreply@anthropic.com>"
 ```
 
-### 12. Container Cleanup (Success Only)
+### 13. Container Cleanup (Success Only)
 After all checks pass successfully and workflow completion, clean up containers for the current branch:
 
 ```bash
