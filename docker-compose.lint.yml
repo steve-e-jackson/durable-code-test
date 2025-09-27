@@ -1,0 +1,67 @@
+# Purpose: Docker Compose configuration for dedicated linting containers
+# Scope: Orchestrates Python and JavaScript linting services with proper volume mounting
+# Overview: Defines linting services that mount source code directories for analysis
+#     without including application runtime. Services are configured for manual execution
+#     via make targets, with proper networking isolation and resource constraints.
+#     Volume mounts provide access to backend, frontend, tools, and test directories.
+# Dependencies: Dedicated linting Dockerfiles, source code directories
+# Exports: Named linting services (python-linter, js-linter)
+# Interfaces: Volume mounts to source directories, network isolation
+# Implementation: Service-per-linting-type with shared source volume strategy
+
+version: '3.8'
+
+services:
+  python-linter:
+    build:
+      context: .
+      dockerfile: docker/linting/Dockerfile.python-lint
+    container_name: durable-code-python-linter-${BRANCH_NAME:-main}
+    volumes:
+      # Backend application code
+      - ./durable-code-app/backend:/workspace/backend:ro
+      # Design linters framework
+      - ./tools:/workspace/tools:ro
+      # Test files
+      - ./test:/workspace/test:ro
+      # Infrastructure files for TFLint
+      - ./infra:/workspace/infra:ro
+      # Project root for file organization checks
+      - .:/workspace/root:ro
+    networks:
+      - linting-network
+    # Resource limits to prevent runaway processes
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    # Override to keep container running for make targets
+    command: ["tail", "-f", "/dev/null"]
+
+  js-linter:
+    build:
+      context: .
+      dockerfile: docker/linting/Dockerfile.js-lint
+    container_name: durable-code-js-linter-${BRANCH_NAME:-main}
+    volumes:
+      # Frontend application code
+      - ./durable-code-app/frontend:/workspace/frontend:ro
+      # Project root for global configs
+      - .:/workspace/root:ro
+    networks:
+      - linting-network
+    # Resource limits for frontend linting
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    # Override to keep container running for make targets
+    command: ["tail", "-f", "/dev/null"]
+
+networks:
+  linting-network:
+    driver: bridge
+    # Isolated network for linting containers
+    internal: true

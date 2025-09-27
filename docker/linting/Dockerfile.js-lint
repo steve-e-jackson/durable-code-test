@@ -1,0 +1,40 @@
+# Purpose: Dedicated JavaScript/TypeScript linting container with all frontend tools
+# Scope: Isolated environment for frontend linting without application runtime dependencies
+# Overview: This container includes Node.js with dev dependencies, global linting tools,
+#     and TypeScript compiler. Designed for volume mounting source code at runtime,
+#     optimized for fast linting execution. Includes HTMLHint globally for HTML validation
+#     and all ESLint/Prettier configurations for comprehensive code quality checks.
+# Dependencies: Node.js, npm packages from package.json devDependencies
+# Exports: Container with JavaScript linting tools at /workspace
+# Interfaces: Volume mount points at /workspace/frontend
+# Implementation: Alpine-based for minimal size with global tool installation
+
+FROM node:20-alpine
+
+# Set working directory for linting operations
+WORKDIR /workspace
+
+# Install global linting tools
+RUN npm install -g \
+    # HTML linting
+    htmlhint \
+    # TypeScript compiler and tools
+    typescript \
+    # Additional global utilities
+    npm-check-updates
+
+# Copy package configuration
+COPY durable-code-app/frontend/package*.json ./
+
+# Install dev dependencies for linting tools
+RUN npm install --only=development
+
+# Create non-root user for security
+RUN adduser -D -u 1001 linter && \
+    chown -R linter:linter /workspace
+
+# Switch to non-root user
+USER linter
+
+# Default command opens shell for make target execution
+CMD ["sh"]

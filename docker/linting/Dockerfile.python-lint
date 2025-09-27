@@ -1,0 +1,56 @@
+# Purpose: Dedicated Python linting container with all code quality tools
+# Scope: Isolated environment for Python linting without application runtime dependencies
+# Overview: This container includes Poetry with dev dependencies, system linting tools
+#     (shellcheck, TFLint), and all Python code quality tools from pyproject.toml.
+#     Designed for volume mounting source code at runtime, optimized for linting
+#     execution speed and tool isolation. Includes custom Python path configuration
+#     for design linters framework compatibility.
+# Dependencies: Poetry, system packages for shellcheck and TFLint
+# Exports: Container with Python linting tools at /workspace
+# Interfaces: Volume mount points at /workspace/{backend,tools,test}
+# Implementation: Multi-layer build optimized for caching
+
+FROM python:3.11-slim
+
+# Set working directory for linting operations
+WORKDIR /workspace
+
+# Install system dependencies for linting tools
+RUN apt-get update && apt-get install -y \
+    # Shell script linting
+    shellcheck \
+    # Download tools for TFLint
+    curl unzip \
+    # Git for version control integration
+    git \
+    # Clean up to reduce image size
+    && rm -rf /var/lib/apt/lists/*
+
+# Install TFLint for Terraform linting
+RUN curl -sSfL https://github.com/terraform-linters/tflint/releases/download/v0.55.0/tflint_linux_amd64.zip -o /tmp/tflint.zip && \
+    unzip /tmp/tflint.zip -d /usr/local/bin && \
+    rm /tmp/tflint.zip && \
+    chmod +x /usr/local/bin/tflint
+
+# Install Poetry for Python dependency management
+RUN pip install poetry==1.7.1
+
+# Copy poetry configuration
+COPY durable-code-app/backend/pyproject.toml durable-code-app/backend/poetry.lock* ./
+
+# Configure poetry and install dev dependencies only
+RUN poetry config virtualenvs.create false && \
+    poetry install --only=dev --no-interaction --no-ansi --no-root
+
+# Create non-root user for security
+RUN useradd -m -u 1000 linter && \
+    chown -R linter:linter /workspace
+
+# Switch to non-root user
+USER linter
+
+# Set PYTHONPATH for design linters framework
+ENV PYTHONPATH=/workspace/tools:/workspace
+
+# Default command opens bash for make target execution
+CMD ["bash"]
