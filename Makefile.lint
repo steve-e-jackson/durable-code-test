@@ -18,10 +18,11 @@ lint-all: dev-start ## Run ALL linters (Python, JS/TS, and custom design rules)
 	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
 	@echo ""
 	@echo "$(YELLOW)━━━ Python Linters ━━━$(NC)"
-	@docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "cd /app && \
-		echo '• Ruff (format + lint)...' && poetry run ruff format --check app tools && poetry run ruff check app tools && \
+	@docker exec -u root durable-code-backend-$(BRANCH_NAME)-dev bash -c "cd /app && \
+		mkdir -p /app/.cache/ruff /app/.cache/mypy && chmod -R 777 /app/.cache && \
+		echo '• Ruff (format + lint)...' && RUFF_CACHE_DIR=/app/.cache/ruff poetry run ruff format --check app tools && RUFF_CACHE_DIR=/app/.cache/ruff poetry run ruff check app tools && \
 		echo '• Flake8...' && flake8_app=\$$(poetry run flake8 app --count 2>/dev/null || echo '0') && flake8_tools=\$$(poetry run flake8 tools --config tools/.flake8 --count 2>/dev/null || echo '0') && echo \"  App violations: \$$flake8_app, Tools violations: \$$flake8_tools\" && \
-		echo '• MyPy...' && MYPY_CACHE_DIR=/tmp/mypy_cache poetry run mypy . && \
+		echo '• MyPy...' && MYPY_CACHE_DIR=/app/.cache/mypy poetry run mypy . && \
 		echo '• Pylint...' && poetry run pylint app tools 2>&1 | tee /tmp/pylint.out && grep -q 'Your code has been rated at 10.00/10' /tmp/pylint.out && \
 		echo '• Bandit...' && poetry run bandit -r app tools && \
 		echo '• Xenon...' && poetry run xenon --max-absolute B --max-modules B --max-average A app" || (echo "$(RED)✗ Python linting failed$(NC)" && exit 1)
@@ -65,8 +66,9 @@ lint-fix: dev-start ## Auto-fix linting issues (Ruff, ESLint, Prettier, Stylelin
 	@echo "$(CYAN)Auto-fixing code formatting...$(NC)"
 	@echo "$(YELLOW)Fixing Python code...$(NC)"
 	@docker exec -u root durable-code-backend-$(BRANCH_NAME)-dev bash -c "cd /app && \
-		poetry run ruff format app tools && \
-		poetry run ruff check --fix app tools && \
+		mkdir -p /app/.cache/ruff /app/.cache/mypy && chmod -R 777 /app/.cache && \
+		RUFF_CACHE_DIR=/app/.cache/ruff poetry run ruff format app tools && \
+		RUFF_CACHE_DIR=/app/.cache/ruff poetry run ruff check --fix app tools && \
 		chown -R 1001:1001 /app/tools"
 	@echo "$(YELLOW)Fixing TypeScript/React code...$(NC)"
 	@docker exec durable-code-frontend-$(BRANCH_NAME)-dev sh -c "\
