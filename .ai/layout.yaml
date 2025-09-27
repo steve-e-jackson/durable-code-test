@@ -337,6 +337,64 @@ linter_rules:
         - '\\.(ts|tsx|js|jsx)$'
         - '\\.tfvars$'
 
+    roadmap/:
+      description: "Roadmap organization directory with status-based subdirectories"
+      allow:
+        - '^roadmap/ROADMAP\\.md$'
+        - '^roadmap/planning/[^/]+/.*\\.md$'
+        - '^roadmap/in_progress/[^/]+/.*\\.md$'
+        - '^roadmap/complete/[^/]+/.*\\.md$'
+        - '^roadmap/[^/]+/.*\\.md$'
+        - '^roadmap/[^/]+/.*\\.html$'
+      deny:
+        - '\\.py$'
+        - '\\.js$'
+        - '\\.ts$'
+        - '\\.tsx$'
+        - 'test'
+
+    roadmap/planning/:
+      description: "Roadmap items at 0% completion (not started)"
+      allow:
+        - '/planning/[^/]+/PROGRESS_TRACKER\\.md$'
+        - '/planning/[^/]+/AI_CONTEXT\\.md$'
+        - '/planning/[^/]+/PR_BREAKDOWN\\.md$'
+        - '/planning/[^/]+/.*\\.md$'
+        - '/planning/[^/]+/.*\\.html$'
+      deny:
+        - '\\.py$'
+        - '\\.js$'
+        - '\\.ts$'
+        - '\\.tsx$'
+
+    roadmap/in_progress/:
+      description: "Roadmap items between 1-99% completion (active work)"
+      allow:
+        - '/in_progress/[^/]+/PROGRESS_TRACKER\\.md$'
+        - '/in_progress/[^/]+/AI_CONTEXT\\.md$'
+        - '/in_progress/[^/]+/PR_BREAKDOWN\\.md$'
+        - '/in_progress/[^/]+/.*\\.md$'
+        - '/in_progress/[^/]+/.*\\.html$'
+      deny:
+        - '\\.py$'
+        - '\\.js$'
+        - '\\.ts$'
+        - '\\.tsx$'
+
+    roadmap/complete/:
+      description: "Roadmap items at 100% completion (finished)"
+      allow:
+        - '/complete/[^/]+/PROGRESS_TRACKER\\.md$'
+        - '/complete/[^/]+/AI_CONTEXT\\.md$'
+        - '/complete/[^/]+/PR_BREAKDOWN\\.md$'
+        - '/complete/[^/]+/.*\\.md$'
+        - '/complete/[^/]+/.*\\.html$'
+      deny:
+        - '\\.py$'
+        - '\\.js$'
+        - '\\.ts$'
+        - '\\.tsx$'
+
     .:
       description: "Root directory rules"
       allow:

@@ -48,11 +48,16 @@ Ask the user about:
 - ✅ CORRECT: `roadmap/feature`
 
 ```bash
-# Create a new directory in the roadmap folder
-mkdir -p roadmap/{{feature-name}}/
+# Create a new directory in the roadmap/planning folder (all items start at 0%)
+mkdir -p roadmap/planning/{{feature-name}}/
 ```
 
 Use kebab-case for the directory name (e.g., `ai-contributions`, `deployment`, `frontend-upgrade`)
+
+**Directory Placement by Completion**:
+- **roadmap/planning/** - New items (0% complete)
+- **roadmap/in_progress/** - Active items (1-99% complete)
+- **roadmap/complete/** - Finished items (100% complete)
 
 ### Step 2: Create the Progress Tracker (Primary Document)
 
@@ -224,10 +229,15 @@ The PROGRESS_TRACKER.md is a **living document** that must be updated:
 
 ### After Each PR Completion:
 1. Update PR status to 🟢 Complete
-2. Update overall progress percentage
-3. Move "Next PR" pointer
-4. Document any deviations or learnings
-5. Note any new blockers or dependencies
+2. **Calculate new completion percentage**
+3. Update overall progress percentage in PROGRESS_TRACKER.md
+4. Move "Next PR" pointer
+5. Document any deviations or learnings
+6. Note any new blockers or dependencies
+7. **Check if directory move needed**:
+   - If moving from 0% to >0%: Move from `planning/` to `in_progress/`
+   - If reaching 100%: Move from `in_progress/` to `complete/`
+8. **Update master ROADMAP.md** with new percentage
 
 ### When Blocked:
 1. Mark PR as 🔵 Blocked
@@ -246,13 +256,18 @@ The PROGRESS_TRACKER.md is a **living document** that must be updated:
 Here's a complete example for an "API Rate Limiting" feature:
 
 ```
-roadmap/api-rate-limiting/
-├── PROGRESS_TRACKER.md     # Primary handoff document
-├── AI_CONTEXT.md           # Background and architecture
-├── PR_BREAKDOWN.md         # Detailed implementation
-├── TESTING_STRATEGY.md     # Load testing approach
-└── rate-limit-flow.html    # Visual flow diagram
+roadmap/planning/api-rate-limiting/     # Starts in planning at 0%
+├── PROGRESS_TRACKER.md                 # Primary handoff document (tracks %)
+├── AI_CONTEXT.md                       # Background and architecture
+├── PR_BREAKDOWN.md                     # Detailed implementation
+├── TESTING_STRATEGY.md                 # Load testing approach
+└── rate-limit-flow.html               # Visual flow diagram
 ```
+
+As work progresses:
+- **0% complete**: `roadmap/planning/api-rate-limiting/`
+- **33% complete** (2/6 PRs): `roadmap/in_progress/api-rate-limiting/`
+- **100% complete**: `roadmap/complete/api-rate-limiting/`
 
 ### PR Structure Example:
 - **PR1**: Core rate limiting middleware (Backend)
@@ -262,6 +277,33 @@ roadmap/api-rate-limiting/
 - **PR5**: Client-side retry logic and error handling
 - **PR6**: Documentation and load testing
 
+## 📈 Completion Percentage Calculation
+
+### Simple Method (Equal Weight)
+```
+Completion % = (Completed PRs / Total PRs) × 100
+Example: 3 of 5 PRs done = 60%
+```
+
+### Weighted Method (Complexity-Based)
+For PRs with different complexities:
+- **Low complexity**: 1 point
+- **Medium complexity**: 2 points
+- **High complexity**: 3 points
+
+```
+Completion % = (Completed Points / Total Points) × 100
+Example: 2 Low (2pts) + 1 High (3pts) complete of 10 total points = 50%
+```
+
+### Visual Progress Indicators
+Use these in PROGRESS_TRACKER.md and ROADMAP.md:
+```
+[████████████████░░░░] 80% - PR4 of 5 Complete
+[██████░░░░░░░░░░░░░░] 30% - PR2 of 7 In Progress
+[░░░░░░░░░░░░░░░░░░░░] 0%  - Planning Phase
+```
+
 ## 🤝 Collaboration with /done Command
 
 When working on a roadmap item, the `/done` command should:
@@ -269,12 +311,19 @@ When working on a roadmap item, the `/done` command should:
 1. **Detect Roadmap Work**: Check if PROGRESS_TRACKER.md was modified
 2. **Update Progress**:
    - Mark current PR/task as complete
-   - Update completion percentages
+   - **Recalculate completion percentage**
+   - Update completion percentages in PROGRESS_TRACKER.md
    - Add completion timestamp
-3. **Prepare Next Steps**:
+3. **Handle Directory Moves**:
+   - If first PR complete (0% → X%): Move to `in_progress/`
+   - If final PR complete (→ 100%): Move to `complete/`
+4. **Update Master Roadmap**:
+   - Update item's percentage in ROADMAP.md
+   - Recalculate overall project completion
+5. **Prepare Next Steps**:
    - Identify next PR to implement
    - Create summary for handoff
-4. **Commit Updates**: Include progress tracker in commit
+6. **Commit Updates**: Include all roadmap changes in commit
 
 ## 🎯 Success Criteria for Roadmap Items
 
