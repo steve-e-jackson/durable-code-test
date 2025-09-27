@@ -18,6 +18,7 @@ from pathlib import Path
 
 # Analysis and orchestration
 from .analyzer import ContextualASTVisitor, DefaultLintOrchestrator, LintResults, PythonAnalyzer
+
 # Multi-language support
 from .base_interfaces import (
     BaseLintAnalyzer,
@@ -39,6 +40,7 @@ from .interfaces import (
     RuleRegistry,
 )
 from .multi_language_orchestrator import DefaultLanguageRegistry, MultiLanguageOrchestrator
+
 # Core types
 from .types import LintViolation, Severity
 
