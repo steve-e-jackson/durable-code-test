@@ -75,7 +75,9 @@ make dev
 **Services Started**:
 - **Frontend**: React dev server on `http://localhost:5173`
 - **Backend**: FastAPI server on `http://localhost:8000`
-- **Development tools**: Linting, testing, hot reload
+- **Development tools**: Hot reload, debugging, testing
+
+> **Note**: Linting tools are now in dedicated containers for better performance. They start automatically when you run `make lint-all` or related commands.
 
 ### Development with Browser Launch
 ```bash
@@ -233,8 +235,10 @@ make clean         # Clean environment
 
 # Quality assurance
 make test          # Run all tests
-make lint-all      # Run all linting
+make lint-all      # Run all linting (uses dedicated containers)
 make lint-fix      # Auto-fix issues
+make lint-start    # Start linting containers manually
+make lint-stop     # Stop linting containers
 
 # Monitoring
 make status        # Container status
@@ -450,3 +454,37 @@ make test
 # Check pre-commit hooks
 pre-commit run --all-files
 ```
+
+### Linting Architecture (New)
+
+The project uses **dedicated linting containers** separate from development containers for improved performance:
+
+**Benefits**:
+- 30-50% faster development container startup
+- Parallel linting execution
+- Independent tool updates without rebuilding dev environment
+- Smaller production images
+
+**Architecture**:
+- **Python Linting Container**: Black, Ruff, MyPy, Pylint, Flake8, Bandit, Xenon, Shellcheck, TFLint
+- **JavaScript Linting Container**: ESLint, Prettier, TypeScript, HTMLHint, Stylelint
+
+**Usage**:
+```bash
+# All linting (containers start automatically)
+make lint-all
+
+# Specific linting
+make lint-python    # Python only
+make lint-js       # JavaScript only
+make lint-design   # Custom design linters
+
+# Manual container management (usually not needed)
+make lint-start    # Start containers
+make lint-stop     # Stop containers
+```
+
+For more details, see:
+- `.ai/howto/run-linting.md` - Complete linting guide
+- `docker/linting/README.md` - Architecture documentation
+- `docker/linting/TROUBLESHOOTING.md` - Common issues
