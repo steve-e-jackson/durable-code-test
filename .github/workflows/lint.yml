@@ -70,7 +70,9 @@ jobs:
 
           # Start containers needed for linting
           docker run -d --name "durable-code-backend-${BRANCH_NAME}-dev" \
-            -v $(pwd):/app \
+            -v $(pwd)/durable-code-app/backend:/app \
+            -v $(pwd)/tools:/app/tools \
+            -v $(pwd):/workspace \
             -w /app \
             durable-code-backend-dev:latest \
             sleep infinity

@@ -60,7 +60,12 @@ lint-all: ## Run ALL linters (Python, JS/TS, and custom design rules)
 			echo "  No Python files in root to check"; \
 		fi
 	@echo "• AWS Security (checking all files)..." && \
-		env PYTHONPATH=tools python -m design_linters.cli --rules security.aws.secrets-detection --format text --recursive --fail-on-error . || (echo "$(RED)✗ AWS security check failed$(NC)" && exit 1)
+		docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "cd /app && \
+		if [ -d /workspace ]; then \
+			PYTHONPATH=/app/tools python -m design_linters.cli --rules security.aws.secrets-detection --format text --recursive --fail-on-error /workspace; \
+		else \
+			PYTHONPATH=/app/tools python -m design_linters.cli --rules security.aws.secrets-detection --format text --recursive --fail-on-error /app; \
+		fi" || (echo "$(RED)✗ AWS security check failed$(NC)" && exit 1)
 	@echo "$(GREEN)✓ Custom design linting passed$(NC)"
 	@echo ""
 	@echo "$(YELLOW)━━━ Infrastructure Linters ━━━$(NC)"
