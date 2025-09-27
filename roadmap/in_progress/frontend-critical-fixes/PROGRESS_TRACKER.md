@@ -43,31 +43,31 @@ roadmap/frontend-critical-fixes/
 
 ## 🎯 Next PR to Implement
 
-### ➡️ NEXT UP: PR2 - WebSocket Memory Leak Fix
+### ➡️ NEXT UP: PR3 - React Hook Dependencies Fix
 
 **Quick Summary**:
-Fix WebSocket singleton memory leak by properly cleaning up event listeners on component unmount. This is critical for production stability.
+Fix stale closures and missing dependencies in React hooks throughout the codebase to prevent subtle bugs and ensure consistent behavior.
 
 **Pre-flight Checklist**:
-- [ ] Review WebSocket implementation in useWebSocket.ts
-- [ ] Understand component lifecycle and cleanup patterns
-- [ ] Profile current memory usage
-- [ ] Set up memory monitoring tools
-- [ ] Review existing WebSocket tests
+- [ ] Audit all useCallback/useMemo/useEffect hooks
+- [ ] Identify missing dependencies
+- [ ] Find stale closure issues
+- [ ] Review ESLint exhaustive-deps rule configuration
+- [ ] Prepare test scenarios
 
 **Prerequisites Complete**:
 - ✅ CSS Architecture refactor completed
+- ✅ WebSocket memory leak fixed
 - ✅ All linting passing
-- ✅ No visual regressions
-- ✅ Development environment stable
+- ✅ Component-specific listener tracking implemented
 
 ---
 
 ## Overall Progress
-**Total Completion**: 14% (1/7 PRs completed)
+**Total Completion**: 29% (2/7 PRs completed)
 
 ```
-[🟩⬜⬜⬜⬜⬜⬜⬜⬜⬜] 14% Complete
+[🟩🟩🟩⬜⬜⬜⬜⬜⬜⬜] 29% Complete
 ```
 
 ---
@@ -77,7 +77,7 @@ Fix WebSocket singleton memory leak by properly cleaning up event listeners on c
 | PR | Title | Status | Completion | Complexity | Notes |
 |----|-------|--------|------------|------------|-------|
 | PR1 | CSS Architecture Refactor | 🟢 Complete | 100% | High | App.css reduced from 2,686 to 68 lines |
-| PR2 | WebSocket Memory Leak Fix | 🔴 Not Started | 0% | Medium | Fix listener cleanup |
+| PR2 | WebSocket Memory Leak Fix | 🟢 Complete | 100% | Medium | Component-specific tracking |
 | PR3 | React Hook Dependencies | 🔴 Not Started | 0% | Medium | Fix stale closures |
 | PR4 | Navigation Race Condition | 🔴 Not Started | 0% | Low | Atomic state updates |
 | PR5 | Component Optimization | 🔴 Not Started | 0% | Medium | Add memoization |
@@ -128,25 +128,34 @@ Decompose the monolithic App.css (2,686 lines) into component-specific CSS modul
 ---
 
 ## PR2: WebSocket Memory Leak Fix
-**Status**: 🔴 Not Started | **Complexity**: Medium
+**Status**: 🟢 Complete | **Complexity**: Medium | **Completed**: 2025-09-27
 
 ### Description
 Fix WebSocket singleton memory leak by properly cleaning up event listeners on component unmount.
 
 ### Checklist
-- [ ] Analyze current WebSocket singleton implementation
-- [ ] Implement component-specific listener cleanup
-- [ ] Add listener tracking mechanism
-- [ ] Test memory usage before/after
-- [ ] Add unit tests for cleanup
-- [ ] Document WebSocket usage patterns
-- [ ] Monitor for regression
+- [x] Analyze current WebSocket singleton implementation
+- [x] Implement component-specific listener cleanup
+- [x] Add listener tracking mechanism
+- [x] Test memory usage before/after
+- [x] Add unit tests for cleanup (10 comprehensive tests)
+- [x] Document WebSocket usage patterns
+- [x] Monitor for regression
 
 ### Success Criteria
-- No listener accumulation on component unmount
-- Memory usage stable over time
-- All WebSocket tests passing
-- Performance metrics improved
+- ✅ No listener accumulation on component unmount
+- ✅ Memory usage stable over time
+- ✅ All WebSocket tests passing (10/10)
+- ✅ Performance metrics improved
+
+### Implementation Notes
+**Achieved Results**:
+- Implemented component-specific listener tracking in WebSocketService
+- Added unique component ID generation for each hook instance
+- Created removeAllListenersForComponent() method for cleanup
+- Added 10 comprehensive memory leak tests
+- All tests passing, no memory leaks detected
+- Maintains singleton pattern while ensuring proper cleanup
 
 ---
 
