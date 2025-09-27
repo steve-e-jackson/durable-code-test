@@ -72,6 +72,7 @@
     "react/prop-types": "off",
     "react/display-name": "off",
     "react-refresh/only-export-components": ["warn", { "allowConstantExport": true }],
+    "react-hooks/exhaustive-deps": "error",
     "import/order": [
       "error",
       {
