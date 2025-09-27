@@ -117,11 +117,6 @@ import { MinimalErrorBoundary } from '../../core/errors/MinimalErrorBoundary';
 
 ## Testing and Verification
 
-### Make Targets
-- `make check-page` - Basic HTML structure verification
-- `make check-page-full` - Complete page content verification (requires Playwright)
-- `make check-page-watch` - Continuous monitoring of page content
-
 ### Testing Tools
 - `node scripts/test-rendered-content.js` - Simple HTTP-based content verification
 - `scripts/simple-check.js` - Container-based quick verification
@@ -129,9 +124,9 @@ import { MinimalErrorBoundary } from '../../core/errors/MinimalErrorBoundary';
 
 ### Verification Process
 1. **Start development**: `make dev`
-2. **Basic check**: `make check-page`
+2. **Basic check**: `docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js`
 3. **Content verification**: `docker exec durable-code-frontend-dev node /app/scripts/test-rendered-content.js`
-4. **Continuous monitoring**: `make check-page-watch`
+4. **Continuous monitoring**: `docker exec -it durable-code-frontend-dev node /app/scripts/simple-check.js --watch`
 
 ## Error Boundary Requirements
 
@@ -145,7 +140,7 @@ import { MinimalErrorBoundary } from '../../core/errors/MinimalErrorBoundary';
 ### Error Boundary Standards
 - Use `MinimalErrorBoundary` by default for stability
 - Only use `ErrorBoundary` when advanced features (retry, reset) are needed
-- Always test error boundaries with `make check-page` after implementation
+- Always test error boundaries with `scripts/check-page-content.js` after implementation
 - Ensure error boundaries don't break application functionality
 - Include error boundaries in code reviews
 
@@ -208,7 +203,7 @@ window.addEventListener('unhandledrejection', (event) => {
 
 ### Best Practices
 1. **Start Simple**: Use MinimalErrorBoundary first
-2. **Test Early**: Verify with `make check-page` immediately
+2. **Test Early**: Verify with `scripts/check-page-content.js` immediately
 3. **Isolate Errors**: Implement at multiple levels for better isolation
 4. **Monitor**: Use continuous verification during development
 5. **Document**: Include error boundary usage in component documentation
@@ -218,7 +213,7 @@ window.addEventListener('unhandledrejection', (event) => {
 ### Issue: Blank Page After Adding Error Boundaries
 - **Cause**: Complex error boundary implementation breaking React rendering
 - **Solution**: Use MinimalErrorBoundary instead of ErrorBoundary
-- **Verification**: Test with `make check-page` after each change
+- **Verification**: Test with `scripts/check-page-content.js` after each change
 
 ### Issue: Global Error Handler Breaking App
 - **Cause**: setupGlobalErrorHandling function complexity
@@ -235,7 +230,7 @@ window.addEventListener('unhandledrejection', (event) => {
 ### Adding Error Boundaries to Existing Components
 1. Import MinimalErrorBoundary
 2. Wrap the component with the error boundary
-3. Test with `make check-page`
+3. Test with `docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js`
 4. Verify functionality is preserved
 5. Update documentation
 
