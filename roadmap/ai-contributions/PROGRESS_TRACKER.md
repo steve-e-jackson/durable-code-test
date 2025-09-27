@@ -9,9 +9,10 @@ This is the **PRIMARY HANDOFF DOCUMENT** for AI agents working on the AI-powered
 
 ## 📍 Current Status
 **Current PR**: PR1 Complete - Backend Infrastructure Implemented
-**Last Updated**: 2025-09-26
+**Last Updated**: 2025-09-27
 **Infrastructure State**: 🟢 Backend Ready - DynamoDB storage, API endpoints, GitHub integration
 **Feature Target**: Enable community contributions via AI prompts with GitHub integration
+**Deployment Status**: ✅ Dev environment working with aioboto3 properly configured
 
 ## 📁 Required Documents Location
 ```
@@ -93,13 +94,33 @@ This is the **PRIMARY HANDOFF DOCUMENT** for AI agents working on the AI-powered
 - [x] Create admin endpoints for review
 - [x] Add comprehensive error handling
 - [x] Write unit tests for all components
+- [x] Add DynamoDB Terraform infrastructure
+- [x] Configure IAM permissions for ECS tasks
+- [x] Fix all import and dependency issues
+- [x] Ensure aioboto3 properly installed in Docker
 
 ### Key Implementation Notes
 - **CHANGE**: Used DynamoDB instead of traditional database for cost efficiency
 - Implemented local in-memory storage for development
 - Created comprehensive spam detection and quality scoring
+- Added DynamoDB table as base resource (not destroyed nightly)
+- Fixed retry decorator imports and Contribution model references
+- Rebuilt Docker containers from scratch to properly install aioboto3
 - GitHub integration ready for issue creation
 - Rate limiting: 5 submissions per hour per IP
+
+### Infrastructure Changes
+- **DynamoDB Table**: `durableai-{env}-contributions` with on-demand billing
+- **IAM Permissions**: Added DynamoDB read/write to ECS task role
+- **Environment Variables**: `DYNAMODB_TABLE_NAME` and `AWS_REGION` added to backend
+- **Resource Scope**: DynamoDB configured as base resource (persistent, not destroyed nightly)
+- **Dependencies**: aioboto3 v13.4.0 added for async AWS operations
+
+### Deployment Notes
+- Dev environment tested and working on localhost:5590/8417
+- WebSocket connections for oscilloscope demo verified
+- All containers rebuilt from scratch with proper dependencies
+- Ready for PR2 implementation (Authentication System)
 
 ---
 

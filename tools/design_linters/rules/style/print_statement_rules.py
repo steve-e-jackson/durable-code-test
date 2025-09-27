@@ -247,7 +247,7 @@ class ConsoleOutputRule(ASTLintRule):  # design-lint: ignore[solid.srp.too-many-
             self.create_violation(
                 context,
                 node,
-                message=(f"Console output method '{output_method}' found - " "use logging instead"),
+                message=(f"Console output method '{output_method}' found - use logging instead"),
                 description=f"Replace {output_method} with appropriate logging calls",
                 suggestion=suggestion,
                 violation_context={"output_method": output_method},

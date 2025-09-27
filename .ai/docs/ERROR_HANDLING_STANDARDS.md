@@ -1,4 +1,4 @@
-# Error Handling Standards
+1# Error Handling Standards
 
 ## Overview
 This document defines standards for error handling across the codebase to ensure robust, maintainable, and debuggable applications.
