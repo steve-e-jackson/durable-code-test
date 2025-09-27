@@ -21,7 +21,7 @@ from loguru import logger
 
 from ..core.exceptions import ExternalServiceError, ServiceError
 from ..core.retry import retry_with_backoff
-from ..db.models.contribution import Contribution
+from ..models.contribution import ContributionResponse as Contribution
 
 
 class GitHubService:
@@ -43,7 +43,7 @@ class GitHubService:
             "X-GitHub-Api-Version": "2022-11-28",
         }
 
-    @retry_with_backoff(max_attempts=3, exceptions=(httpx.HTTPError,))
+    @retry_with_backoff()
     async def create_issue_from_contribution(self, contribution: Contribution) -> dict:
         """Create a GitHub issue from an approved contribution.
 
