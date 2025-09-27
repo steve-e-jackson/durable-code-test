@@ -28,9 +28,9 @@ This is the **PRIMARY HANDOFF DOCUMENT** for AI agents working on Docker linting
 4. **Update this document** after completing each task
 
 ## 📍 Current Status
-**Current Task**: Task 3 - GitHub Actions Migration (🔴 Not Started)
-**Last Updated**: 2025-09-27 11:33 AM PST
-**Project State**: ✅ Tasks 1-2 completed with CI/CD fixes, dedicated linting containers fully integrated
+**Current Task**: Task 2.5 - Update Git Hooks (🟡 In Progress)
+**Last Updated**: 2025-09-27 11:40 AM PST
+**Project State**: ⚠️ Tasks 1-2 complete but pre-commit/pre-push hooks still use dev containers
 **Completion Target**: Improve development experience and deployment reliability through container separation
 
 ## 📁 Required Documents Location
@@ -44,19 +44,20 @@ This is the **PRIMARY HANDOFF DOCUMENT** for AI agents working on Docker linting
 
 ## 🎯 Next Task to Implement
 
-### ➡️ START HERE: Task 3 - GitHub Actions Migration
+### ➡️ START HERE: Task 2.5 - Update Git Hooks
 
 **Quick Summary**:
-- Update GitHub Actions workflows to use dedicated linting containers
-- Optimize Docker layer caching for CI performance
-- Implement parallel execution in CI pipeline
-- Ensure improved build times and caching
+- Update pre-commit hooks to use dedicated linting containers
+- Update pre-push hooks for consistency
+- Ensure hooks work with both dev and linting containers
+- Maintain developer workflow continuity
 
 **Pre-flight Checklist**:
 - [x] Tasks 1-2 completed and working
 - [x] Dedicated linting containers operational
 - [x] Make targets updated and tested
-- [ ] GitHub Actions workflow ready for modification
+- [ ] Pre-commit hooks ready for update
+- [ ] Pre-push hooks ready for update
 
 **Prerequisites Complete**:
 - ✅ Dedicated linting containers created (Task 1)
@@ -67,10 +68,10 @@ This is the **PRIMARY HANDOFF DOCUMENT** for AI agents working on Docker linting
 ---
 
 ## Overall Progress
-**Total Completion**: 40% (8/20 tasks completed)
+**Total Completion**: 33% (8/24 tasks completed)
 
 ```
-[■■■■■■■■□□□□□□□□□□□□] 40% Complete
+[■■■■■■■■□□□□□□□□□□□□□□□□] 33% Complete
 ```
 
 ---
@@ -80,9 +81,10 @@ This is the **PRIMARY HANDOFF DOCUMENT** for AI agents working on Docker linting
 | Task | Title | Status | Completion | Benefits | Owner | Target Date | Notes |
 |------|-------|--------|------------|----------|-------|-------------|-------|
 | T1 | Create Linting Dockerfiles | 🟢 Complete | 100% | Faster dev startup | AI Agent | 2025-09-27 | ✅ Containers operational |
-| T2 | Update Makefile Integration | 🟢 Complete | 100% | Parallel execution | AI Agent | 2025-09-27 | ✅ Parallel linting working |
-| T3 | GitHub Actions Migration | 🔴 Not Started | 0% | Improved CI caching | - | - | Depends on T2 |
-| T4 | Remove Dev Container Tools | 🔴 Not Started | 0% | Smaller images | - | - | Depends on T1 |
+| T2 | Update Makefile Integration | 🟢 Complete | 100% | Parallel execution | AI Agent | 2025-09-27 | ✅ CI/CD passing |
+| T2.5 | Update Git Hooks | 🟡 In Progress | 0% | Consistent tooling | AI Agent | 2025-09-27 | **NEW: Critical fix needed** |
+| T3 | GitHub Actions Migration | 🔴 Not Started | 0% | Improved CI caching | - | - | Depends on T2.5 |
+| T4 | Remove Dev Container Tools | 🔴 Not Started | 0% | Smaller images | - | - | Depends on T3 |
 | T5 | Documentation & Testing | 🔴 Not Started | 0% | Maintainability | - | - | Final validation |
 
 ### Status Legend
@@ -206,6 +208,54 @@ Currently, development containers (`Dockerfile.dev`) include extensive linting t
 - Users experience improved performance with same functionality
 - All CI/CD checks passing after compatibility fixes
 - Ready for production use
+
+---
+
+## Task 2.5: Update Git Hooks (Pre-commit & Pre-push)
+**Status**: 🟡 In Progress | **Completion**: 0% | **Benefits**: Consistent tooling across local and CI
+
+### Context
+The pre-commit and pre-push hooks in `.pre-commit-config.yaml` still reference the dev containers instead of the dedicated linting containers. This creates inconsistency and doesn't leverage the performance benefits of our new architecture.
+
+### Checklist
+- [ ] Analyze current hooks in `.pre-commit-config.yaml`
+- [ ] Update Python linting hooks to use dedicated container
+- [ ] Update JavaScript/TypeScript hooks to use dedicated container
+- [ ] Update design linters hook to use dedicated container
+- [ ] Ensure make-lint-fix uses dedicated containers
+- [ ] Test all hooks work correctly
+- [ ] Ensure hooks gracefully handle missing containers
+- [ ] Update documentation for hook usage
+- [ ] Task completed and ready for T3
+
+### Current Hook Issues
+1. **Python hooks** (lines 36-67): Using `docker exec durable-code-backend-$(BRANCH_NAME)-dev`
+2. **JavaScript hooks** (lines 70-105): Using `docker exec durable-code-frontend-$(BRANCH_NAME)-dev`
+3. **Design linters** (line 119): Using `docker exec durable-code-backend-$(BRANCH_NAME)-dev`
+4. **Make lint-fix** (line 28): Already updated to use dedicated containers ✅
+
+### Implementation Plan
+1. **Update container references**:
+   - Python hooks → `durable-code-python-linter-$(BRANCH_NAME)`
+   - JS hooks → `durable-code-js-linter-$(BRANCH_NAME)`
+   - Design linters → `durable-code-python-linter-$(BRANCH_NAME)`
+
+2. **Update paths**:
+   - Change `/app` references to `/workspace/backend` or `/workspace/frontend`
+   - Update tool paths for dedicated containers
+
+3. **Add container startup logic**:
+   - Check if linting containers are running
+   - Start them if needed (using `make lint-start`)
+   - Graceful fallback if containers unavailable
+
+### Blockers
+- None identified
+
+### Notes
+- Critical for developer experience consistency
+- Must maintain backward compatibility
+- Should not break existing workflows
 
 ---
 
