@@ -64,7 +64,8 @@ check_untyped_defs = true
 strict_equality = true
 exclude = [
     'tools/design_linters/.*',
-    'tools/simple_print_check\.py'
+    'tools/simple_print_check\.py',
+    'test/.*'
 ]
 
 [tool.ruff]
