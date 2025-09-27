@@ -7,12 +7,12 @@
  * Implementation: Encapsulates navigation logic with URL handling
  */
 
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useNavigationStore } from '../../../store/navigationStore';
 import type { TabName } from '../types/navigation.types';
 
 export function useNavigation() {
-  const { activeTab, setActiveTab } = useNavigationStore();
+  const { activeTab, setActiveTab, isNavigating } = useNavigationStore();
 
   const getInitialTab = (): TabName => {
     const hash = window.location.hash.replace('#', '');
@@ -73,12 +73,20 @@ export function useNavigation() {
     }
   }, [activeTab]);
 
-  const handleTabChange = (tab: TabName) => {
-    setActiveTab(tab);
-  };
+  const handleTabChange = useCallback(
+    (tab: TabName) => {
+      if (isNavigating) {
+        console.warn('Navigation in progress, ignoring request');
+        return;
+      }
+      setActiveTab(tab);
+    },
+    [isNavigating, setActiveTab],
+  );
 
   return {
     activeTab,
     handleTabChange,
+    isNavigating,
   };
 }
