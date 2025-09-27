@@ -12,12 +12,38 @@ Implementation: Comprehensive test coverage using mocked file paths and contexts
 """
 
 import ast
+import os
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 from design_linters.framework.interfaces import LintContext, Severity
 from design_linters.rules.organization.file_placement_rules import FileOrganizationRule
+
+# Helper function to find the project layout.yaml file
+def get_layout_file_path():
+    """Find the project's layout.yaml file dynamically."""
+    # Try different possible locations
+    candidates = [
+        ".ai/layout.yaml",  # Relative to current working directory
+        "../.ai/layout.yaml",  # One level up
+        "../../.ai/layout.yaml",  # Two levels up
+    ]
+
+    for candidate in candidates:
+        if os.path.exists(candidate):
+            return os.path.abspath(candidate)
+
+    # If not found, try walking up the directory tree
+    current = Path.cwd()
+    while current != current.parent:
+        layout_path = current / ".ai" / "layout.yaml"
+        if layout_path.exists():
+            return str(layout_path)
+        current = current.parent
+
+    # Fallback to a default that should work in most environments
+    return ".ai/layout.yaml"
 
 
 class TestFileOrganizationRule:
@@ -48,8 +74,8 @@ class TestFileOrganizationRule:
         """Test that allowed root files don't trigger violations."""
         allowed_files = ["setup.py", "conftest.py", "manage.py"]
 
-        # Use absolute path to the real layout.yaml file
-        layout_file = "/home/stevejackson/Projects/durable-code-test-2/.ai/layout.yaml"
+        # Use helper function to find the layout.yaml file
+        layout_file = get_layout_file_path()
 
         for filename in allowed_files:
             with patch("design_linters.rules.organization.file_placement_rules.Path.cwd", return_value=Path("/project")):
@@ -72,7 +98,8 @@ class TestFileOrganizationRule:
             with patch("design_linters.rules.organization.file_placement_rules.Path.cwd", return_value=Path("/project")):
                 context = self.create_context(f"/project/{filename}")
                 module_node = ast.parse("# Test")
-                layout_file = "/home/stevejackson/Projects/durable-code-test-2/.ai/layout.yaml"; rule = FileOrganizationRule({"layout_rules_file": layout_file}); violations = rule.check_node(module_node, context)
+                layout_file = get_layout_file_path()
+                rule = FileOrganizationRule({"layout_rules_file": layout_file}); violations = rule.check_node(module_node, context)
 
                 assert len(violations) == 1, f"Debug file {filename} should trigger violation"
                 violation = violations[0]
@@ -88,7 +115,8 @@ class TestFileOrganizationRule:
             with patch("design_linters.rules.organization.file_placement_rules.Path.cwd", return_value=Path("/project")):
                 context = self.create_context(f"/project/{filename}")
                 module_node = ast.parse("# Test")
-                layout_file = "/home/stevejackson/Projects/durable-code-test-2/.ai/layout.yaml"; rule = FileOrganizationRule({"layout_rules_file": layout_file}); violations = rule.check_node(module_node, context)
+                layout_file = get_layout_file_path()
+                rule = FileOrganizationRule({"layout_rules_file": layout_file}); violations = rule.check_node(module_node, context)
 
                 assert len(violations) == 1, f"Temp file {filename} should trigger violation"
                 violation = violations[0]
@@ -102,7 +130,8 @@ class TestFileOrganizationRule:
             with patch("design_linters.rules.organization.file_placement_rules.Path.cwd", return_value=Path("/project")):
                 context = self.create_context(f"/project/{filename}")
                 module_node = ast.parse("# Test")
-                layout_file = "/home/stevejackson/Projects/durable-code-test-2/.ai/layout.yaml"; rule = FileOrganizationRule({"layout_rules_file": layout_file}); violations = rule.check_node(module_node, context)
+                layout_file = get_layout_file_path()
+                rule = FileOrganizationRule({"layout_rules_file": layout_file}); violations = rule.check_node(module_node, context)
 
                 assert len(violations) == 1, f"Test file {filename} should trigger violation"
                 violation = violations[0]
@@ -116,8 +145,8 @@ class TestFileOrganizationRule:
             "/project/test/integration_test/test_api.py",
         ]
 
-        # Use absolute path to the real layout.yaml file
-        layout_file = "/home/stevejackson/Projects/durable-code-test-2/.ai/layout.yaml"
+        # Use helper function to find the layout.yaml file
+        layout_file = get_layout_file_path()
 
         for path in test_paths:
             with patch("design_linters.rules.organization.file_placement_rules.Path.cwd", return_value=Path("/project")):
@@ -142,7 +171,8 @@ class TestFileOrganizationRule:
             with patch("design_linters.rules.organization.file_placement_rules.Path.cwd", return_value=Path("/project")):
                 context = self.create_context(path)
                 module_node = ast.parse("# Test")
-                layout_file = "/home/stevejackson/Projects/durable-code-test-2/.ai/layout.yaml"; rule = FileOrganizationRule({"layout_rules_file": layout_file}); violations = rule.check_node(module_node, context)
+                layout_file = get_layout_file_path()
+                rule = FileOrganizationRule({"layout_rules_file": layout_file}); violations = rule.check_node(module_node, context)
                 # TypeScript files won't trigger violations in Python linter context
                 # The rule would need to be extended to handle non-Python files
                 pass  # Skip assertion for now
@@ -158,7 +188,8 @@ class TestFileOrganizationRule:
             with patch("design_linters.rules.organization.file_placement_rules.Path.cwd", return_value=Path("/project")):
                 context = self.create_context(path)
                 module_node = ast.parse("# Test")
-                layout_file = "/home/stevejackson/Projects/durable-code-test-2/.ai/layout.yaml"; rule = FileOrganizationRule({"layout_rules_file": layout_file}); violations = rule.check_node(module_node, context)
+                layout_file = get_layout_file_path()
+                rule = FileOrganizationRule({"layout_rules_file": layout_file}); violations = rule.check_node(module_node, context)
                 assert len(violations) == 0, f"TypeScript file {path} is properly placed"
 
     def test_html_files_placement(self):
@@ -169,8 +200,8 @@ class TestFileOrganizationRule:
         # Files in wrong location
         wrong_paths = ["/project/test.html", "/project/tools/index.html"]
 
-        # Use absolute path to the real layout.yaml file
-        layout_file = "/home/stevejackson/Projects/durable-code-test-2/.ai/layout.yaml"
+        # Use helper function to find the layout.yaml file
+        layout_file = get_layout_file_path()
 
         for path in wrong_paths:
             with patch("design_linters.rules.organization.file_placement_rules.Path.cwd", return_value=Path("/project")):
@@ -194,7 +225,8 @@ class TestFileOrganizationRule:
             with patch("design_linters.rules.organization.file_placement_rules.Path.cwd", return_value=Path("/project")):
                 context = self.create_context(path)
                 module_node = ast.parse("# Test")
-                layout_file = "/home/stevejackson/Projects/durable-code-test-2/.ai/layout.yaml"; rule = FileOrganizationRule({"layout_rules_file": layout_file}); violations = rule.check_node(module_node, context)
+                layout_file = get_layout_file_path()
+                rule = FileOrganizationRule({"layout_rules_file": layout_file}); violations = rule.check_node(module_node, context)
                 assert len(violations) == 0, f"HTML file {path} is properly placed"
 
     def test_python_file_in_root_info_severity(self):
@@ -269,7 +301,8 @@ class TestFileOrganizationRule:
             with patch("design_linters.rules.organization.file_placement_rules.Path.cwd", return_value=Path("/project")):
                 context = self.create_context(path)
                 module_node = ast.parse("# Test")
-                layout_file = "/home/stevejackson/Projects/durable-code-test-2/.ai/layout.yaml"; rule = FileOrganizationRule({"layout_rules_file": layout_file}); violations = rule.check_node(module_node, context)
+                layout_file = get_layout_file_path()
+                rule = FileOrganizationRule({"layout_rules_file": layout_file}); violations = rule.check_node(module_node, context)
                 assert len(violations) == 0, f"Properly placed file {path} should not trigger violations"
 
     def test_readme_files_in_infra_directory(self):
@@ -330,5 +363,6 @@ class TestFileOrganizationRule:
             with patch("design_linters.rules.organization.file_placement_rules.Path.cwd", return_value=Path("/project")):
                 context = self.create_context(path)
                 module_node = ast.parse("# Test")
-                layout_file = "/home/stevejackson/Projects/durable-code-test-2/.ai/layout.yaml"; rule = FileOrganizationRule({"layout_rules_file": layout_file}); violations = rule.check_node(module_node, context)
+                layout_file = get_layout_file_path()
+                rule = FileOrganizationRule({"layout_rules_file": layout_file}); violations = rule.check_node(module_node, context)
                 assert len(violations) == 0, f"Documentation in .ai folder {path} should be allowed"
