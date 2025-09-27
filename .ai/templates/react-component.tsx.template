@@ -261,13 +261,13 @@ export type { {{COMPONENT_NAME}}Props, {{STATE_INTERFACE}}, {{DATA_INTERFACE}} }
 // ERROR BOUNDARY INTEGRATION:
 // - For route components: Wrap with error boundary in AppShell.tsx
 // - For complex features: Consider wrapping with MinimalErrorBoundary
-// - Test after implementation: make check-page
+// - Test after implementation: docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js
 // - Example error boundary usage:
 //   <MinimalErrorBoundary>
 //     <YourComponent />
 //   </MinimalErrorBoundary>
 //
 // TESTING:
-// - Verify functionality: make check-page
+// - Verify functionality: docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js
 // - Test error boundaries with intentional errors
 // - Ensure component doesn't break app rendering

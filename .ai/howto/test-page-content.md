@@ -1,7 +1,18 @@
 # How to Test Page Content
 
+## Purpose
+Verify that React applications render correctly using various testing tools, especially when implementing error boundaries or debugging blank page issues.
+
+## Scope
+Page content verification, React app testing, error boundary validation, blank page debugging
+
 ## Overview
-This guide explains how to verify that React applications render correctly using various testing tools, especially when implementing error boundaries or debugging blank page issues.
+This guide explains how to verify that React applications render correctly using various testing scripts executed via Docker. These tools are essential for debugging rendering issues, validating error boundary implementations, and ensuring the application loads properly.
+
+## Dependencies
+- Docker containers running (via `make dev`)
+- Node.js scripts in scripts/ directory
+- Frontend container: durable-code-frontend-dev
 
 ## Quick Start
 
@@ -10,8 +21,8 @@ This guide explains how to verify that React applications render correctly using
 # Start development environment
 make dev
 
-# Basic page content check
-make check-page
+# Basic page content check via Docker
+docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js
 
 # Expected output:
 # ✅ SUCCESS: App structure looks correct
@@ -20,27 +31,22 @@ make check-page
 ### Advanced Verification
 ```bash
 # Continuous monitoring
-make check-page-watch
+docker exec -it durable-code-frontend-dev node /app/scripts/simple-check.js --watch
 
-# Full page verification (requires Playwright setup)
-make check-page-full
-
-# Direct Node.js verification
-node scripts/test-rendered-content.js
+# Full page verification
+docker exec durable-code-frontend-dev node /app/scripts/test-rendered-content.js
 ```
 
-## Available Testing Tools
+## Available Testing Scripts
 
-### 1. Make Targets (Recommended)
-
-#### `make check-page`
+### 1. check-page-content.js
 - **Purpose**: Basic HTML structure verification
 - **Speed**: Fast (~1-2 seconds)
 - **Scope**: Checks for root div, main script, and Vite client
 - **Best for**: Quick verification during development
 
 ```bash
-make check-page
+docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js
 
 # Output:
 # 🔍 Checking page content...
@@ -50,328 +56,247 @@ make check-page
 # ✅ SUCCESS: App structure looks correct
 ```
 
-#### `make check-page-watch`
-- **Purpose**: Continuous monitoring of page content
-- **Speed**: Updates every 5 seconds
-- **Scope**: Real-time page content verification
-- **Best for**: Development monitoring while making changes
+### 2. simple-check.js (Watch Mode)
+- **Purpose**: Continuous page monitoring
+- **Speed**: Checks every 5 seconds
+- **Scope**: Monitors for changes in page structure
+- **Best for**: Active development
 
 ```bash
-make check-page-watch
+docker exec -it durable-code-frontend-dev node /app/scripts/simple-check.js --watch
 
-# Ctrl+C to stop
-# Shows continuous updates every 5 seconds
+# Output (updates every 5 seconds):
+# [11:30:15] Checking...
+# ✅ App structure OK
+# [11:30:20] Checking...
+# ✅ App structure OK
 ```
 
-#### `make check-page-full`
-- **Purpose**: Complete page verification with JavaScript execution
-- **Speed**: Slower (~5-10 seconds)
-- **Scope**: Full DOM inspection, console error detection
-- **Requirements**: Playwright installed in container
-- **Best for**: Comprehensive testing and debugging
-
-### 2. Node.js Tools
-
-#### `test-rendered-content.js`
-- **Location**: `scripts/` directory
-- **Purpose**: Simple HTTP-based content verification
-- **Usage**: `docker exec durable-code-frontend-dev node /app/scripts/test-rendered-content.js`
-- **Best for**: Quick verification within Docker environment
+### 3. test-rendered-content.js
+- **Purpose**: Comprehensive page content verification
+- **Speed**: Moderate (~5-10 seconds)
+- **Scope**: Full DOM structure and JavaScript execution
+- **Best for**: Thorough testing before commits
 
 ```bash
 docker exec durable-code-frontend-dev node /app/scripts/test-rendered-content.js
 
 # Output:
-# 🔍 Checking rendered content...
-# Response length: 637
-# ✅ Has root div: true
-# ✅ Has main script: true
-# ✅ Has vite client: true
-# ✅ SUCCESS: App structure looks correct
+# Starting comprehensive page test...
+# ✓ Checking server response
+# ✓ Verifying HTML structure
+# ✓ Checking JavaScript execution
+# ✓ Validating DOM elements
+# ✅ ALL TESTS PASSED
 ```
 
-#### Container-based Scripts
-- **simple-check.js**: Basic container verification
-- **check-page-content.js**: Advanced container verification
-
-### 3. Advanced Tools
-
-#### `scripts/check-page-content.js`
-- **Purpose**: Comprehensive Playwright-based verification with element checking
-- **Features**: JavaScript execution, console monitoring, DOM inspection, element validation
-- **Usage**: Comprehensive page content verification
-
+### 4. Direct Browser Testing
 ```bash
-# Recommended: Use Make target
-make check-page-full
+# Access the application in browser
+open http://localhost:5173  # Or your configured port
 
-# Or run directly from Docker container
-docker exec durable-code-frontend-dev node scripts/check-page-content.js
-
-# Automatically detects if page loads correctly
-# Reports console errors and warnings
-# Validates specific page elements
+# Check browser console for errors
+# Press F12 → Console tab
 ```
 
-## Testing Workflow
+## Common Scenarios
 
-### 1. Development Workflow
+### Testing After Error Boundary Implementation
 ```bash
-# 1. Start development
-make dev
+# 1. Initial baseline check
+docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js
 
-# 2. Make changes to code
-# (edit React components, add error boundaries, etc.)
+# 2. Add error boundary code
 
-# 3. Quick verification
-make check-page
+# 3. Test immediate impact
+docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js
 
-# 4. If issues detected, debug with:
+# 4. Start continuous monitoring
+docker exec -it durable-code-frontend-dev node /app/scripts/simple-check.js --watch
+```
+
+### Debugging Blank Page Issues
+```bash
+# Quick structure check
+docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js
+
+# If structure OK but page blank:
 docker exec durable-code-frontend-dev node /app/scripts/test-rendered-content.js
 
-# 5. For continuous monitoring:
-make check-page-watch
+# Check JavaScript errors
+# Open browser console (F12) and look for red error messages
 ```
 
-### 2. Error Boundary Testing Workflow
+### Binary Search for Problem Components
 ```bash
-# 1. Before adding error boundaries
-make check-page  # Should pass
+# 1. Baseline check
+docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js
 
-# 2. Add error boundary (e.g., to main.tsx)
-# Edit code...
+# 2. Comment out half the components in App.tsx
+# 3. Test again
+docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js
 
-# 3. Immediate verification
-make check-page
-
-# 4. If fails, debug systematically:
-# - Remove error boundary
-# - Test again: make check-page
-# - Add back with simpler implementation
-# - Test again: make check-page
-```
-
-### 3. Blank Page Debugging Workflow
-```bash
-# 1. Identify the issue
-make check-page
-# If shows empty root div, proceed with debugging
-
-# 2. Check basic HTML structure
-docker exec durable-code-frontend-dev node /app/scripts/test-rendered-content.js
-# Verify server is responding with correct HTML
-
-# 3. Check for JavaScript errors
-make check-page-full
-# Look for console errors in output
-
-# 4. Systematic component removal
-# Remove complex components one by one
-# Test after each removal: make check-page
-
-# 5. Identify problematic component
-# When make check-page succeeds, last removed component is the issue
-```
-
-## Understanding Test Output
-
-### Successful Output
-```bash
-🔍 Checking rendered content...
-Response length: 637
-✅ Has root div: true
-✅ Has main script: true
-✅ Has vite client: true
-
-📄 First 500 chars of response:
-──────────────────────────────────────────────────
-<!doctype html>
-<html lang="en">
-  <head>
-    <script type="module">import { injectIntoGlobalHook }
-    ...
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx?t=1234567890">
-
-✅ SUCCESS: App structure looks correct
-```
-
-### Failed Output (Blank Page)
-```bash
-🔍 Checking rendered content...
-Response length: 400
-✅ Has root div: true
-✅ Has main script: true
-✅ Has vite client: true
-
-📄 First 500 chars of response:
-──────────────────────────────────────────────────
-<!doctype html>
-<html lang="en">
-  ...
-  <div id="root"></div>  <!-- Empty! -->
-
-⚠️ ISSUE: Root div exists but may be empty
-```
-
-### Failed Output (Server Error)
-```bash
-❌ ERROR: ECONNREFUSED
-❌ FAILURE: Cannot connect to development server
-
-# Solution: Run `make dev` first
-```
-
-## Common Testing Scenarios
-
-### Scenario 1: Adding Error Boundaries
-```bash
-# Test pattern for error boundary implementation
-make check-page          # Baseline - should pass
-# Add error boundary
-make check-page          # Verify still works
-# Add another error boundary
-make check-page          # Verify still works
-# Continue incrementally
-```
-
-### Scenario 2: Debugging Blank Page
-```bash
-# Step-by-step debugging
-make check-page          # Confirm issue exists
-node scripts/test-rendered-content.js  # Check HTTP response
-make check-page-full     # Check for JS errors
-
-# If JavaScript errors found:
-# 1. Check console in browser
-# 2. Fix JavaScript errors
-# 3. Test again: make check-page
-```
-
-### Scenario 3: Component Development
-```bash
-# During component development
-make check-page-watch &  # Start continuous monitoring
-# Edit components in another terminal
-# Watch output for immediate feedback
-```
-
-### Scenario 4: Production Readiness
-```bash
-# Comprehensive testing before deployment
-make check-page          # Basic structure
-make check-page-full     # Complete verification
-make test               # Full test suite
-make build              # Ensure builds successfully
-```
-
-## Advanced Usage
-
-### Custom Content Verification
-You can modify `test-rendered-content.js` for custom checks:
-
-```javascript
-// Add custom verification logic
-function checkCustomContent() {
-  const response = execSync('curl -s http://localhost:5173', { encoding: 'utf8' });
-
-  // Custom checks
-  const hasMyComponent = response.includes('my-component-id');
-  const hasMyText = response.includes('Expected Text');
-
-  console.log('✅ Has my component:', hasMyComponent);
-  console.log('✅ Has expected text:', hasMyText);
-
-  return hasMyComponent && hasMyText;
-}
-```
-
-### Automated Testing Integration
-```bash
-# In CI/CD pipelines
-make dev &               # Start in background
-sleep 10                 # Wait for startup
-make check-page         # Verify page loads
-make test               # Run full test suite
-```
-
-### Performance Monitoring
-```bash
-# Monitor page load performance
-time make check-page
-
-# Continuous performance monitoring
-while true; do
-  echo "=== $(date) ==="
-  time make check-page
-  sleep 30
-done
+# 4. Continue narrowing down until issue is found
 ```
 
 ## Troubleshooting
 
-### Tool Not Working
+### Issue: "Container not found" Error
 ```bash
-# If make targets fail:
-docker ps                # Ensure containers running
-make status             # Check service status
-make logs               # Check for errors
+# Ensure containers are running
+make dev
 
-# If Node.js tools fail:
-node --version          # Ensure Node.js available
-npm list               # Check dependencies
+# Verify container name
+docker ps | grep frontend
 ```
 
-### False Positives
-- **Issue**: Tool reports success but page appears blank in browser
-- **Cause**: Tool only checks initial HTML, not JavaScript-rendered content
-- **Solution**: Use `make check-page-full` for JavaScript execution verification
-
-### Container Issues
+### Issue: "Script not found" Error
 ```bash
-# If container-based checks fail:
-docker exec durable-code-frontend-dev node scripts/simple-check.js
+# Check if script exists in container
+docker exec durable-code-frontend-dev ls /app/scripts/
 
-# Direct container inspection:
-docker exec -it durable-code-frontend-dev bash
-cd scripts
-node simple-check.js
+# Ensure you're using the correct path (/app/scripts/)
 ```
 
-## Performance Considerations
-
-### Tool Performance Comparison
-- `make check-page`: ~1-2 seconds (HTTP only)
-- `node scripts/test-rendered-content.js`: ~0.5-1 second (HTTP only)
-- `make check-page-full`: ~5-10 seconds (Full browser)
-- `make check-page-watch`: Continuous (5-second intervals)
-
-### Best Practices
-1. Use `make check-page` for quick development feedback
-2. Use `make check-page-full` for comprehensive testing
-3. Use `make check-page-watch` during active development
-4. Use `node scripts/test-rendered-content.js` for external scripts
-
-## Integration with Development Workflow
-
-### Pre-commit Testing
+### Issue: Page Loads but Shows Blank
 ```bash
-# Add to pre-commit hooks or development workflow
-make check-page || echo "Page content verification failed"
+# Check JavaScript execution
+docker exec durable-code-frontend-dev node /app/scripts/test-rendered-content.js
+
+# Look for specific errors in browser console
+# Common causes:
+# - Error boundary swallowing errors
+# - Missing MinimalErrorBoundary
+# - Component throw errors
 ```
 
-### Development Scripts
+### Issue: Tests Pass but Page Still Blank
 ```bash
-# Add to package.json scripts
-"scripts": {
-  "verify-page": "node scripts/test-rendered-content.js",
-  "check-page": "make check-page",
-  "dev-with-monitoring": "make dev && make check-page-watch"
+# Check browser console for runtime errors
+# These might not be caught by static tests
+
+# Test with minimal App.tsx:
+# 1. Replace App.tsx with minimal content
+# 2. Test: docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js
+# 3. Gradually add components back
+```
+
+## Error Boundary Testing Workflow
+
+### Step 1: Establish Baseline
+```bash
+docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js
+# Should pass before adding error boundaries
+```
+
+### Step 2: Add MinimalErrorBoundary to main.tsx
+```bash
+# After adding MinimalErrorBoundary wrapper
+docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js
+```
+
+### Step 3: Add Route-Level Boundaries
+```bash
+# After adding boundaries to AppShell.tsx
+docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js
+```
+
+### Step 4: Test Component-Level Boundaries
+```bash
+# After adding boundaries to individual components
+docker exec durable-code-frontend-dev node /app/scripts/test-rendered-content.js
+```
+
+## Advanced Debugging
+
+### Using Browser DevTools
+```javascript
+// In browser console (F12):
+// Check if React loaded
+window.React
+
+// Check root element
+document.getElementById('root')
+
+// Check for error boundary state
+document.querySelectorAll('[data-error-boundary]')
+```
+
+### Custom Debug Script
+```bash
+# Create a custom debug script
+cat << 'EOF' > debug-page.js
+const http = require('http');
+
+http.get('http://localhost:5173', (res) => {
+  let data = '';
+  res.on('data', chunk => data += chunk);
+  res.on('end', () => {
+    console.log('Has root div:', data.includes('id="root"'));
+    console.log('Has scripts:', data.includes('<script'));
+    console.log('Page length:', data.length);
+  });
+});
+EOF
+
+# Run it in container
+docker cp debug-page.js durable-code-frontend-dev:/tmp/
+docker exec durable-code-frontend-dev node /tmp/debug-page.js
+```
+
+## Performance Monitoring
+```bash
+# Time the checks
+time docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js
+
+# Monitor multiple times
+for i in {1..5}; do
+  echo "Check $i:"
+  time docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js
+  sleep 2
+done
+```
+
+## CI/CD Integration
+
+### GitHub Actions
+```yaml
+- name: Test Page Content
+  run: |
+    docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js || echo "Page content verification failed"
+```
+
+### Pre-commit Hook
+```bash
+#!/bin/bash
+# Add to .git/hooks/pre-commit
+docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js || {
+  echo "Page content verification failed"
+  exit 1
 }
 ```
 
+## Key Points
+
+### Common Issues and Solutions
+- **Blank page with no errors**: Usually MinimalErrorBoundary missing
+- **Page loads then goes blank**: Component-level error
+- **Partial content visible**: Route-level error boundary issue
+- **Console errors but page works**: Non-critical errors, check ErrorBoundary logs
+
+### Performance Expectations
+- `check-page-content.js`: ~1-2 seconds (HTTP only)
+- `test-rendered-content.js`: ~5-10 seconds (Full browser)
+- `simple-check.js --watch`: Continuous (5-second intervals)
+
+### Best Practices
+1. Use `check-page-content.js` for quick development feedback
+2. Use `test-rendered-content.js` for comprehensive testing
+3. Use `simple-check.js --watch` during active development
+4. Always check browser console for runtime errors
+5. Test after each error boundary addition
+
 ## Related Documentation
-- `.ai/features/error-boundaries.md` - Error boundary implementation
-- `.ai/howto/implement-error-boundaries.md` - Error boundary guide
-- `Makefile` - Make target definitions
-- `durable-code-app/frontend/scripts/` - Script implementations
+- `.ai/features/error-boundaries.md` - Error boundary implementation details
+- `.ai/howto/implement-error-boundaries.md` - Step-by-step implementation guide
+- `.ai/docs/DOCKER_EXECUTION_STANDARDS.md` - Docker execution patterns

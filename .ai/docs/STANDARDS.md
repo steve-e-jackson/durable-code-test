@@ -458,7 +458,7 @@ frontend/
   - ✅ **MANDATORY**: Root level error boundary in main.tsx
   - ✅ **RECOMMENDED**: Component-level error boundaries for complex features
   - ✅ **STANDARD**: Use MinimalErrorBoundary for stability unless advanced features needed
-  - ✅ **TESTING**: Verify with `make check-page` after adding error boundaries
+  - ✅ **TESTING**: Verify with `scripts/check-page-content.js` after adding error boundaries
 - **Component Structure**:
   ```typescript
   // 1. Imports
@@ -713,7 +713,7 @@ The custom file placement linter enforces these rules:
 - [ ] No hardcoded values
 - [ ] Error handling is implemented
 - [ ] **Error boundaries are implemented** (for React components)
-- [ ] **Page content verification passes** (`make check-page`)
+- [ ] **Page content verification passes** (`scripts/check-page-content.js`)
 - [ ] Security considerations addressed
 - [ ] Performance impact considered
 

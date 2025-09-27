@@ -76,6 +76,6 @@ export default {{COMPONENT_NAME}};
 // Wrap specific features or complex components
 //
 // Testing:
-// - Verify with: make check-page
+// - Verify with: docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js
 // - Test systematically after each addition
 // - Use intentional errors to verify boundaries work
