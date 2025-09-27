@@ -29,13 +29,12 @@ This is the **PRIMARY HANDOFF DOCUMENT** for AI agents working on the {{FEATURE_
 
 ## 📍 Current Status
 **Current PR**: {{CURRENT_PR_STATUS}}
-**Last Updated**: {{LAST_UPDATED_DATE}}
 **Infrastructure State**: {{INFRASTRUCTURE_STATE}}
 **Feature Target**: {{FEATURE_TARGET_DESCRIPTION}}
 
 ## 📁 Required Documents Location
 ```
-{{PROJECT_PATH}}/roadmap/{{FEATURE_FOLDER}}/
+roadmap/{{FEATURE_FOLDER}}/
 ├── AI_CONTEXT.md          # Overall feature architecture and context
 ├── PR_BREAKDOWN.md        # Detailed instructions for each PR
 ├── PROGRESS_TRACKER.md    # THIS FILE - Current progress and handoff notes
@@ -68,8 +67,8 @@ This is the **PRIMARY HANDOFF DOCUMENT** for AI agents working on the {{FEATURE_
 
 ## PR Status Dashboard
 
-| PR | Title | Status | Completion | Complexity | Owner | Target Date | Notes |
-|----|-------|--------|------------|------------|-------|-------------|-------|
+| PR | Title | Status | Completion | Complexity | Priority | Notes |
+|----|-------|--------|------------|------------|----------|-------|
 {{PR_STATUS_TABLE}}
 
 ### Status Legend
@@ -104,9 +103,8 @@ After completing each PR:
 2. Fill in completion percentage
 3. Add any important notes or blockers
 4. Update the "Next PR to Implement" section
-5. Record the completion date
-6. Update overall progress percentage
-7. Commit changes to the progress document
+5. Update overall progress percentage
+6. Commit changes to the progress document
 
 ## 📝 Notes for AI Agents
 

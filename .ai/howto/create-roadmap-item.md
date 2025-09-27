@@ -43,6 +43,10 @@ Ask the user about:
 
 ### Step 1: Create the Roadmap Directory
 
+⚠️ **CRITICAL PATH RULE**: NEVER use absolute paths in any documentation. Always use relative paths from the project root.
+- ❌ WRONG: `/home/user/Projects/myproject/roadmap/feature`
+- ✅ CORRECT: `roadmap/feature`
+
 ```bash
 # Create a new directory in the roadmap folder
 mkdir -p roadmap/{{feature-name}}/
@@ -52,11 +56,21 @@ Use kebab-case for the directory name (e.g., `ai-contributions`, `deployment`, `
 
 ### Step 2: Create the Progress Tracker (Primary Document)
 
+⚠️ **NO DATES/TIMELINES RULE**: Never include specific dates, weeks, or timeline targets in roadmap documents.
+- ❌ WRONG: "Target: Week 1", "Due: 2025-01-15", "Last Updated: 2025-09-27"
+- ✅ CORRECT: "Status: Not Started", "Complexity: High", "Priority: Critical"
+
 Using the template at `.ai/templates/roadmap-progress-tracker.md.template`, create:
 
 ```
 roadmap/{{feature-name}}/PROGRESS_TRACKER.md
 ```
+
+**Path Guidelines**:
+- Always use paths relative to project root
+- Never include user home directories
+- Never hardcode absolute paths
+- Example: `roadmap/feature-name/` NOT `/home/user/project/roadmap/feature-name/`
 
 This is the **most important document** as it serves as:
 - The primary AI-human handoff point
@@ -190,14 +204,19 @@ For the {{infrastructure}} roadmap, I need details on:
 - ✅ Provide example code/configs
 - ✅ Include testing strategies
 - ✅ Document manual steps clearly
+- ✅ Use relative paths from project root
+- ✅ Use priority/complexity instead of dates
 
 ### DON'T:
-- ❌ Create PRs larger than 1 week of work
+- ❌ Create PRs larger than significant scope
 - ❌ Make assumptions about architecture
 - ❌ Skip security considerations
 - ❌ Forget about monitoring/observability
 - ❌ Omit rollback procedures
 - ❌ Leave success criteria vague
+- ❌ Use absolute/hardcoded file paths
+- ❌ Include specific dates or timelines
+- ❌ Reference user home directories
 
 ## 🔄 Progress Document Maintenance
 
@@ -205,11 +224,10 @@ The PROGRESS_TRACKER.md is a **living document** that must be updated:
 
 ### After Each PR Completion:
 1. Update PR status to 🟢 Complete
-2. Record completion date
-3. Update overall progress percentage
-4. Move "Next PR" pointer
-5. Document any deviations or learnings
-6. Note any new blockers or dependencies
+2. Update overall progress percentage
+3. Move "Next PR" pointer
+4. Document any deviations or learnings
+5. Note any new blockers or dependencies
 
 ### When Blocked:
 1. Mark PR as 🔵 Blocked
