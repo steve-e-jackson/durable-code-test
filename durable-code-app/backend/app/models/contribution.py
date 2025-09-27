@@ -41,7 +41,7 @@ class ContributionSubmit(BaseModel):
         ContributionCategory.OTHER,
         description="Category of the contribution",
     )
-    examples: list[str] | None = Field(
+    examples: list[str] | None = Field(  # type: ignore[call-overload]
         default=None,
         max_items=5,
         description="Example prompts or expected outputs",
