@@ -38,6 +38,10 @@ locals {
 
       # ALB itself (but not listeners/targets)
       "aws_lb.main" = true
+
+      # DynamoDB tables - persistent data storage
+      "aws_dynamodb_table.contributions" = true
+      "aws_dynamodb_table.rate_limits"   = true
     }
 
     # Runtime/temporal resources - quick to provision, can be destroyed for cost savings
@@ -74,10 +78,6 @@ locals {
       # Route53 records pointing to ALB
       "aws_route53_record.alb" = true
       "aws_route53_record.www" = true
-
-      # DynamoDB tables for contributions feature
-      "aws_dynamodb_table.contributions" = true
-      "aws_dynamodb_table.rate_limits"   = true
     }
   }
 
@@ -114,12 +114,13 @@ locals {
   # Helper function to check if a specific resource should be created
   should_create_resource = {
     # Base resources
-    vpc        = local.create_base_resources
-    networking = local.create_base_resources
-    ecr        = local.create_base_resources
-    route53    = local.create_base_resources
-    acm        = local.create_base_resources
-    alb        = local.create_base_resources # ALB itself is base
+    vpc           = local.create_base_resources
+    networking    = local.create_base_resources
+    ecr           = local.create_base_resources
+    route53       = local.create_base_resources
+    acm           = local.create_base_resources
+    alb           = local.create_base_resources # ALB itself is base
+    contributions = local.create_base_resources # DynamoDB tables are persistent
 
     # Runtime resources
     ecs_cluster       = local.create_runtime_resources
@@ -128,6 +129,5 @@ locals {
     alb_target_groups = local.create_runtime_resources
     service_discovery = local.create_runtime_resources
     cloudwatch_logs   = local.create_runtime_resources
-    contributions     = local.create_runtime_resources # DynamoDB for contributions
   }
 }

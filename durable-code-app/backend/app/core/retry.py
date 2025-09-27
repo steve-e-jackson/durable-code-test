@@ -250,3 +250,7 @@ retry_on_connection_error = with_retry(
 retry_critical = with_retry(config=AGGRESSIVE_RETRY)
 
 retry_gentle = with_retry(config=GENTLE_RETRY)
+
+
+# Alias for backward compatibility
+retry_with_backoff = with_retry
