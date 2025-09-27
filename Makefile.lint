@@ -18,23 +18,59 @@
 # Start dedicated linting containers
 lint-start: ## Start dedicated linting containers
 	@echo "$(CYAN)Starting dedicated linting containers...$(NC)"
-	@docker-compose -f docker-compose.lint.yml up -d
+	@docker compose -f docker-compose.lint.yml up -d
 	@echo "$(GREEN)✓ Linting containers started$(NC)"
 
 # Stop dedicated linting containers
 lint-stop: ## Stop dedicated linting containers
 	@echo "$(CYAN)Stopping dedicated linting containers...$(NC)"
-	@docker-compose -f docker-compose.lint.yml down
+	@docker compose -f docker-compose.lint.yml down
 	@echo "$(GREEN)✓ Linting containers stopped$(NC)"
 
 # Run all linters - REQUIRED BY GITHUB ACTIONS
-lint-all: lint-start ## Run ALL linters (Python, JS/TS, and custom design rules) in parallel
+lint-all: dev-start ## Run ALL linters (Python, JS/TS, and custom design rules)
 	@echo "$(CYAN)╔════════════════════════════════════════════════════════════╗$(NC)"
-	@echo "$(CYAN)║          Running ALL Linters (Parallel Execution)         ║$(NC)"
+	@echo "$(CYAN)║                  Running ALL Linters                      ║$(NC)"
 	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
 	@echo ""
-	@# Run Python, JavaScript, and Design linters in parallel
-	@$(MAKE) -j3 lint-python lint-js lint-design || (echo "$(RED)✗ Linting failed$(NC)" && exit 1)
+	@echo "$(YELLOW)━━━ Python Linters ━━━$(NC)"
+	@docker exec -u root durable-code-backend-$(BRANCH_NAME)-dev bash -c "cd /app && \
+		mkdir -p /app/.cache/ruff /app/.cache/mypy && chmod -R 777 /app/.cache && \
+		echo '• Ruff (format + lint)...' && RUFF_CACHE_DIR=/app/.cache/ruff poetry run ruff format --check app tools && RUFF_CACHE_DIR=/app/.cache/ruff poetry run ruff check app tools && \
+		echo '• Flake8...' && flake8_app=\$$(poetry run flake8 app --count 2>/dev/null || echo '0') && flake8_tools=\$$(poetry run flake8 tools --config tools/.flake8 --count 2>/dev/null || echo '0') && echo \"  App violations: \$$flake8_app, Tools violations: \$$flake8_tools\" && \
+		echo '• MyPy...' && MYPY_CACHE_DIR=/app/.cache/mypy poetry run mypy . && \
+		echo '• Pylint...' && poetry run pylint app tools 2>&1 | tee /tmp/pylint.out && grep -q 'Your code has been rated at 10.00/10' /tmp/pylint.out && \
+		echo '• Bandit...' && poetry run bandit -r app tools && \
+		echo '• Xenon...' && poetry run xenon --max-absolute B --max-modules B --max-average A app" || (echo "$(RED)✗ Python linting failed$(NC)" && exit 1)
+	@echo "$(GREEN)✓ Python linting passed$(NC)"
+	@echo ""
+	@echo "$(YELLOW)━━━ TypeScript/React Linters ━━━$(NC)"
+	@docker exec durable-code-frontend-$(BRANCH_NAME)-dev sh -c "\
+		echo '• TypeScript...' && npm run typecheck && \
+		echo '• ESLint...' && npm run lint && \
+		echo '• Stylelint...' && npm run lint:css && \
+		echo '• Prettier...' && npm run format:check && \
+		echo '• HTMLHint...' && htmlhint 'public/**/*.html' 'src/**/*.html' '*.html' --config /.htmlhintrc" || (echo "$(RED)✗ Frontend linting failed$(NC)" && exit 1)
+	@echo "$(GREEN)✓ Frontend linting passed$(NC)"
+	@echo ""
+	@echo "$(YELLOW)━━━ Custom Design Linters ━━━$(NC)"
+	@docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "cd /app && \
+		echo '• File headers...' && PYTHONPATH=/app/tools python -m design_linters --rules style.file-header --format text --recursive --fail-on-error . && \
+		echo '• SOLID principles...' && PYTHONPATH=/app/tools python -m design_linters --categories solid --format text --recursive --fail-on-error app && \
+		echo '• Style rules...' && PYTHONPATH=/app/tools python -m design_linters --categories style --format text --recursive --fail-on-error app && \
+		echo '• Magic literals...' && PYTHONPATH=/app/tools python -m design_linters --categories literals --format text --recursive --fail-on-error app && \
+		echo '• Logging practices...' && PYTHONPATH=/app/tools python -m design_linters --categories logging --format text --recursive --fail-on-error app && \
+		echo '• Loguru usage...' && PYTHONPATH=/app/tools python -m design_linters --categories loguru --format text --recursive --fail-on-error app && \
+		echo '• Security rules...' && PYTHONPATH=/app/tools python -m design_linters --categories security --format text --recursive --fail-on-error app && \
+		echo '• Error handling...' && PYTHONPATH=/app/tools python -m design_linters --categories error_handling --format text --recursive --fail-on-error app && \
+		echo '• Testing practices...' && PYTHONPATH=/app/tools python -m design_linters --categories testing --format text --recursive --fail-on-error test" || (echo "$(RED)✗ Custom linting failed$(NC)" && exit 1)
+	@echo "• File organization (checking root)..." && \
+		if ls *.py 2>/dev/null 1>&2; then \
+			env PYTHONPATH=tools python -m design_linters.cli --categories organization --format text --fail-on-error *.py || (echo "$(RED)✗ File organization check failed$(NC)" && exit 1); \
+		else \
+			echo "  No Python files in root to check"; \
+		fi
+	@echo "$(GREEN)✓ Custom design linting passed$(NC)"
 	@echo ""
 	@echo "$(YELLOW)━━━ Infrastructure Linters ━━━$(NC)"
 	@$(MAKE) -s lint-infra || (echo "$(RED)✗ Infrastructure linting failed$(NC)" && exit 1)
@@ -86,41 +122,32 @@ lint-design: lint-start ## Run custom design linters using dedicated container
 		fi
 	@echo "$(GREEN)✓ Custom design linting passed$(NC)"
 
-# Auto-fix formatting issues using dedicated containers
-lint-fix: ## Auto-fix linting issues (Ruff, ESLint, Prettier, Stylelint)
+# Auto-fix formatting issues
+lint-fix: dev-start ## Auto-fix linting issues (Ruff, ESLint, Prettier, Stylelint)
 	@echo "$(CYAN)Auto-fixing code formatting...$(NC)"
-	@# Stop existing containers to mount with write permissions
-	@docker-compose -f docker-compose.lint.yml down 2>/dev/null || true
-	@echo "$(YELLOW)Running Python code fixes...$(NC)"
-	@docker run --rm -v $(shell pwd):/workspace:rw \
-		--name temp-python-linter \
-		-w /workspace \
-		durable-code-test-python-linter \
-		bash -c "cd /workspace/durable-code-app/backend && \
-			mkdir -p /tmp/.cache/ruff && \
-			RUFF_CACHE_DIR=/tmp/.cache/ruff ruff format app /workspace/tools && \
-			RUFF_CACHE_DIR=/tmp/.cache/ruff ruff check --fix app /workspace/tools"
-	@echo "$(YELLOW)Running TypeScript/React code fixes...$(NC)"
-	@docker run --rm -v $(shell pwd):/workspace:rw \
-		--name temp-js-linter \
-		-w /workspace \
-		durable-code-test-js-linter \
-		sh -c "cd /workspace/durable-code-app/frontend && \
-			npm run lint:fix && \
-			npm run lint:css:fix && \
-			npm run format"
+	@echo "$(YELLOW)Fixing Python code...$(NC)"
+	@docker exec -u root durable-code-backend-$(BRANCH_NAME)-dev bash -c "cd /app && \
+		mkdir -p /app/.cache/ruff /app/.cache/mypy && chmod -R 777 /app/.cache && \
+		RUFF_CACHE_DIR=/app/.cache/ruff poetry run ruff format app tools && \
+		RUFF_CACHE_DIR=/app/.cache/ruff poetry run ruff check --fix app tools && \
+		chown -R 1001:1001 /app/tools"
+	@echo "$(YELLOW)Fixing TypeScript/React code...$(NC)"
+	@docker exec durable-code-frontend-$(BRANCH_NAME)-dev sh -c "\
+		npm run lint:fix && \
+		npm run lint:css:fix && \
+		npm run format"
 	@echo "$(GREEN)✅ Auto-fix complete!$(NC)"
 
 # Run custom design linters only
-lint-custom: lint-start ## Run custom design linters with all categories
+lint-custom: dev-start ## Run custom design linters with all categories
 	@echo "$(CYAN)╔════════════════════════════════════════════════════════════╗$(NC)"
 	@echo "$(CYAN)║                Custom Design Linters                      ║$(NC)"
 	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
-	@docker exec durable-code-python-linter-$(BRANCH_NAME) bash -c "cd /workspace/backend && PYTHONPATH=/workspace/tools python -m design_linters --format text --recursive app"
+	@docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "cd /app && PYTHONPATH=/app/tools python -m design_linters --format text --recursive app"
 	@echo "$(GREEN)✓ Custom linting complete$(NC)"
 
 # Lint infrastructure files (Terraform and shell scripts)
-lint-infra: lint-start ## Lint infrastructure files (Terraform format/validate, TFLint, and shell scripts)
+lint-infra: dev-start ## Lint infrastructure files (Terraform format/validate, TFLint, and shell scripts)
 	@echo "$(CYAN)╔════════════════════════════════════════════════════════════╗$(NC)"
 	@echo "$(CYAN)║              Infrastructure Linting                       ║$(NC)"
 	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
@@ -131,43 +158,37 @@ lint-infra: lint-start ## Lint infrastructure files (Terraform format/validate, 
 	@$(MAKE) -s infra-validate 2>&1 | grep -v "Configuration is valid" || true
 	@echo ""
 	@echo "$(YELLOW)• TFLint (Terraform linter)...$(NC)"
-	@docker exec durable-code-python-linter-$(BRANCH_NAME) bash -c "\
+	@docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "\
 		if command -v tflint >/dev/null 2>&1; then \
-			if [ -d /workspace/infra ]; then \
-				echo '  Running TFLint on /workspace/infra directory...'; \
-				cd /workspace/infra && tflint --recursive 2>&1 | grep -E '(Error:|error:)' && exit 1 || true; \
-				echo '$(GREEN)  ✓ TFLint checks passed (warnings ignored)$(NC)'; \
+			if [ -d /app/infra ]; then \
+				echo '  Running TFLint on /app/infra directory...'; \
+				cd /app/infra && tflint --recursive || exit 1; \
+				echo '$(GREEN)  ✓ TFLint checks passed$(NC)'; \
 			else \
-				echo '$(YELLOW)  ⚠ /workspace/infra directory not found$(NC)'; \
+				echo '$(YELLOW)  ⚠ /app/infra directory not found$(NC)'; \
 			fi; \
 		else \
 			echo '$(YELLOW)  ⚠ tflint not installed in container - rebuild with make init$(NC)'; \
-		fi"
+		fi" || (echo "$(RED)✗ TFLint linting failed$(NC)" && exit 1)
 	@echo ""
 	@echo "$(YELLOW)• Shell scripts...$(NC)"
-	@docker exec durable-code-python-linter-$(BRANCH_NAME) bash -c "\
+	@docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "\
 		if command -v shellcheck >/dev/null 2>&1; then \
-			found_scripts=false; \
-			for script in /workspace/infra/scripts/*.sh; do \
+			for script in infra/scripts/*.sh scripts/*.sh; do \
 				if [ -f \"\$$script\" ]; then \
-					found_scripts=true; \
 					echo \"  Checking \$$script...\"; \
-					shellcheck --severity=error \"\$$script\" || exit 1; \
+					shellcheck \"\$$script\" || exit 1; \
 				fi; \
 			done; \
-			if [ \"\$$found_scripts\" = true ]; then \
-				echo '$(GREEN)  ✓ Shell scripts passed linting (errors only)$(NC)'; \
-			else \
-				echo '$(YELLOW)  ⚠ No shell scripts found to check$(NC)'; \
-			fi; \
+			echo '$(GREEN)  ✓ Shell scripts passed linting$(NC)'; \
 		else \
 			echo '$(YELLOW)  ⚠ shellcheck not installed in container - rebuild with make build$(NC)'; \
 		fi" || (echo "$(RED)✗ Shell script linting failed$(NC)" && exit 1)
 	@echo "$(GREEN)✓ Infrastructure linting passed$(NC)"
 
 # List all custom rule categories
-lint-categories: lint-start ## List all custom rule categories with descriptions
+lint-categories: dev-start ## List all custom rule categories with descriptions
 	@echo "$(CYAN)╔════════════════════════════════════════════════════════════╗$(NC)"
 	@echo "$(CYAN)║                 Custom Rule Categories                    ║$(NC)"
 	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
-	@docker exec durable-code-python-linter-$(BRANCH_NAME) bash -c "cd /workspace/backend && PYTHONPATH=/workspace/tools python -m design_linters --list-categories"
+	@docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "cd /app && PYTHONPATH=/app/tools python -m design_linters --list-categories"
