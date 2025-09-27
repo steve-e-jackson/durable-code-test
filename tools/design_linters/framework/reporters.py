@@ -130,7 +130,7 @@ class TextReporter(LintReporter):
         severity_icon = self._get_severity_icon(violation.severity)
 
         main_line = (
-            f"  {severity_icon} Line {violation.line}:{violation.column} " f"[{violation.rule_id}] {violation.message}"
+            f"  {severity_icon} Line {violation.line}:{violation.column} [{violation.rule_id}] {violation.message}"
         )
 
         lines = [main_line]
