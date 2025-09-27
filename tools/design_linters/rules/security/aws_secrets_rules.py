@@ -14,16 +14,15 @@ Overview: This module implements comprehensive security rules to detect AWS cred
     practices by catching sensitive information before it reaches the repository.
 Dependencies: Framework interfaces, re for pattern matching, pathlib for file operations
 Exports: AWS security-focused rules for credential and identifier detection
-Interfaces: All rules implement ASTLintRule interface for AST-based analysis
+Interfaces: All rules implement FileBasedLintRule interface for file-based analysis
 Implementation: Pattern-based detection with comprehensive AWS identifier recognition
 """
 
-import ast
 import re
 from pathlib import Path
 from typing import Any
 
-from design_linters.framework.interfaces import ASTLintRule, LintContext, LintViolation, Severity
+from design_linters.framework.interfaces import FileBasedLintRule, LintContext, LintViolation, Severity
 
 try:
     from loguru import logger
@@ -34,7 +33,7 @@ except ImportError:
     logger = logging.getLogger(__name__)
 
 
-class AWSSecretsRule(ASTLintRule):
+class AWSSecretsRule(FileBasedLintRule):
     """Detect AWS credentials, ARNs, and other sensitive AWS identifiers."""
 
     # AWS Access Key ID patterns
@@ -147,22 +146,16 @@ class AWSSecretsRule(ASTLintRule):
     def categories(self) -> set[str]:
         return {"security", "aws", "credentials", "secrets"}
 
-    def should_check_node(self, node: ast.AST, context: LintContext) -> bool:
-        """Check if we should examine this node."""
-        # Skip if file should be ignored
-        if self._should_skip_file(context.file_path):
-            return False
-
-        # We only check the module node once per file to scan entire content
-        return hasattr(node, "__class__") and node.__class__.__name__ == "Module"
-
-    def check_node(self, node: ast.AST, context: LintContext) -> list[LintViolation]:
-        """Check the node for AWS secrets and identifiers."""
+    def check_file(self, file_path: Path, content: str, context: LintContext) -> list[LintViolation]:
+        """Check the file for AWS secrets and identifiers."""
         violations = []
 
-        # For module nodes, check the entire file content for patterns
-        if isinstance(node, ast.Module) and context.file_content:
-            violations.extend(self._check_file_content(node, context))
+        # Skip if file should be ignored
+        if self._should_skip_file(file_path):
+            return violations
+
+        # Check the entire file content for patterns
+        violations.extend(self._check_file_content(file_path, content))
 
         return violations
 
@@ -174,24 +167,18 @@ class AWSSecretsRule(ASTLintRule):
         path_str = str(file_path).lower()
         return any(pattern in path_str for pattern in self.SKIP_PATTERNS)
 
-    def _check_file_content(self, node: ast.Module, context: LintContext) -> list[LintViolation]:
+    def _check_file_content(self, file_path: Path, content: str) -> list[LintViolation]:
         """Check entire file content for AWS patterns."""
         violations = []
-        if not context.file_content:
-            return violations
-
-        content = context.file_content
         lines = content.split("\n")
 
         for line_num, line in enumerate(lines, 1):
-            line_violations = self._check_line_content(line, line_num, node, context)
+            line_violations = self._check_line_content(line, line_num, file_path)
             violations.extend(line_violations)
 
         return violations
 
-    def _check_line_content(
-        self, line: str, line_num: int, node: ast.Module, context: LintContext
-    ) -> list[LintViolation]:
+    def _check_line_content(self, line: str, line_num: int, file_path: Path) -> list[LintViolation]:
         """Check a single line for AWS patterns."""
         violations = []
 
@@ -203,12 +190,13 @@ class AWSSecretsRule(ASTLintRule):
         for pattern in self.AWS_ACCESS_KEY_PATTERNS:
             matches = pattern.finditer(line)
             for match in matches:
-                # Create a dummy node with line info for violation reporting
-                dummy_node = ast.Constant(value="", lineno=line_num, col_offset=match.start())
                 violations.append(
-                    self.create_violation(
-                        context=context,
-                        node=dummy_node,
+                    LintViolation(
+                        rule_id=self.rule_id,
+                        file_path=str(file_path),
+                        line=line_num,
+                        column=match.start(),
+                        severity=Severity.ERROR,
                         message=f"AWS Access Key ID detected: {match.group()[:8]}...",
                         description="AWS Access Key IDs should never be committed to version control",
                         suggestion="Use environment variables, AWS credential files, or AWS Parameter Store",
@@ -221,14 +209,15 @@ class AWSSecretsRule(ASTLintRule):
                 matches = pattern.finditer(line)
                 for match in matches:
                     violations.append(
-                        self._create_simple_violation(
-                            context=context,
+                        LintViolation(
+                            rule_id=self.rule_id,
+                            file_path=str(file_path),
                             line=line_num,
                             column=match.start(),
+                            severity=Severity.ERROR,
                             message=f"Potential AWS Secret Access Key detected: {match.group()[:8]}...",
                             description="AWS Secret Access Keys should never be committed to version control",
                             suggestion="Use environment variables, AWS credential files, or AWS Secrets Manager",
-                            severity=Severity.ERROR,
                         )
                     )
 
@@ -238,14 +227,15 @@ class AWSSecretsRule(ASTLintRule):
                 matches = pattern.finditer(line)
                 for match in matches:
                     violations.append(
-                        self._create_simple_violation(
-                            context=context,
+                        LintViolation(
+                            rule_id=self.rule_id,
+                            file_path=str(file_path),
                             line=line_num,
                             column=match.start(),
+                            severity=Severity.ERROR,
                             message=f"Potential AWS Session Token detected: {match.group()[:12]}...",
                             description="AWS Session Tokens should never be committed to version control",
                             suggestion="Use proper credential management or temporary credential providers",
-                            severity=Severity.ERROR,
                         )
                     )
 
@@ -254,14 +244,15 @@ class AWSSecretsRule(ASTLintRule):
             matches = pattern.finditer(line)
             for match in matches:
                 violations.append(
-                    self._create_simple_violation(
-                        context=context,
+                    LintViolation(
+                        rule_id=self.rule_id,
+                        file_path=str(file_path),
                         line=line_num,
                         column=match.start(),
+                        severity=Severity.WARNING,
                         message=f"AWS ARN detected: {match.group()}",
                         description="AWS ARNs may contain sensitive account or resource information",
                         suggestion="Consider using parameter references or environment-specific configurations",
-                        severity=Severity.WARNING,
                     )
                 )
 
@@ -272,14 +263,15 @@ class AWSSecretsRule(ASTLintRule):
                 # Additional context check to reduce false positives
                 if any(keyword in line.lower() for keyword in ["account", "aws", "arn", "iam", "role"]):
                     violations.append(
-                        self._create_simple_violation(
-                            context=context,
+                        LintViolation(
+                            rule_id=self.rule_id,
+                            file_path=str(file_path),
                             line=line_num,
                             column=match.start(),
+                            severity=Severity.WARNING,
                             message=f"AWS Account ID detected: {match.group()}",
                             description="AWS Account IDs should not be hardcoded in source code",
                             suggestion="Use environment variables or configuration files",
-                            severity=Severity.WARNING,
                         )
                     )
 
@@ -288,37 +280,16 @@ class AWSSecretsRule(ASTLintRule):
             matches = pattern.finditer(line)
             for match in matches:
                 violations.append(
-                    self._create_simple_violation(
-                        context=context,
+                    LintViolation(
+                        rule_id=self.rule_id,
+                        file_path=str(file_path),
                         line=line_num,
                         column=match.start(),
+                        severity=Severity.INFO,
                         message=f"AWS Resource ID detected: {match.group()}",
                         description="AWS Resource IDs should not be hardcoded in source code",
                         suggestion="Use environment variables, tags, or dynamic resource discovery",
-                        severity=Severity.INFO,
                     )
                 )
 
         return violations
-
-    def _create_simple_violation(
-        self,
-        context: LintContext,
-        line: int,
-        column: int,
-        message: str,
-        description: str,
-        suggestion: str,
-        severity: Severity,
-    ) -> LintViolation:
-        """Create a violation with the given parameters."""
-        return LintViolation(
-            rule_id=self.rule_id,
-            file_path=str(context.file_path) if context.file_path else "",
-            line=line,
-            column=column,
-            severity=severity,
-            message=message,
-            description=description,
-            suggestion=suggestion,
-        )

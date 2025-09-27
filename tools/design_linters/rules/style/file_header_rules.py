@@ -14,7 +14,7 @@ Overview: This module validates that all source files contain comprehensive docu
     implementation details, which is especially valuable for onboarding and maintenance.
 Dependencies: Framework interfaces, pathlib for file operations, re for pattern matching
 Exports: FileHeaderRule implementation
-Interfaces: Implements ASTLintRule interface from framework
+Interfaces: Implements FileBasedLintRule interface from framework
 Implementation: Pattern-based header extraction with file-type specific validation
 """
 
@@ -22,7 +22,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from design_linters.framework.interfaces import ASTLintRule, LintContext, LintViolation, Severity
+from design_linters.framework.interfaces import FileBasedLintRule, LintContext, LintViolation, Severity
 
 try:
     from loguru import logger
@@ -33,7 +33,7 @@ except ImportError:
     logger = logging.getLogger(__name__)
 
 
-class FileHeaderRule(ASTLintRule):
+class FileHeaderRule(FileBasedLintRule):
     """Validate file headers according to project standards."""
 
     # Required fields for all files
@@ -143,7 +143,9 @@ class FileHeaderRule(ASTLintRule):
             "min_header_lines": 3,
         },
         ".md": {
-            "header_pattern": re.compile(r"^# .+?\n\n(\*\*\w+\*\*:.+?\n)+", re.MULTILINE),
+            "header_pattern": re.compile(
+                r"^# .+?\n\n(?:\*\*\w+\*\*:.*(?:\n(?!(?:\*\*\w+\*\*:|##|\n)).*)*\n?)+", re.MULTILINE | re.DOTALL
+            ),
             "field_pattern": re.compile(r"^\*\*(\w+)\*\*:\s*(.+)$", re.MULTILINE),
             "is_code": False,
             "min_header_lines": 3,
@@ -226,17 +228,9 @@ class FileHeaderRule(ASTLintRule):
     def categories(self) -> set[str]:
         return {"style", "documentation", "standards"}
 
-    def should_check_node(self, node: Any, context: LintContext) -> bool:
-        """Check the module node for header validation."""
-        # We only check the module node once per file
-        return hasattr(node, "__class__") and node.__class__.__name__ == "Module"
-
-    def check_node(self, node: Any, context: LintContext) -> list[LintViolation]:
+    def check_file(self, file_path: Path, content: str, context: LintContext) -> list[LintViolation]:
         """Check if the file has a proper header."""
         violations = []
-
-        # Get file path and check if we should skip it
-        file_path = Path(context.file_path)
         if self._should_skip_file(file_path):
             return violations
 
@@ -255,24 +249,17 @@ class FileHeaderRule(ASTLintRule):
 
         config = self.FILE_CONFIGS[file_ext]
 
-        # Get file content from context or read from disk
-        if context.file_content is not None:
-            content = context.file_content
-        else:
-            try:
-                content = file_path.read_text(encoding="utf-8")
-            except Exception as e:
-                logger.error(f"Could not read file {file_path}: {e}")
-                return violations
-
         # Special check for markdown files to ensure they have a main heading
         if file_ext == ".md" and config.get("require_main_heading", False):
             lines = content.split("\n")
             if not lines or not lines[0].startswith("# "):
                 violations.append(
-                    self.create_violation(
-                        context=context,
-                        node=node,
+                    LintViolation(
+                        rule_id=self.rule_id,
+                        file_path=str(file_path),
+                        line=1,
+                        column=0,
+                        severity=self.severity,
                         message=f"Missing main heading in markdown file {file_path.name}",
                         description="Markdown files must start with a main heading (# Title)",
                         suggestion="Add a main heading at the top of the file: # [Document Title]",
@@ -283,9 +270,12 @@ class FileHeaderRule(ASTLintRule):
         header_match = config["header_pattern"].search(content[:2000])  # Check first 2000 chars
         if not header_match:
             violations.append(
-                self.create_violation(
-                    context=context,
-                    node=node,
+                LintViolation(
+                    rule_id=self.rule_id,
+                    file_path=str(file_path),
+                    line=1,
+                    column=0,
+                    severity=self.severity,
                     message=f"Missing file header in {file_path.name}",
                     description="File must have a properly formatted header with required fields",
                     suggestion=self._get_header_template(file_ext),
@@ -301,9 +291,12 @@ class FileHeaderRule(ASTLintRule):
         missing_required = self.REQUIRED_FIELDS - set(fields.keys())
         if missing_required:
             violations.append(
-                self.create_violation(
-                    context=context,
-                    node=node,
+                LintViolation(
+                    rule_id=self.rule_id,
+                    file_path=str(file_path),
+                    line=1,
+                    column=0,
+                    severity=self.severity,
                     message=f"Missing required header fields: {', '.join(sorted(missing_required))}",
                     description="All files must have Purpose and Scope fields in their headers",
                     suggestion=f"Add the missing fields to the file header:\n{self._format_missing_fields(missing_required)}",
@@ -313,9 +306,12 @@ class FileHeaderRule(ASTLintRule):
         # Check for Overview field (required but checked separately for better messaging)
         if "overview" not in fields:
             violations.append(
-                self.create_violation(
-                    context=context,
-                    node=node,
+                LintViolation(
+                    rule_id=self.rule_id,
+                    file_path=str(file_path),
+                    line=1,
+                    column=0,
+                    severity=self.severity,
                     message="Missing required Overview field in header",
                     description="Overview field must provide comprehensive summary of the file's role",
                     suggestion="Add an Overview field with detailed explanation of what this file does and how it fits into the system",
@@ -327,9 +323,12 @@ class FileHeaderRule(ASTLintRule):
             word_count = len(overview_content.split())
             if word_count < self.min_overview_words:
                 violations.append(
-                    self.create_violation(
-                        context=context,
-                        node=node,
+                    LintViolation(
+                        rule_id=self.rule_id,
+                        file_path=str(file_path),
+                        line=1,
+                        column=0,
+                        severity=self.severity,
                         message=f"Overview field too brief ({word_count} words, minimum {self.min_overview_words})",
                         description="Overview should be comprehensive enough to understand the file without reading code",
                         suggestion="Expand the Overview field to include: responsibilities, workflows, architectural role, and key behaviors",
@@ -341,9 +340,12 @@ class FileHeaderRule(ASTLintRule):
             missing_code_fields = self.CODE_REQUIRED_FIELDS - set(fields.keys())
             if missing_code_fields:
                 violations.append(
-                    self.create_violation(
-                        context=context,
-                        node=node,
+                    LintViolation(
+                        rule_id=self.rule_id,
+                        file_path=str(file_path),
+                        line=1,
+                        column=0,
+                        severity=self.severity,
                         message=f"Missing required code header fields: {', '.join(sorted(missing_code_fields))}",
                         description="Code files must have Dependencies, Exports, and Interfaces fields",
                         suggestion=f"Add the missing fields:\n{self._format_missing_fields(missing_code_fields)}",
@@ -355,9 +357,12 @@ class FileHeaderRule(ASTLintRule):
                 missing_recommended = self.RECOMMENDED_FIELDS - set(fields.keys())
                 if missing_recommended:
                     violations.append(
-                        self.create_violation(
-                            context=context,
-                            node=node,
+                        LintViolation(
+                            rule_id=self.rule_id,
+                            file_path=str(file_path),
+                            line=1,
+                            column=0,
+                            severity=self.severity,
                             message="Missing recommended header field: Implementation",
                             description="Implementation field helps document architectural decisions and patterns",
                             suggestion="Add Implementation field describing notable algorithms, patterns, or architectural decisions",
@@ -369,9 +374,12 @@ class FileHeaderRule(ASTLintRule):
             content_issues = self._validate_field_content(fields)
             for issue in content_issues:
                 violations.append(
-                    self.create_violation(
-                        context=context,
-                        node=node,
+                    LintViolation(
+                        rule_id=self.rule_id,
+                        file_path=str(file_path),
+                        line=1,
+                        column=0,
+                        severity=self.severity,
                         message=issue["message"],
                         description=issue["description"],
                         suggestion=issue["suggestion"],
@@ -383,9 +391,12 @@ class FileHeaderRule(ASTLintRule):
             temporal_issues = self._check_temporal_language(header_content)
             for issue in temporal_issues:
                 violations.append(
-                    self.create_violation(
-                        context=context,
-                        node=node,
+                    LintViolation(
+                        rule_id=self.rule_id,
+                        file_path=str(file_path),
+                        line=1,
+                        column=0,
+                        severity=self.severity,
                         message=f"Temporal language found in header: {issue['type']}",
                         description=f"Headers should be atemporal. Found: '{issue['match']}'",
                         suggestion=issue["suggestion"],

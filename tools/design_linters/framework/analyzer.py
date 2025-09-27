@@ -47,6 +47,95 @@ from .interfaces import (
 )
 
 
+class GenericTextAnalyzer(LintAnalyzer):
+    """Analyzer for non-Python text files (markdown, yaml, json, etc.)."""
+
+    def __init__(self, supported_extensions: set[str] | None = None) -> None:
+        """Initialize generic text analyzer."""
+        self.supported_extensions = supported_extensions or {
+            ".md",
+            ".markdown",
+            ".rst",
+            ".txt",
+            ".yaml",
+            ".yml",
+            ".json",
+            ".jsonc",
+            ".xml",
+            ".html",
+            ".htm",
+            ".css",
+            ".scss",
+            ".less",
+            ".js",
+            ".jsx",
+            ".ts",
+            ".tsx",
+            ".sh",
+            ".bash",
+            ".zsh",
+            ".toml",
+            ".ini",
+            ".cfg",
+            ".conf",
+            ".tf",
+            ".tfvars",
+            ".hcl",
+            ".sql",
+            ".env",
+            ".env.example",
+            ".gitignore",
+            ".dockerignore",
+        }
+
+    def analyze_file(self, file_path: Path) -> LintContext:
+        """Analyze a text file and return context."""
+        try:
+            with open(file_path, encoding="utf-8") as file:
+                content = file.read()
+
+            context = LintContext(
+                file_path=file_path,
+                file_content=content,
+                ast_tree=None,  # No AST for non-Python files
+                current_module=self._get_module_name(file_path),
+                node_stack=None,  # No node stack for text files
+                metadata={
+                    "encoding": "utf-8",
+                    "ast_parsed": False,
+                    "file_type": file_path.suffix or "no_extension",
+                    "is_text_file": True,
+                },
+            )
+
+            # Parse ignore directives (they work in any text file)
+            from .interfaces import parse_ignore_directives  # pylint: disable=import-outside-toplevel
+
+            parse_ignore_directives(content, context)
+            return context
+
+        except UnicodeDecodeError:
+            logger.warning("Could not decode %s as UTF-8", file_path)
+            return LintContext(
+                file_path=file_path,
+                metadata={"encoding_error": "Not UTF-8", "ast_parsed": False},
+            )
+        except Exception:  # pylint: disable=broad-exception-caught
+            logger.exception("Error analyzing text file %s", file_path)
+            return LintContext(
+                file_path=file_path,
+                metadata={"error": "Analysis failed", "ast_parsed": False},
+            )
+
+    def get_supported_extensions(self) -> set[str]:
+        """Get file extensions this analyzer supports."""
+        return self.supported_extensions
+
+    def _get_module_name(self, file_path: Path) -> str:
+        """Extract module/file name from file path."""
+        return file_path.stem
+
+
 class PythonAnalyzer(LintAnalyzer):
     """Analyzer for Python source code using AST parsing."""
 
@@ -359,7 +448,10 @@ class DefaultLintOrchestrator(LintOrchestrator):
     ):
         """Initialize orchestrator with dependencies."""
         self.rule_registry = rule_registry
-        self.analyzers = analyzers or {"python": PythonAnalyzer()}
+        self.analyzers = analyzers or {
+            "python": PythonAnalyzer(),
+            "text": GenericTextAnalyzer(),
+        }
         self.reporters = reporters or {}
         self.config_provider = config_provider
         self._file_discovery = _FileDiscoveryService()

@@ -115,7 +115,12 @@ def create_orchestrator(rule_packages: list[str] | None = None) -> LintOrchestra
             discovery.discover_from_package(package, registry)
 
     # Create analyzers
-    analyzers: dict[str, LintAnalyzer] = {"python": PythonAnalyzer()}
+    from .analyzer import GenericTextAnalyzer  # pylint: disable=import-outside-toplevel
+
+    analyzers: dict[str, LintAnalyzer] = {
+        "python": PythonAnalyzer(),
+        "text": GenericTextAnalyzer(),
+    }
 
     # Create reporters
     from .reporters import ReporterFactory as Factory  # pylint: disable=import-outside-toplevel
