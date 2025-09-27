@@ -12,7 +12,11 @@
 .PHONY: lint-all lint-fix lint-custom lint-categories
 
 # Run all linters - REQUIRED BY GITHUB ACTIONS
-lint-all: dev-start ## Run ALL linters (Python, JS/TS, and custom design rules)
+lint-all: ## Run ALL linters (Python, JS/TS, and custom design rules)
+	@if ! docker ps --format "table {{.Names}}" | grep -q "durable-code-backend-$(BRANCH_NAME)-dev"; then \
+		echo "$(YELLOW)Starting development environment for linting...$(NC)"; \
+		$(MAKE) -s dev-start; \
+	fi
 	@echo "$(CYAN)╔════════════════════════════════════════════════════════════╗$(NC)"
 	@echo "$(CYAN)║                  Running ALL Linters                      ║$(NC)"
 	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"

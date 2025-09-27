@@ -40,7 +40,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      # Build images with cache
+      # Build images with cache and start services for linting
       - name: Build Docker images with cache
         run: |
           export BUILDX_CACHE_FROM="type=local,src=/tmp/.buildx-cache"
@@ -62,6 +62,25 @@ jobs:
             -f ./durable-code-app/frontend/Dockerfile.dev \
             ./durable-code-app/frontend
 
+      # Start development environment for linting
+      - name: Start development services
+        run: |
+          # Set branch name for container naming
+          export BRANCH_NAME=$(echo "${{ github.head_ref || github.ref_name }}" | tr '/' '-' | tr '[:upper:]' '[:lower:]')
+
+          # Start containers needed for linting
+          docker run -d --name "durable-code-backend-${BRANCH_NAME}-dev" \
+            -v $(pwd):/app \
+            -w /app \
+            durable-code-backend-dev:latest \
+            sleep infinity
+
+          docker run -d --name "durable-code-frontend-${BRANCH_NAME}-dev" \
+            -v $(pwd)/durable-code-app/frontend:/app \
+            -w /app \
+            durable-code-frontend-dev:latest \
+            sleep infinity
+
       # Move cache for next run
       - name: Move cache
         run: |
@@ -70,7 +89,14 @@ jobs:
 
       # Run linting using existing make target
       - name: Run comprehensive linting
-        run: make lint-all
+        run: |
+          # Set environment variables for make
+          export BRANCH_NAME=$(echo "${{ github.head_ref || github.ref_name }}" | tr '/' '-' | tr '[:upper:]' '[:lower:]')
+          export FRONTEND_PORT=5173
+          export BACKEND_PORT=8000
+
+          # Run linting (but skip dev-start since containers are already running)
+          make lint-all
 
       - name: Generate linting summary
         if: always()
@@ -80,3 +106,15 @@ jobs:
           echo "- ✅ Python linting (Black, isort, Ruff, Flake8, MyPy, Pylint, Bandit, Xenon)" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ TypeScript/React linting (ESLint, Prettier, TypeScript)" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Custom design linters (SOLID, Style, Literals, Logging, Loguru)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Clean up containers
+        if: always()
+        run: |
+          # Set branch name for container naming
+          export BRANCH_NAME=$(echo "${{ github.head_ref || github.ref_name }}" | tr '/' '-' | tr '[:upper:]' '[:lower:]')
+
+          # Stop and remove containers
+          docker stop "durable-code-backend-${BRANCH_NAME}-dev" 2>/dev/null || true
+          docker rm "durable-code-backend-${BRANCH_NAME}-dev" 2>/dev/null || true
+          docker stop "durable-code-frontend-${BRANCH_NAME}-dev" 2>/dev/null || true
+          docker rm "durable-code-frontend-${BRANCH_NAME}-dev" 2>/dev/null || true
