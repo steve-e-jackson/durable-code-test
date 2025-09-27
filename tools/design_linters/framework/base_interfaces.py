@@ -17,6 +17,7 @@ Implementation: Inheritance-based multi-language support with backward compatibi
 
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import Any
 
 # Import common types
 from .types import LintViolation, Severity
