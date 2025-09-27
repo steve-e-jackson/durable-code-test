@@ -116,9 +116,17 @@ fi
 - Frontend: Minimum 70% coverage required
 - Critical paths: 95% coverage required
 
-### 5. Roadmap Progress Document Updates (When Working on Roadmap Items)
+### 5. Roadmap Progress Document Updates (MANDATORY CHECK)
 
-If working on a roadmap item, update the progress tracker before proceeding:
+**⚠️ CRITICAL: This step MUST be executed REGARDLESS of PR status, commit status, or any other conditions.**
+
+**ALWAYS check and update roadmap documents when working on roadmap items. This applies whether:**
+- ✅ A PR already exists
+- ✅ Code is already committed
+- ✅ Checks are already running
+- ✅ You think updates were done previously
+
+**Why this is mandatory:** Roadmap updates can be missed during development. The `/done` command ensures they're completed before finalizing work.
 
 #### Detecting Roadmap Work
 ```bash
@@ -149,25 +157,31 @@ fi
 If roadmap work is detected:
 
 ```bash
-# 1. Mark current PR/task as complete
-# 2. Calculate new completion percentage
-# 3. Add completion timestamp
-# 4. Update "Next PR to Implement" section
-# 5. Document any deviations or learnings
-# 6. Check if directory move is needed based on new percentage
-# 7. Update master ROADMAP.md
+# MANDATORY: Check and update progress even if you think it was done before
+# The AI agent MUST verify the current state and update if needed
 
 # Example update pattern:
 if [ "$ROADMAP_WORK" = true ]; then
-    echo "📊 Updating roadmap progress tracker..."
+    echo "📊 Checking roadmap progress tracker status..."
 
-    # The AI agent should:
-    # - Read the current PROGRESS_TRACKER.md
-    # - Identify which PR/task was being worked on
-    # - Update status from 🟡 In Progress to 🟢 Complete
-    # - Calculate new overall completion percentage
-    # - Update the Next PR section
-    # - Add notes about implementation details
+    # The AI agent MUST:
+    # 1. Read the current PROGRESS_TRACKER.md
+    # 2. Verify if the current PR/task is already marked complete
+    # 3. If NOT complete, update it now:
+    #    - Mark current PR/task as complete
+    #    - Calculate new completion percentage
+    #    - Add completion timestamp
+    #    - Update "Next PR to Implement" section
+    #    - Document any deviations or learnings
+    # 4. If already complete, verify directory location is correct
+    # 5. Check if directory move is needed based on percentage
+    # 6. Verify master ROADMAP.md has correct percentages
+    # 7. Update master ROADMAP.md if needed
+
+    # IMPORTANT: Even if PR is marked complete, VERIFY:
+    # - Directory is in correct location (planning/in_progress/complete)
+    # - Master ROADMAP.md shows correct percentage
+    # - All related documentation is updated
 
     # Check if directory move needed based on completion %
     COMPLETION=$(grep "Total Completion" "$PROGRESS_TRACKER" | grep -oE "[0-9]+%" | tr -d '%')
