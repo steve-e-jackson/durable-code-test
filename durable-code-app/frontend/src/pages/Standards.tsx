@@ -3,7 +3,7 @@
  * Integrated React component to replace external HTML file
  */
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import './Standards.css';
+import styles from './Standards.module.css';
 
 function Standards() {
   const navigate = useNavigate();
@@ -15,30 +15,30 @@ function Standards() {
   };
 
   return (
-    <div className="standards-page">
-      <div className="breadcrumb">
-        <button onClick={handleBackClick} className="breadcrumb-link">
+    <div className={styles.standardsPage}>
+      <div className={styles.breadcrumb}>
+        <button onClick={handleBackClick} className={styles.breadcrumbLink}>
           ← Back to {returnTab}
         </button>
-        <span className="breadcrumb-separator">/</span>
-        <span className="breadcrumb-current">Development Standards</span>
+        <span className={styles.breadcrumbSeparator}>/</span>
+        <span className={styles.breadcrumbCurrent}>Development Standards</span>
       </div>
 
-      <div className="container">
-        <header className="page-header">
-          <h1 className="page-title">Development Standards Guide</h1>
-          <p className="page-subtitle">
+      <div className={styles.container}>
+        <header className={styles.pageHeader}>
+          <h1 className={styles.pageTitle}>Development Standards Guide</h1>
+          <p className={styles.pageSubtitle}>
             Comprehensive guidelines for AI-assisted development and code quality
           </p>
         </header>
 
-        <main className="content">
+        <main className={styles.content}>
           <section>
-            <h2 className="section-title">Code Quality Standards</h2>
+            <h2 className={styles.sectionTitle}>Code Quality Standards</h2>
 
-            <div className="subsection">
-              <h3 className="subsection-title">Naming Conventions</h3>
-              <ul className="standards-list">
+            <div className={styles.subsection}>
+              <h3 className={styles.subsectionTitle}>Naming Conventions</h3>
+              <ul className={styles.standardsList}>
                 <li>
                   <strong>Variables:</strong> Use descriptive camelCase names (e.g.,{' '}
                   <code>userAccountBalance</code>)
@@ -58,9 +58,9 @@ function Standards() {
               </ul>
             </div>
 
-            <div className="subsection">
-              <h3 className="subsection-title">Code Structure</h3>
-              <ul className="standards-list">
+            <div className={styles.subsection}>
+              <h3 className={styles.subsectionTitle}>Code Structure</h3>
+              <ul className={styles.standardsList}>
                 <li>Maximum function length: 50 lines</li>
                 <li>Maximum file length: 500 lines</li>
                 <li>Use TypeScript for all new code</li>
@@ -71,11 +71,11 @@ function Standards() {
           </section>
 
           <section>
-            <h2 className="section-title">Testing Standards</h2>
+            <h2 className={styles.sectionTitle}>Testing Standards</h2>
 
-            <div className="subsection">
-              <h3 className="subsection-title">Unit Testing</h3>
-              <ul className="standards-list">
+            <div className={styles.subsection}>
+              <h3 className={styles.subsectionTitle}>Unit Testing</h3>
+              <ul className={styles.standardsList}>
                 <li>Minimum 80% code coverage</li>
                 <li>
                   Test file naming: <code>ComponentName.test.tsx</code>
@@ -85,7 +85,7 @@ function Standards() {
               </ul>
             </div>
 
-            <div className="code-block">
+            <div className={styles.codeBlock}>
               <pre>{`// Example test structure
 describe('UserAccount', () => {
   it('should calculate balance correctly when deposits exceed withdrawals', () => {
@@ -104,11 +104,11 @@ describe('UserAccount', () => {
           </section>
 
           <section>
-            <h2 className="section-title">AI Development Guidelines</h2>
+            <h2 className={styles.sectionTitle}>AI Development Guidelines</h2>
 
-            <div className="subsection">
-              <h3 className="subsection-title">Context Management</h3>
-              <ul className="standards-list">
+            <div className={styles.subsection}>
+              <h3 className={styles.subsectionTitle}>Context Management</h3>
+              <ul className={styles.standardsList}>
                 <li>Maintain comprehensive README files</li>
                 <li>Document business logic and domain knowledge</li>
                 <li>Include examples of good and bad patterns</li>
@@ -116,9 +116,9 @@ describe('UserAccount', () => {
               </ul>
             </div>
 
-            <div className="subsection">
-              <h3 className="subsection-title">Code Generation Standards</h3>
-              <ul className="standards-list">
+            <div className={styles.subsection}>
+              <h3 className={styles.subsectionTitle}>Code Generation Standards</h3>
+              <ul className={styles.standardsList}>
                 <li>Always include error handling</li>
                 <li>Add proper TypeScript types</li>
                 <li>Include unit tests with generated code</li>
@@ -128,11 +128,11 @@ describe('UserAccount', () => {
           </section>
 
           <section>
-            <h2 className="section-title">Quality Assurance</h2>
+            <h2 className={styles.sectionTitle}>Quality Assurance</h2>
 
-            <div className="subsection">
-              <h3 className="subsection-title">Automated Checks</h3>
-              <ul className="standards-list">
+            <div className={styles.subsection}>
+              <h3 className={styles.subsectionTitle}>Automated Checks</h3>
+              <ul className={styles.standardsList}>
                 <li>ESLint for code style</li>
                 <li>Prettier for formatting</li>
                 <li>TypeScript for type safety</li>
@@ -140,9 +140,9 @@ describe('UserAccount', () => {
               </ul>
             </div>
 
-            <div className="subsection">
-              <h3 className="subsection-title">CI/CD Requirements</h3>
-              <ul className="standards-list">
+            <div className={styles.subsection}>
+              <h3 className={styles.subsectionTitle}>CI/CD Requirements</h3>
+              <ul className={styles.standardsList}>
                 <li>All tests must pass</li>
                 <li>No linting errors</li>
                 <li>Type checking passes</li>

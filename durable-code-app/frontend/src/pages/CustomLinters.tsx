@@ -1,41 +1,43 @@
 import { Link, useSearchParams } from 'react-router-dom';
-import './CustomLinters.css';
+import styles from './CustomLinters.module.css';
 
 const CustomLinters = () => {
   const [searchParams] = useSearchParams();
   const returnTo = searchParams.get('return') || 'Quality Assurance';
 
   return (
-    <div className="custom-linters-page">
-      <nav className="breadcrumb" aria-label="Breadcrumb navigation">
+    <div className={styles.customLintersPage}>
+      <nav className={styles.breadcrumb} aria-label="Breadcrumb navigation">
         <Link to="/">🏠 Home</Link>
-        <span className="breadcrumb-separator">›</span>
+        <span className={styles.breadcrumbSeparator}>›</span>
         <Link to={`/#${returnTo}`}>Quality</Link>
-        <span className="breadcrumb-separator">›</span>
-        <span className="breadcrumb-current">Custom Linters</span>
+        <span className={styles.breadcrumbSeparator}>›</span>
+        <span className={styles.breadcrumbCurrent}>Custom Linters</span>
       </nav>
 
-      <div className="container">
+      <div className={styles.container}>
         <h1>🎯 Custom Linters</h1>
-        <div className="subtitle">
+        <div className={styles.subtitle}>
           Enforce your specific coding standards automatically
         </div>
 
         {/* Magic Number Detector */}
-        <div className="linter-card">
-          <div className="linter-header">
-            <span className="linter-icon">🔢</span>
-            <h2 className="linter-title">Magic Number Detector</h2>
-            <span className="status-badge status-active">Active in CI/CD</span>
+        <div className={styles.linterCard}>
+          <div className={styles.linterHeader}>
+            <span className={styles.linterIcon}>🔢</span>
+            <h2 className={styles.linterTitle}>Magic Number Detector</h2>
+            <span className={`${styles.statusBadge} ${styles.statusActive}`}>
+              Active in CI/CD
+            </span>
           </div>
-          <p className="linter-description">
+          <p className={styles.linterDescription}>
             Detects hardcoded numeric and string literals that should be constants. This
             linter ensures code clarity by identifying "magic" values that lack context
             and should be replaced with named constants.
           </p>
 
-          <div className="feature-grid">
-            <div className="feature-item">
+          <div className={styles.featureGrid}>
+            <div className={styles.featureItem}>
               <h4>🎯 What It Detects</h4>
               <ul>
                 <li>Hardcoded numbers (except 0, 1, -1)</li>
@@ -44,7 +46,7 @@ const CustomLinters = () => {
                 <li>Configuration values in code</li>
               </ul>
             </div>
-            <div className="feature-item">
+            <div className={styles.featureItem}>
               <h4>✨ Smart Features</h4>
               <ul>
                 <li>Context-aware suggestions</li>
@@ -55,7 +57,7 @@ const CustomLinters = () => {
             </div>
           </div>
 
-          <div className="code-example">
+          <div className={styles.codeExample}>
             <pre>
               {`❌ Violation:
 if response_time > 3600:  # What does 3600 mean?
@@ -68,7 +70,7 @@ if response_time > SECONDS_PER_HOUR:
             </pre>
           </div>
 
-          <div className="command-box">
+          <div className={styles.commandBox}>
             <code>
               python tools/design-linters/magic_number_detector.py --path ./src
             </code>
@@ -76,20 +78,22 @@ if response_time > SECONDS_PER_HOUR:
         </div>
 
         {/* File Placement Linter */}
-        <div className="linter-card">
-          <div className="linter-header">
-            <span className="linter-icon">📁</span>
-            <h2 className="linter-title">File Placement Linter</h2>
-            <span className="status-badge status-active">Active in CI/CD</span>
+        <div className={styles.linterCard}>
+          <div className={styles.linterHeader}>
+            <span className={styles.linterIcon}>📁</span>
+            <h2 className={styles.linterTitle}>File Placement Linter</h2>
+            <span className={`${styles.statusBadge} ${styles.statusActive}`}>
+              Active in CI/CD
+            </span>
           </div>
-          <p className="linter-description">
+          <p className={styles.linterDescription}>
             Ensures files are placed in appropriate directories according to project
             standards. This linter validates that Python files, HTML files, tests, and
             other file types follow the project's organizational structure.
           </p>
 
-          <div className="feature-grid">
-            <div className="feature-item">
+          <div className={styles.featureGrid}>
+            <div className={styles.featureItem}>
               <h4>📋 Validation Rules</h4>
               <ul>
                 <li>Python files in proper modules</li>
@@ -98,7 +102,7 @@ if response_time > SECONDS_PER_HOUR:
                 <li>Config files at root level</li>
               </ul>
             </div>
-            <div className="feature-item">
+            <div className={styles.featureItem}>
               <h4>🚫 Prevents</h4>
               <ul>
                 <li>Scattered test files</li>
@@ -109,7 +113,7 @@ if response_time > SECONDS_PER_HOUR:
             </div>
           </div>
 
-          <div className="code-example">
+          <div className={styles.codeExample}>
             <pre>
               {`❌ Violation:
 /src/components/test_button.py     # Test file in source directory
@@ -123,33 +127,35 @@ if response_time > SECONDS_PER_HOUR:
             </pre>
           </div>
 
-          <div className="command-box">
+          <div className={styles.commandBox}>
             <code>
               python tools/design-linters/file_placement_linter.py --check-all
             </code>
           </div>
 
-          <div className="implementation-note">
+          <div className={styles.implementationNote}>
             <strong>Note:</strong> File placement rules are defined in STANDARDS.md and
             can be customized per project.
           </div>
         </div>
 
         {/* Print Statement Linter */}
-        <div className="linter-card">
-          <div className="linter-header">
-            <span className="linter-icon">🖨️</span>
-            <h2 className="linter-title">Print Statement Linter</h2>
-            <span className="status-badge status-active">Active in CI/CD</span>
+        <div className={styles.linterCard}>
+          <div className={styles.linterHeader}>
+            <span className={styles.linterIcon}>🖨️</span>
+            <h2 className={styles.linterTitle}>Print Statement Linter</h2>
+            <span className={`${styles.statusBadge} ${styles.statusActive}`}>
+              Active in CI/CD
+            </span>
           </div>
-          <p className="linter-description">
+          <p className={styles.linterDescription}>
             Detects and reports print statements in production code. This linter ensures
             proper logging practices by preventing debug print statements from reaching
             production, supporting Python, JavaScript, and TypeScript.
           </p>
 
-          <div className="feature-grid">
-            <div className="feature-item">
+          <div className={styles.featureGrid}>
+            <div className={styles.featureItem}>
               <h4>🔍 Detection Patterns</h4>
               <ul>
                 <li>Python: print(), pprint()</li>
@@ -158,7 +164,7 @@ if response_time > SECONDS_PER_HOUR:
                 <li>Debug/trace statements</li>
               </ul>
             </div>
-            <div className="feature-item">
+            <div className={styles.featureItem}>
               <h4>⚙️ Configuration</h4>
               <ul>
                 <li>Exclude test files</li>
@@ -169,7 +175,7 @@ if response_time > SECONDS_PER_HOUR:
             </div>
           </div>
 
-          <div className="code-example">
+          <div className={styles.codeExample}>
             <pre>
               {`❌ Violation:
 def process_payment(amount):
@@ -187,7 +193,7 @@ def process_payment(amount):
             </pre>
           </div>
 
-          <div className="command-box">
+          <div className={styles.commandBox}>
             <code>
               python tools/design-linters/print_statement_linter.py --severity error
             </code>
@@ -195,20 +201,22 @@ def process_payment(amount):
         </div>
 
         {/* Breadcrumb Navigation Linter */}
-        <div className="linter-card">
-          <div className="linter-header">
-            <span className="linter-icon">🧭</span>
-            <h2 className="linter-title">Breadcrumb Navigation Linter</h2>
-            <span className="status-badge status-active">Active in CI/CD</span>
+        <div className={styles.linterCard}>
+          <div className={styles.linterHeader}>
+            <span className={styles.linterIcon}>🧭</span>
+            <h2 className={styles.linterTitle}>Breadcrumb Navigation Linter</h2>
+            <span className={`${styles.statusBadge} ${styles.statusActive}`}>
+              Active in CI/CD
+            </span>
           </div>
-          <p className="linter-description">
+          <p className={styles.linterDescription}>
             Ensures all HTML documentation files have proper breadcrumb navigation for
             better user experience and accessibility. This linter validates navigation
             structure, ARIA labels, and home page links in all HTML documentation.
           </p>
 
-          <div className="feature-grid">
-            <div className="feature-item">
+          <div className={styles.featureGrid}>
+            <div className={styles.featureItem}>
               <h4>✅ Validation Rules</h4>
               <ul>
                 <li>Presence of nav element with breadcrumb class</li>
@@ -217,7 +225,7 @@ def process_payment(amount):
                 <li>Non-empty breadcrumb content</li>
               </ul>
             </div>
-            <div className="feature-item">
+            <div className={styles.featureItem}>
               <h4>🎯 Benefits</h4>
               <ul>
                 <li>Improved user navigation</li>
@@ -228,8 +236,8 @@ def process_payment(amount):
             </div>
           </div>
 
-          <div className="code-example">
-            <div className="code-header">Required Breadcrumb Structure:</div>
+          <div className={styles.codeExample}>
+            <div className={styles.codeHeader}>Required Breadcrumb Structure:</div>
             <pre>
               {`<nav class="breadcrumb" aria-label="Breadcrumb navigation">
     <a href="/">🏠 Home</a>
@@ -241,55 +249,55 @@ def process_payment(amount):
             </pre>
           </div>
 
-          <div className="command-box">
+          <div className={styles.commandBox}>
             <code>python tools/design-linters/breadcrumb_linter.py</code>
           </div>
         </div>
 
         {/* Benefits Section */}
-        <div className="benefits-section">
-          <h2 className="benefits-title">Why Custom Linters Matter</h2>
-          <div className="benefits-grid">
-            <div className="benefit-item">
-              <div className="benefit-icon">🤖</div>
-              <div className="benefit-text">Automated Enforcement</div>
+        <div className={styles.benefitsSection}>
+          <h2 className={styles.benefitsTitle}>Why Custom Linters Matter</h2>
+          <div className={styles.benefitsGrid}>
+            <div className={styles.benefitItem}>
+              <div className={styles.benefitIcon}>🤖</div>
+              <div className={styles.benefitText}>Automated Enforcement</div>
             </div>
-            <div className="benefit-item">
-              <div className="benefit-icon">📈</div>
-              <div className="benefit-text">Consistent Quality</div>
+            <div className={styles.benefitItem}>
+              <div className={styles.benefitIcon}>📈</div>
+              <div className={styles.benefitText}>Consistent Quality</div>
             </div>
-            <div className="benefit-item">
-              <div className="benefit-icon">⚡</div>
-              <div className="benefit-text">Early Detection</div>
+            <div className={styles.benefitItem}>
+              <div className={styles.benefitIcon}>⚡</div>
+              <div className={styles.benefitText}>Early Detection</div>
             </div>
-            <div className="benefit-item">
-              <div className="benefit-icon">🎓</div>
-              <div className="benefit-text">Team Learning</div>
+            <div className={styles.benefitItem}>
+              <div className={styles.benefitIcon}>🎓</div>
+              <div className={styles.benefitText}>Team Learning</div>
             </div>
-            <div className="benefit-item">
-              <div className="benefit-icon">🔧</div>
-              <div className="benefit-text">Customizable Rules</div>
+            <div className={styles.benefitItem}>
+              <div className={styles.benefitIcon}>🔧</div>
+              <div className={styles.benefitText}>Customizable Rules</div>
             </div>
-            <div className="benefit-item">
-              <div className="benefit-icon">🚀</div>
-              <div className="benefit-text">CI/CD Integration</div>
+            <div className={styles.benefitItem}>
+              <div className={styles.benefitIcon}>🚀</div>
+              <div className={styles.benefitText}>CI/CD Integration</div>
             </div>
           </div>
         </div>
 
         {/* Implementation Guide */}
-        <div className="linter-card">
-          <div className="linter-header">
-            <span className="linter-icon">🛠️</span>
-            <h2 className="linter-title">Implementation Guide</h2>
+        <div className={styles.linterCard}>
+          <div className={styles.linterHeader}>
+            <span className={styles.linterIcon}>🛠️</span>
+            <h2 className={styles.linterTitle}>Implementation Guide</h2>
           </div>
-          <p className="linter-description">
+          <p className={styles.linterDescription}>
             All custom linters are integrated into our CI/CD pipeline and run
             automatically on every pull request.
           </p>
 
-          <div className="feature-grid">
-            <div className="feature-item">
+          <div className={styles.featureGrid}>
+            <div className={styles.featureItem}>
               <h4>📝 Running Locally</h4>
               <ul>
                 <li>
@@ -304,7 +312,7 @@ def process_payment(amount):
                 </li>
               </ul>
             </div>
-            <div className="feature-item">
+            <div className={styles.featureItem}>
               <h4>🔄 CI/CD Integration</h4>
               <ul>
                 <li>Runs on every PR automatically</li>
@@ -313,7 +321,7 @@ def process_payment(amount):
                 <li>Generates violation reports</li>
               </ul>
             </div>
-            <div className="feature-item">
+            <div className={styles.featureItem}>
               <h4>⚙️ Configuration</h4>
               <ul>
                 <li>
@@ -326,7 +334,7 @@ def process_payment(amount):
             </div>
           </div>
 
-          <div className="implementation-note">
+          <div className={styles.implementationNote}>
             <strong>Pro Tip:</strong> Run linters locally before committing to catch
             issues early and save CI/CD time.
           </div>

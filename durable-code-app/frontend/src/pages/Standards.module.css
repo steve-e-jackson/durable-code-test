@@ -1,5 +1,5 @@
 /* Standards Page Styles */
-.standards-page {
+.standardsPage {
   min-height: 100vh;
   background: #f8fafc;
 }
@@ -17,7 +17,7 @@
   z-index: 100;
 }
 
-.breadcrumb-link {
+.breadcrumbLink {
   background: none;
   border: none;
   color: #3b82f6;
@@ -31,17 +31,17 @@
   gap: 0.5rem;
 }
 
-.breadcrumb-link:hover {
+.breadcrumbLink:hover {
   background: #eff6ff;
   color: #2563eb;
 }
 
-.breadcrumb-separator {
+.breadcrumbSeparator {
   color: #64748b;
   font-weight: 500;
 }
 
-.breadcrumb-current {
+.breadcrumbCurrent {
   color: #1e293b;
   font-weight: 500;
 }
@@ -52,14 +52,14 @@
   padding: 2rem;
 }
 
-.page-header {
+.pageHeader {
   text-align: center;
   margin-bottom: 3rem;
   padding-bottom: 2rem;
   border-bottom: 1px solid #e2e8f0;
 }
 
-.page-title {
+.pageTitle {
   font-size: 2.5rem;
   color: #0f172a;
   margin-bottom: 0.75rem;
@@ -67,7 +67,7 @@
   letter-spacing: -0.02em;
 }
 
-.page-subtitle {
+.pageSubtitle {
   font-size: 1.125rem;
   color: #64748b;
   max-width: 600px;
@@ -80,7 +80,7 @@
   gap: 3rem;
 }
 
-.section-title {
+.sectionTitle {
   font-size: 1.875rem;
   color: #0f172a;
   margin-bottom: 1.5rem;
@@ -93,19 +93,19 @@
   margin-bottom: 2rem;
 }
 
-.subsection-title {
+.subsectionTitle {
   font-size: 1.25rem;
   color: #1e293b;
   margin-bottom: 1rem;
   font-weight: 600;
 }
 
-.standards-list {
+.standardsList {
   list-style: none;
   padding: 0;
 }
 
-.standards-list li {
+.standardsList li {
   padding: 0.75rem 0;
   padding-left: 1.5rem;
   position: relative;
@@ -115,7 +115,7 @@
   margin-left: 0.5rem;
 }
 
-.standards-list li:before {
+.standardsList li:before {
   content: '→';
   position: absolute;
   left: -0.35rem;
@@ -124,12 +124,12 @@
   background: white;
 }
 
-.standards-list li strong {
+.standardsList li strong {
   color: #1e293b;
   font-weight: 600;
 }
 
-.standards-list li code {
+.standardsList li code {
   background: #f1f5f9;
   color: #475569;
   padding: 0.125rem 0.375rem;
@@ -138,7 +138,7 @@
   font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
 }
 
-.code-block {
+.codeBlock {
   background: #0f172a;
   border: 1px solid #1e293b;
   border-radius: 8px;
@@ -147,7 +147,7 @@
   overflow-x: auto;
 }
 
-.code-block pre {
+.codeBlock pre {
   margin: 0;
   font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
   font-size: 0.875rem;
@@ -161,7 +161,7 @@
     padding: 1rem;
   }
 
-  .page-title {
+  .pageTitle {
     font-size: 2rem;
   }
 
@@ -169,7 +169,7 @@
     padding: 0.75rem 1rem;
   }
 
-  .breadcrumb-link {
+  .breadcrumbLink {
     font-size: 0.875rem;
     padding: 0.375rem 0.75rem;
   }
