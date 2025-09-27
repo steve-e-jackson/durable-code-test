@@ -48,7 +48,7 @@ quick_actions:
     command: "make test"
     details_in: "index_expanded.md#testing-framework"
   check_page_content:
-    command: "make check-page"
+    command: "docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js"
     details_in: "index_expanded.md#page-content-verification"
 
 templates:
@@ -121,18 +121,6 @@ templates:
     purpose: "FastAPI WebSocket endpoint with streaming and command handling"
     location: "durable-code-app/backend/app/"
     example_files: ["durable-code-app/backend/app/oscilloscope.py"]
-
-  reusable-card-component.tsx.template:
-    purpose: "Reusable card components for code deduplication (DetailsCard, FeatureCard patterns)"
-    location: "durable-code-app/frontend/src/components/common/"
-    example_files:
-      - "durable-code-app/frontend/src/components/common/DetailsCard/"
-      - "durable-code-app/frontend/src/components/common/FeatureCard/"
-
-  css-modules-badge-system.css.template:
-    purpose: "Badge system with semantic variants using CSS Modules approach"
-    location: "durable-code-app/frontend/src/features/[feature-name]/components/"
-    example_files: ["durable-code-app/frontend/src/features/planning/components/PlanningTab/PlanningTab.module.css"]
 
   react-error-boundary.tsx.template:
     purpose: "Error boundary components for React error isolation and recovery"
@@ -229,7 +217,16 @@ features:
       - "durable-code-app/frontend/src/core/errors/"
       - "scripts/"
       - "scripts/check-page-content.js"
-    usage: "make check-page, make check-page-full, node scripts/test-rendered-content.js"
+    usage: "node scripts/check-page-content.js, node scripts/test-rendered-content.js"
+
+  terraform-conditional-deployment:
+    file: "features/terraform-conditional-deployment.md"
+    summary: "Intelligent resource deployment based on environment needs and cost optimization"
+    key_files:
+      - "infra/terraform/locals.tf"
+      - "infra/terraform/conditional_resources.tf"
+      - "Makefile.infra"
+    usage: "make infra-plan SCOPE=base, make infra-plan SCOPE=compute"
 
 standards:
   _expanded_section: "index_expanded.md#standards"
@@ -262,6 +259,26 @@ standards:
   ERROR_HANDLING_STANDARDS.md:
     purpose: "Error handling patterns and antipatterns to avoid, especially broad exception catching"
     enforcement: "W0718 linting check must never be disabled, custom error_handling linting rules"
+
+  INFRASTRUCTURE_PRINCIPLES.md:
+    purpose: "Infrastructure design philosophy and AWS architecture patterns"
+    enforcement: "Terraform deployment patterns, infrastructure reviews"
+
+  STYLING_SYSTEM_GUIDE.md:
+    purpose: "CSS Modules + CSS Variables system for consistent styling"
+    enforcement: "Code reviews, frontend linting, design system compliance"
+
+  TERRAFORM_STANDARDS.md:
+    purpose: "Infrastructure as Code standards for Terraform deployments"
+    enforcement: "Terraform validation, deployment scripts, CI/CD"
+
+  DUAL_ARCHITECTURE_README.md:
+    purpose: "Infrastructure architecture patterns separating persistent and ephemeral resources"
+    enforcement: "Terraform deployment patterns, cost optimization"
+
+  REPOSITORY_FOR_AI.md:
+    purpose: "AI development patterns and repository organization principles"
+    enforcement: "Project structure, AI agent workflows"
 
 howto:
   _expanded_section: "index_expanded.md#howto-guides"
@@ -306,7 +323,7 @@ howto:
   implement-error-boundaries.md:
     purpose: "Implement React error boundaries with 3-tier architecture and testing"
     key_commands:
-      - "make check-page"
+      - "docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js"
       - "docker exec durable-code-frontend-dev node /app/scripts/test-rendered-content.js"
       - "use MinimalErrorBoundary for stability"
 
@@ -320,7 +337,7 @@ howto:
 
   test-page-content.md:
     purpose: "Verify React app renders correctly using various testing tools"
-    key_commands: ["make check-page", "make check-page-full", "make check-page-watch"]
+    key_commands: ["node scripts/check-page-content.js", "node scripts/test-rendered-content.js", "node scripts/simple-check.js --watch"]
 
   create-new-code-files.md:
     purpose: "Step-by-step guide for creating production-ready code files"
@@ -369,14 +386,6 @@ common_workflows:
       - "Follow implement-websocket-react.md guide"
     details_in: ".ai/howto/implement-websocket-react.md"
 
-  implement_badge_system:
-    steps:
-      - "Create badge base class in component CSS module"
-      - "Add semantic variants (essential, active, warning, etc.)"
-      - "Update JSX to use styles.badge with styles.variant"
-      - "Remove individual badge CSS rules"
-    details_in: ".ai/docs/STYLING_SYSTEM_GUIDE.md"
-
   fix_text_accessibility:
     steps:
       - "Create common title classes (.hero-title, .light-title-on-dark)"
@@ -385,20 +394,12 @@ common_workflows:
       - "Ensure proper color contrast"
     details_in: ".ai/docs/STYLING_SYSTEM_GUIDE.md"
 
-  create_reusable_cards:
-    steps:
-      - "Use DetailsCard for detailed information display"
-      - "Use FeatureCard for feature highlights"
-      - "Follow existing component patterns in src/components/common/"
-      - "Add TypeScript types and CSS Modules"
-    details_in: ".ai/features/web-application.md"
-
   implement_error_boundaries:
     steps:
       - "Use MinimalErrorBoundary for stability"
       - "Implement 3-tier architecture (root, route, component)"
       - "Add to main.tsx, AppShell.tsx, and component level"
-      - "Test with make check-page"
+      - "Test with scripts/check-page-content.js"
       - "Verify with page content tools"
     details_in: ".ai/howto/implement-error-boundaries.md"
 
@@ -414,9 +415,9 @@ common_workflows:
 
   test_page_functionality:
     steps:
-      - "Use make check-page for basic verification"
-      - "Use make check-page-full for complete testing"
-      - "Use make check-page-watch for continuous monitoring"
+      - "Use scripts/check-page-content.js for basic verification"
+      - "Use scripts/test-rendered-content.js for complete testing"
+      - "Use scripts/simple-check.js --watch for continuous monitoring"
       - "Debug with docker exec durable-code-frontend-dev node /app/scripts/test-rendered-content.js"
     details_in: ".ai/howto/test-page-content.md"
 

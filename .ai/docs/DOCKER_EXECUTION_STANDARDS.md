@@ -21,10 +21,7 @@
 ---
 
 ## Core Principle
-All development tools, scripts, and testing utilities execute within Docker containers to ensure consistent environments and eliminate local system dependencies.
-
-## Core Principle
-**Never assume local system configuration**. All development workflows must be containerized.
+All development tools, scripts, and testing utilities execute within Docker containers to ensure consistent environments and eliminate local system dependencies. **Never assume local system configuration** - all development workflows must be containerized.
 
 ## Script Organization Standards
 
@@ -116,10 +113,8 @@ All documentation MUST show Docker execution, never local execution.
 ```markdown
 ## Usage
 ```bash
-# Basic verification
-make check-page
-
-# Direct script execution
+# Direct script execution via Docker
+docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js
 docker exec durable-code-frontend-dev node /app/scripts/test-rendered-content.js
 ```
 
@@ -138,9 +133,9 @@ When documenting workflows, always include the Docker execution pattern:
 ```markdown
 ### Development Workflow
 1. Start development environment: `make dev`
-2. Basic verification: `make check-page`
+2. Basic verification: `docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js`
 3. Debug issues: `docker exec durable-code-frontend-dev node /app/scripts/test-rendered-content.js`
-4. Continuous monitoring: `make check-page-watch`
+4. Continuous monitoring: `docker exec durable-code-frontend-dev node /app/scripts/simple-check.js --watch`
 ```
 
 ## Container Path Mapping

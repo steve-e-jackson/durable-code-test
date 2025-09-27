@@ -1,7 +1,19 @@
 # How to Implement Error Boundaries
 
+## Purpose
+Implement React error boundaries using the 3-tier architecture for robust error handling and recovery in React applications.
+
+## Scope
+React error boundaries, error handling, component isolation, fallback UI, error recovery
+
 ## Overview
-This guide shows how to implement React error boundaries using the 3-tier architecture for robust error handling and recovery.
+This guide shows how to implement React error boundaries using the 3-tier architecture for robust error handling and recovery. Error boundaries provide a way to catch JavaScript errors in component trees, log those errors, and display a fallback UI instead of crashing the entire application.
+
+## Dependencies
+- React 16+ with TypeScript
+- MinimalErrorBoundary component from src/core/errors/
+- ErrorBoundary component for advanced features
+- Testing scripts in scripts/ directory
 
 ## Prerequisites
 - React application with TypeScript
@@ -26,8 +38,8 @@ function MyComponent() {
 
 ### 2. Verify Implementation
 ```bash
-# Test the implementation
-make check-page
+# Test the implementation via Docker
+docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js
 
 # Or use direct verification
 docker exec durable-code-frontend-dev node /app/scripts/test-rendered-content.js
@@ -40,178 +52,137 @@ docker exec durable-code-frontend-dev node /app/scripts/test-rendered-content.js
 
 ```tsx
 // main.tsx
+import React from 'react';
+import ReactDOM from 'react-dom/client';
 import { MinimalErrorBoundary } from './core/errors/MinimalErrorBoundary';
+import { App } from './App';
+import './index.css';
 
-createRoot(rootElement).render(
-  <StrictMode>
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
     <MinimalErrorBoundary>
-      <AppProviders>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </AppProviders>
+      <App />
     </MinimalErrorBoundary>
-  </StrictMode>,
+  </React.StrictMode>
 );
 ```
 
-**Testing**:
+**Test after implementation**:
 ```bash
-make check-page
-# Should show: ✅ SUCCESS: App structure looks correct
+docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js
 ```
 
 ### Tier 2: Route Level (AppShell.tsx)
-**Purpose**: Isolate errors to specific pages/routes
+**Purpose**: Isolate errors to specific routes
 
 ```tsx
-// AppShell.tsx
+// components/AppShell/AppShell.tsx
 import { MinimalErrorBoundary } from '../../core/errors/MinimalErrorBoundary';
+import { Outlet } from 'react-router-dom';
 
-export function AppShell(): ReactElement {
+export function AppShell() {
   return (
-    <Routes>
-      <Route
-        path="/"
-        element={
-          <MinimalErrorBoundary>
-            <HomePage />
-          </MinimalErrorBoundary>
-        }
-      />
-      <Route
-        path="/other-page"
-        element={
-          <MinimalErrorBoundary>
-            <OtherPage />
-          </MinimalErrorBoundary>
-        }
-      />
-    </Routes>
+    <div className="app-shell">
+      <Header />
+      <MinimalErrorBoundary>
+        <main className="app-content">
+          <Outlet />
+        </main>
+      </MinimalErrorBoundary>
+      <Footer />
+    </div>
   );
 }
 ```
 
-**Testing**:
+**Test after implementation**:
 ```bash
-make check-page
-# Test navigation between routes
+docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js
 ```
 
-### Tier 3: Component Level (Individual Components)
-**Purpose**: Isolate errors in specific features or complex components
+### Tier 3: Component Level
+**Purpose**: Isolate errors in high-risk components
 
 ```tsx
-// HomePage.tsx or any complex component
-import { MinimalErrorBoundary } from '../../core/errors/MinimalErrorBoundary';
+// features/demo/components/OscilloscopeTab.tsx
+import { MinimalErrorBoundary } from '../../../core/errors/MinimalErrorBoundary';
 
-export default function HomePage(): ReactElement {
+export function OscilloscopeTab() {
   return (
-    <div>
-      {/* Other content */}
+    <MinimalErrorBoundary>
+      {/* High-risk WebSocket or data-heavy component */}
+      <Oscilloscope />
+    </MinimalErrorBoundary>
+  );
+}
+```
 
-      <MinimalErrorBoundary>
-        <Suspense fallback={<LoadingSpinner />}>
-          <ComplexFeatureComponent />
-        </Suspense>
-      </MinimalErrorBoundary>
+**Test after implementation**:
+```bash
+docker exec durable-code-frontend-dev node /app/scripts/test-rendered-content.js
+```
 
-      {/* More content */}
-    </div>
+## Using Advanced ErrorBoundary
+
+For components needing custom error handling:
+
+```tsx
+import { ErrorBoundary } from '../../core/errors/ErrorBoundary';
+
+function MyAdvancedComponent() {
+  return (
+    <ErrorBoundary
+      fallback={<CustomErrorUI />}
+      onError={(error, errorInfo) => {
+        console.error('Custom error handler:', error);
+        // Send to error tracking service
+      }}
+    >
+      <ComplexFeature />
+    </ErrorBoundary>
   );
 }
 ```
 
 ## Implementation Checklist
 
-### ✅ Before Adding Error Boundaries
-- [ ] Read existing component structure
-- [ ] Understand component hierarchy
-- [ ] Identify error-prone areas (lazy loading, third-party integrations)
-- [ ] Test current functionality: `make check-page`
+### Phase 1: Root Protection
+- [ ] Add MinimalErrorBoundary to main.tsx
+- [ ] Test current functionality: `docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js`
+- [ ] Verify no regression
 
-### ✅ During Implementation
-- [ ] Start with MinimalErrorBoundary
-- [ ] Add one level at a time (root → route → component)
-- [ ] Test after each addition: `make check-page`
-- [ ] Verify app still functions correctly
-- [ ] Check console for any new errors
+### Phase 2: Route Protection
+- [ ] Add boundaries to AppShell or main route container
+- [ ] Test after each addition: `docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js`
+- [ ] Ensure header/footer remain visible during errors
 
-### ✅ After Implementation
-- [ ] Test error boundary with intentional errors
-- [ ] Verify recovery mechanisms work
-- [ ] Check all routes and features
-- [ ] Run full test suite: `make test`
-- [ ] Document any special error handling needs
+### Phase 3: Component Protection
+- [ ] Identify high-risk components (WebSocket, async data, complex state)
+- [ ] Add MinimalErrorBoundary to each
+- [ ] Test individually
 
-## Testing Error Boundaries
-
-### 1. Verification Tools
+### Phase 4: Verification
 ```bash
-# Basic HTML structure check
-make check-page
+# Basic check
+docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js
 
 # Continuous monitoring
-make check-page-watch
+docker exec -it durable-code-frontend-dev node /app/scripts/simple-check.js --watch
 
-# Direct content verification
+# Full verification
 docker exec durable-code-frontend-dev node /app/scripts/test-rendered-content.js
-
-# Advanced verification (requires Playwright)
-make check-page-full
-```
-
-### 2. Intentional Error Testing
-Create a test component to verify error boundaries work:
-
-```tsx
-// TestErrorComponent.tsx
-function TestErrorComponent({ shouldError }: { shouldError: boolean }) {
-  if (shouldError) {
-    throw new Error('Test error for boundary verification');
-  }
-  return <div>No error</div>;
-}
-
-// Use in your component
-<MinimalErrorBoundary>
-  <TestErrorComponent shouldError={false} />
-</MinimalErrorBoundary>
-```
-
-### 3. Error Boundary Testing Pattern
-```tsx
-// In your test or development code
-import { useState } from 'react';
-
-function ErrorBoundaryTester() {
-  const [triggerError, setTriggerError] = useState(false);
-
-  return (
-    <div>
-      <button onClick={() => setTriggerError(true)}>
-        Trigger Error
-      </button>
-
-      <MinimalErrorBoundary>
-        {triggerError && (() => { throw new Error('Test'); })()}
-        <div>Normal content</div>
-      </MinimalErrorBoundary>
-    </div>
-  );
-}
 ```
 
 ## Common Patterns
 
-### Pattern 1: Lazy Loading with Error Boundaries
+### Pattern 1: Async Component Loading
 ```tsx
-const LazyComponent = lazy(() => import('./LazyComponent'));
+const LazyComponent = React.lazy(() => import('./LazyComponent'));
 
-function ComponentWithLazyLoading() {
+function AsyncFeature() {
   return (
     <MinimalErrorBoundary>
-      <Suspense fallback={<LoadingSpinner />}>
+      <Suspense fallback={<Loading />}>
         <LazyComponent />
       </Suspense>
     </MinimalErrorBoundary>
@@ -219,191 +190,145 @@ function ComponentWithLazyLoading() {
 }
 ```
 
-### Pattern 2: Feature Module Error Boundaries
+### Pattern 2: Data Fetching
 ```tsx
-// In feature modules
-export function FeatureComponent() {
+function DataComponent() {
   return (
     <MinimalErrorBoundary>
-      <FeatureHeader />
-      <FeatureContent />
-      <FeatureFooter />
+      {data ? <DataDisplay data={data} /> : <Loading />}
     </MinimalErrorBoundary>
   );
 }
 ```
 
-### Pattern 3: Third-Party Integration Protection
+### Pattern 3: WebSocket Connections
 ```tsx
-function ThirdPartyWrapper() {
+function WebSocketFeature() {
   return (
     <MinimalErrorBoundary>
-      <ThirdPartyLibraryComponent />
+      <WebSocketProvider>
+        <RealtimeDisplay />
+      </WebSocketProvider>
     </MinimalErrorBoundary>
   );
 }
+```
+
+## Testing Error Boundaries
+
+### Manual Testing
+```tsx
+// Temporary error trigger for testing
+function TestError() {
+  const [shouldError, setShouldError] = useState(false);
+
+  if (shouldError) {
+    throw new Error('Test error boundary');
+  }
+
+  return (
+    <button onClick={() => setShouldError(true)}>
+      Trigger Error
+    </button>
+  );
+}
+```
+
+### Automated Testing
+```bash
+# After adding test component
+docker exec durable-code-frontend-dev node /app/scripts/test-rendered-content.js
+
+# Should show error boundary UI instead of blank page
 ```
 
 ## Troubleshooting
 
 ### Issue: Page Goes Blank After Adding Error Boundary
-**Symptoms**: `make check-page` shows empty root div
-**Causes**:
-- Complex error boundary implementation
-- Import errors
-- React rendering conflicts
 
-**Solutions**:
-1. Use MinimalErrorBoundary instead of ErrorBoundary
-2. Check import paths
-3. Test incrementally (add one boundary at a time)
-4. Remove recently added error boundaries and add back systematically
-
-**Debug Process**:
+**Symptoms**: Page content check shows empty root div
 ```bash
-# 1. Remove all error boundaries
-# 2. Test: make check-page (should work)
-# 3. Add root level only
-# 4. Test: make check-page
-# 5. Add route level
-# 6. Test: make check-page
-# 7. Add component level
-# 8. Test: make check-page
+docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js
+# Shows: ❌ Has root div: false
 ```
 
-### Issue: Error Boundaries Not Catching Errors
-**Symptoms**: Errors still crash the app
-**Causes**:
-- Error boundaries only catch errors in child components
-- Async errors not caught by error boundaries
-- Event handler errors not caught
+**Solution**:
+1. Use MinimalErrorBoundary instead of ErrorBoundary
+2. Check for errors in error boundary itself
+3. Verify import paths
 
-**Solutions**:
-1. Ensure error boundaries wrap the components that might error
-2. Use global error handlers for async errors
-3. Add try-catch in event handlers
+### Issue: Error Boundary Not Catching Errors
 
-### Issue: Global Error Handler Breaking App
-**Symptoms**: App doesn't start, blank page
-**Solution**: Use simplified global error handling in main.tsx:
-
-```tsx
-// Simplified global error handling
-let errorCount = 0;
-let lastErrorTime = 0;
-const ERROR_THRESHOLD = 5;
-const TIME_WINDOW = 60000;
-
-window.addEventListener('error', (event) => {
-  const now = Date.now();
-  if (now - lastErrorTime > TIME_WINDOW) errorCount = 0;
-  errorCount++;
-  lastErrorTime = now;
-
-  if (errorCount >= ERROR_THRESHOLD) {
-    console.error('Error storm detected, preventing cascade');
-    return;
-  }
-  console.error('Global error:', event.error);
-});
+**Test Process**:
+```bash
+# 1. Add console.log to error boundary
+# 2. Test: docker exec durable-code-frontend-dev node /app/scripts/check-page-content.js
+# 3. Check browser console for logs
+# 4. Test: docker exec durable-code-frontend-dev node /app/scripts/test-rendered-content.js
+# 5. Verify componentDidCatch is called
 ```
 
-## Advanced Usage
+### Issue: Errors in Event Handlers
 
-### Using Full ErrorBoundary (When Needed)
-Only use when you need advanced features like retry/reset:
+Error boundaries don't catch errors in:
+- Event handlers
+- Asynchronous code
+- Server-side rendering
+- Errors in the error boundary itself
 
+**Solution**: Use try-catch in event handlers:
 ```tsx
-import { ErrorBoundary } from '../core/errors/ErrorBoundary';
+function MyComponent() {
+  const handleClick = () => {
+    try {
+      riskyOperation();
+    } catch (error) {
+      console.error('Event handler error:', error);
+      // Show user-friendly message
+    }
+  };
 
-function AdvancedComponent() {
-  return (
-    <ErrorBoundary
-      level="component"
-      name="AdvancedComponent"
-      recoveryOptions={{
-        enableAutoRecovery: true,
-        maxRetries: 3,
-        retryDelay: 1000,
-      }}
-    >
-      <ComplexComponent />
-    </ErrorBoundary>
-  );
+  return <button onClick={handleClick}>Click me</button>;
 }
 ```
 
-### Custom Error Fallback
-```tsx
-function CustomErrorFallback({ error, onReset }: ErrorFallbackProps) {
-  return (
-    <div style={{ padding: '20px', background: '#fee' }}>
-      <h2>Something went wrong</h2>
-      <p>{error.message}</p>
-      <button onClick={onReset}>Try Again</button>
-    </div>
-  );
-}
+## Best Practices
 
-<ErrorBoundary fallback={CustomErrorFallback}>
-  <Component />
-</ErrorBoundary>
-```
+1. **Start with MinimalErrorBoundary**
+   - Proven stable implementation
+   - Minimal overhead
+   - Easy to debug
+
+2. **Test incrementally**
+   - Add one boundary at a time
+   - Test after each addition
+   - Use continuous monitoring during development
+
+3. **Layer appropriately**
+   - Root: Last resort catch-all
+   - Route: Isolate page failures
+   - Component: High-risk areas only
+
+4. **Monitor in production**
+   - Log errors to tracking service
+   - Monitor error boundary triggers
+   - Track recovery success rate
 
 ## Performance Considerations
 
-### Error Boundary Overhead
-- MinimalErrorBoundary: ~0ms overhead
-- ErrorBoundary: ~1-2ms overhead with recovery features
-- Global error handlers: ~0ms overhead
+- MinimalErrorBoundary has negligible performance impact
+- Don't over-wrap components (avoid nesting boundaries)
+- Use React.memo() for frequently re-rendered boundaries
 
-### Best Practices
-1. Use MinimalErrorBoundary by default
-2. Only add ErrorBoundary when advanced features needed
-3. Don't over-wrap components (balance isolation vs. performance)
-4. Test performance impact with many error boundaries
+## Security Notes
 
-## Integration with Testing
-
-### Unit Tests
-```tsx
-// Test error boundary behavior
-import { render } from '@testing-library/react';
-import { MinimalErrorBoundary } from '../core/errors/MinimalErrorBoundary';
-
-function ThrowError() {
-  throw new Error('Test error');
-}
-
-test('error boundary catches and displays error', () => {
-  const { getByText } = render(
-    <MinimalErrorBoundary>
-      <ThrowError />
-    </MinimalErrorBoundary>
-  );
-
-  expect(getByText('Error occurred')).toBeInTheDocument();
-});
-```
-
-### E2E Tests
-```typescript
-// Test error boundary in full application
-test('error boundary prevents app crash', async ({ page }) => {
-  await page.goto('/');
-
-  // Trigger error
-  await page.evaluate(() => {
-    throw new Error('Test error');
-  });
-
-  // Verify app still responds
-  await expect(page.locator('#root')).toBeVisible();
-});
-```
+- Don't expose sensitive error details to users
+- Sanitize error messages in production
+- Log full details server-side only
 
 ## Related Documentation
-- `.ai/features/error-boundaries.md` - Complete feature documentation
-- `.ai/howto/test-page-content.md` - Page verification guide
-- `src/core/errors/` - Implementation examples
-- `make help` - Available make targets for testing
+
+- `.ai/features/error-boundaries.md` - Feature overview
+- `.ai/docs/STANDARDS.md#error-boundaries` - Standards and patterns
+- `.ai/templates/react-error-boundary.tsx.template` - Template for custom boundaries
+- `src/core/errors/` - Error boundary implementations
