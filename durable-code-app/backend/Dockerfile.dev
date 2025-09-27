@@ -10,37 +10,26 @@ RUN pip install poetry==1.7.1
 # Copy dependency files
 COPY pyproject.toml poetry.lock* ./
 
-# Configure poetry to not create virtual environment and install all dependencies including dev
+# Configure poetry to not create virtual environment and install production dependencies plus Playwright
 RUN poetry config virtualenvs.create false && \
-    poetry install --no-interaction --no-ansi
+    poetry install --no-interaction --no-ansi --without dev && \
+    pip install playwright
 
-# Install system dependencies for Playwright and linting tools
+# Install system dependencies for Playwright
 RUN apt-get update && apt-get install -y \
     libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 \
     libcups2 libdrm2 libdbus-1-3 libatspi2.0-0 \
     libx11-6 libxcomposite1 libxdamage1 libxext6 \
     libxfixes3 libxrandr2 libgbm1 libxcb1 \
     libxkbcommon0 libpango-1.0-0 libcairo2 libasound2 \
-    shellcheck \
-    curl \
     && rm -rf /var/lib/apt/lists/*
-
-# Install TFLint for Terraform linting
-RUN curl -sSfL https://github.com/terraform-linters/tflint/releases/download/v0.55.0/tflint_linux_amd64.zip -o /tmp/tflint.zip && \
-    apt-get update && apt-get install -y unzip && \
-    unzip /tmp/tflint.zip -d /usr/local/bin && \
-    rm /tmp/tflint.zip && \
-    chmod +x /usr/local/bin/tflint && \
-    apt-get remove -y unzip && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
 # Copy application code
 COPY . .
 
 # Create non-root user and necessary directories with proper permissions
 RUN useradd -m -u 1000 appuser && \
-    mkdir -p /app/.ruff_cache && \
-    chown -R appuser:appuser /app && \
-    chmod -R 755 /app/.ruff_cache
+    chown -R appuser:appuser /app
 
 # Install Playwright browsers as appuser
 USER appuser
