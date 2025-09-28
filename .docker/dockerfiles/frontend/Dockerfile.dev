@@ -1,0 +1,34 @@
+# Purpose: Development Docker configuration for React frontend with hot reloading
+# Scope: Frontend development environment setup with live reloading and debugging capabilities
+# Overview: Provides development-optimized container configuration for React frontend with
+#     Vite development server, hot module replacement, and debugging tools. Includes HTMLHint
+#     for real-time HTML validation and exposes development server on all interfaces for
+#     external access. Optimized for development workflow with fast startup and live reloading
+#     capabilities. Supports volume mounting for real-time code changes and debugging.
+# Dependencies: Node.js 20 alpine, npm package manager, Vite development server, HTMLHint
+# Exports: Development server container exposing port 5173 with hot reloading enabled
+# Interfaces: Vite dev server, hot module replacement WebSocket, and development tool access
+# Environment: Development environment with debugging tools and live reloading features
+# Related: package.json scripts, Vite configuration, development workflow, and debugging setup
+# Implementation: Single-stage development build optimized for fast iteration and debugging
+
+# Development Dockerfile for React frontend
+FROM node:20-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy application files
+COPY . .
+
+# Expose port
+EXPOSE 5173
+
+# Run development server
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
