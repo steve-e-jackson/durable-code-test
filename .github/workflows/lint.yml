@@ -9,7 +9,7 @@
 # Dependencies: Docker BuildKit, dedicated linting containers, make targets, docker-compose
 # Exports: Linting execution status, code quality reports, and comprehensive quality summaries
 # Environment: GitHub Actions CI/CD pipeline with optimized Docker layer caching for linting containers
-# Related: docker/linting/, docker-compose.lint.yml, Makefile.lint
+# Related: .docker/dockerfiles/linting/, .docker/compose/lint.yml, Makefile.lint
 # Implementation: Uses GitHub Actions with dedicated linting containers and optimized caching strategy
 
 name: Linting
@@ -44,7 +44,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-lint-buildx-${{ hashFiles('docker/linting/Dockerfile*', '**/package*.json', '**/pyproject.toml', '**/poetry.lock', 'docker-compose.lint.yml') }}
+          key: ${{ runner.os }}-lint-buildx-${{ hashFiles('.docker/dockerfiles/linting/Dockerfile*', '**/package*.json', '**/pyproject.toml', '**/poetry.lock', '.docker/compose/lint.yml') }}
           restore-keys: |
             ${{ runner.os }}-lint-buildx-
 
@@ -60,7 +60,7 @@ jobs:
             --cache-to $BUILDX_CACHE_TO \
             --load \
             -t durable-code-python-linter:latest \
-            -f ./docker/linting/Dockerfile.python-lint \
+            -f ./.docker/dockerfiles/linting/Dockerfile.python-lint \
             .
 
           # Build JavaScript linting container
@@ -69,7 +69,7 @@ jobs:
             --cache-to $BUILDX_CACHE_TO \
             --load \
             -t durable-code-js-linter:latest \
-            -f ./docker/linting/Dockerfile.js-lint \
+            -f ./.docker/dockerfiles/linting/Dockerfile.js-lint \
             .
 
       # Move cache for next run
@@ -89,7 +89,7 @@ jobs:
           fi
 
           # Use docker-compose to start the linting containers
-          $DOCKER_COMPOSE -f docker-compose.lint.yml up -d
+          $DOCKER_COMPOSE -f .docker/compose/lint.yml up -d
 
           # Wait for containers to be ready
           sleep 2

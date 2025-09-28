@@ -21,13 +21,13 @@ DOCKER_COMPOSE := $(shell which docker-compose 2>/dev/null || echo "docker compo
 # Start dedicated linting containers
 lint-start: ## Start dedicated linting containers
 	@echo "$(CYAN)Starting dedicated linting containers...$(NC)"
-	@$(DOCKER_COMPOSE) -f docker-compose.lint.yml up -d
+	@$(DOCKER_COMPOSE) -f .docker/compose/lint.yml up -d
 	@echo "$(GREEN)✓ Linting containers started$(NC)"
 
 # Stop dedicated linting containers
 lint-stop: ## Stop dedicated linting containers
 	@echo "$(CYAN)Stopping dedicated linting containers...$(NC)"
-	@$(DOCKER_COMPOSE) -f docker-compose.lint.yml down
+	@$(DOCKER_COMPOSE) -f .docker/compose/lint.yml down
 	@echo "$(GREEN)✓ Linting containers stopped$(NC)"
 
 # Run all linters - REQUIRED BY GITHUB ACTIONS
