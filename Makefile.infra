@@ -10,10 +10,10 @@
 # Integration: Included by main Makefile via -include directive
 # Key Features: Auto-init on first use, Docker volume caching, AWS profile support, CI/CD parameters
 
-.PHONY: infra-init infra-plan infra-refresh infra-output infra-validate infra-fmt infra-state-list infra-state-show infra-import infra-workspace-list infra-workspace-new infra-workspace-select infra-backend-setup infra-check-aws infra-console infra-graph infra-cost infra-check infra-up infra-down infra-clean-cache infra-reinit check-terraform-init
+.PHONY: infra-init infra-plan infra-refresh infra-output infra-validate infra-fmt infra-state-list infra-state-show infra-import infra-workspace-list infra-workspace-new infra-workspace-select infra-backend-setup infra-check-aws infra-console infra-graph infra-cost infra-check infra-up infra-down infra-clean-cache infra-reinit check-terraform-init infra-status _do-init _do-plan _do-apply _do-destroy _do-refresh _do-validate _do-output
 
 # Variables
-TERRAFORM_DIR = infra/terraform
+TERRAFORM_BASE_DIR = infra/terraform
 TERRAFORM_VERSION = 1.9.8
 AWS_REGION ?= us-west-2
 # Default to terraform-deploy profile - you can override with AWS_PROFILE=other-profile make ...
@@ -26,8 +26,18 @@ ENV ?= dev
 # all = everything
 SCOPE ?= runtime
 
-# Docker volume for persistent .terraform directory
-TERRAFORM_VOLUME = terraform-cache-$(shell echo $(PWD) | md5sum | cut -d' ' -f1)
+# Determine Terraform directory based on SCOPE
+ifeq ($(SCOPE),base)
+  TERRAFORM_DIR = $(TERRAFORM_BASE_DIR)/workspaces/base
+else ifeq ($(SCOPE),runtime)
+  TERRAFORM_DIR = $(TERRAFORM_BASE_DIR)/workspaces/runtime
+else
+  # For 'all' or unspecified scope, we'll handle it in the targets
+  TERRAFORM_DIR = $(TERRAFORM_BASE_DIR)/workspaces/runtime
+endif
+
+# Docker volume for persistent .terraform directory (workspace-specific)
+TERRAFORM_VOLUME = terraform-cache-$(SCOPE)-$(ENV)-$(shell echo $(PWD) | md5sum | cut -d' ' -f1)
 
 # Docker image for Terraform with AWS CLI
 TERRAFORM_IMAGE = hashicorp/terraform:$(TERRAFORM_VERSION)
@@ -39,6 +49,7 @@ TERRAFORM_IMAGE = hashicorp/terraform:$(TERRAFORM_VERSION)
 TERRAFORM_DOCKER_RUN_BASE = docker run --rm \
 	-v $(PWD)/$(TERRAFORM_DIR):/terraform \
 	-v $(PWD)/infra/environments:/environments:ro \
+	-v $(PWD)/infra/terraform/backend-config:/backend-config:ro \
 	-v $(TERRAFORM_VOLUME):/terraform/.terraform \
 	-v $(HOME)/.aws:/root/.aws:ro \
 	-w /terraform \
@@ -54,6 +65,7 @@ TERRAFORM_DOCKER_RUN = $(TERRAFORM_DOCKER_RUN_BASE)
 TERRAFORM_DOCKER_RUN_IT = docker run --rm -it \
 	-v $(PWD)/$(TERRAFORM_DIR):/terraform \
 	-v $(PWD)/infra/environments:/environments:ro \
+	-v $(PWD)/infra/terraform/backend-config:/backend-config:ro \
 	-v $(TERRAFORM_VOLUME):/terraform/.terraform \
 	-v $(HOME)/.aws:/root/.aws:ro \
 	-w /terraform \
@@ -121,32 +133,70 @@ check-terraform-init:
 # Terraform Commands
 infra-init: ## Initialize Terraform (download providers, configure backend)
 	@echo "$(CYAN)Initializing Terraform...$(NC)"
+	@echo "$(YELLOW)Scope: $(SCOPE)$(NC)"
+	@if [ "$(SCOPE)" = "all" ]; then \
+		echo "$(BLUE)--- Initializing base workspace ---$(NC)"; \
+		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/base _do-init; \
+		echo "$(GREEN)--- Initializing runtime workspace ---$(NC)"; \
+		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/runtime _do-init; \
+	else \
+		$(MAKE) _do-init; \
+	fi
+	@echo "$(GREEN)✓ Terraform initialized!$(NC)"
+
+_do-init:
 	@echo "$(YELLOW)Creating Docker volume for .terraform cache: $(TERRAFORM_VOLUME)$(NC)"
 	@docker volume create $(TERRAFORM_VOLUME) >/dev/null 2>&1 || true
 	@echo "$(YELLOW)Using AWS Profile: $(AWS_PROFILE)$(NC)"
-	@if ! $(TERRAFORM_DOCKER_RUN) init; then \
-		echo "$(RED)❌ Initialization failed!$(NC)"; \
-		echo "$(YELLOW)Common issues:$(NC)"; \
-		echo "  • Check AWS credentials in ~/.aws/credentials"; \
-		echo "  • Verify AWS_PROFILE is set correctly (current: $(AWS_PROFILE))"; \
-		echo "  • Ensure S3 backend bucket exists (run: make infra-backend-setup)"; \
-		echo "  • Try: AWS_PROFILE=your-profile make infra-init"; \
-		exit 1; \
+	@echo "$(YELLOW)Working directory: $(TERRAFORM_DIR)$(NC)"
+	@# Determine backend config file based on workspace directory
+	@if echo "$(TERRAFORM_DIR)" | grep -q "/base$$"; then \
+		BACKEND_CONFIG="/backend-config/base-$(ENV).hcl"; \
+	elif echo "$(TERRAFORM_DIR)" | grep -q "/runtime$$"; then \
+		BACKEND_CONFIG="/backend-config/runtime-$(ENV).hcl"; \
+	else \
+		BACKEND_CONFIG=""; \
+	fi; \
+	if [ -n "$$BACKEND_CONFIG" ]; then \
+		echo "$(YELLOW)Using backend config: $$BACKEND_CONFIG$(NC)"; \
+		if ! $(TERRAFORM_DOCKER_RUN) init -backend-config=$$BACKEND_CONFIG; then \
+			echo "$(RED)❌ Initialization failed!$(NC)"; \
+			echo "$(YELLOW)Common issues:$(NC)"; \
+			echo "  • Check AWS credentials in ~/.aws/credentials"; \
+			echo "  • Verify AWS_PROFILE is set correctly (current: $(AWS_PROFILE))"; \
+			echo "  • Ensure S3 backend bucket exists (run: make infra-backend-setup)"; \
+			echo "  • Try: AWS_PROFILE=your-profile make infra-init"; \
+			exit 1; \
+		fi; \
+	else \
+		if ! $(TERRAFORM_DOCKER_RUN) init; then \
+			echo "$(RED)❌ Initialization failed!$(NC)"; \
+			exit 1; \
+		fi; \
 	fi
-	@echo "$(GREEN)✓ Terraform initialized!$(NC)"
-	@echo "$(YELLOW)Tip: The .terraform directory is cached in Docker volume '$(TERRAFORM_VOLUME)'$(NC)"
 
-infra-validate: check-terraform-init ## Validate Terraform configuration
+infra-validate: ## Validate Terraform configuration
 	@echo "$(CYAN)Validating Terraform configuration...$(NC)"
-	@$(TERRAFORM_DOCKER_RUN) validate
+	@echo "$(YELLOW)Scope: $(SCOPE)$(NC)"
+	@if [ "$(SCOPE)" = "all" ]; then \
+		echo "$(BLUE)--- Validating base configuration ---$(NC)"; \
+		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/base _do-validate; \
+		echo "$(GREEN)--- Validating runtime configuration ---$(NC)"; \
+		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/runtime _do-validate; \
+	else \
+		$(MAKE) _do-validate; \
+	fi
 	@echo "$(GREEN)✓ Configuration is valid!$(NC)"
+
+_do-validate: check-terraform-init
+	@$(TERRAFORM_DOCKER_RUN) validate
 
 infra-fmt: ## Format Terraform files to canonical style
 	@echo "$(CYAN)Formatting Terraform files...$(NC)"
 	@$(TERRAFORM_DOCKER_RUN) fmt -recursive
 	@echo "$(GREEN)✓ Terraform files formatted!$(NC)"
 
-infra-plan: check-terraform-init ## Show what changes will be made (dry run, respects SCOPE parameter)
+infra-plan: ## Show what changes will be made (dry run, respects SCOPE parameter)
 	@echo "$(CYAN)Planning infrastructure changes...$(NC)"
 	@echo "$(YELLOW)Environment: $(ENV)$(NC)"
 	@echo "$(YELLOW)AWS Profile: $(AWS_PROFILE)$(NC)"
@@ -154,27 +204,60 @@ infra-plan: check-terraform-init ## Show what changes will be made (dry run, res
 	@echo "$(YELLOW)Planning Scope: $(SCOPE)$(NC)"
 	@if [ "$(SCOPE)" = "runtime" ]; then \
 		echo "$(GREEN)Planning runtime resources only (ECS, ALB listeners, etc.)$(NC)"; \
+		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/runtime _do-plan; \
 	elif [ "$(SCOPE)" = "base" ]; then \
 		echo "$(BLUE)Planning base resources only (VPC, NAT, ECR, Route53)$(NC)"; \
-	else \
+		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/base _do-plan; \
+	elif [ "$(SCOPE)" = "all" ]; then \
 		echo "$(YELLOW)Planning all resources$(NC)"; \
+		echo "$(BLUE)--- Planning base infrastructure ---$(NC)"; \
+		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/base _do-plan; \
+		echo "$(GREEN)--- Planning runtime infrastructure ---$(NC)"; \
+		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/runtime _do-plan; \
+	else \
+		echo "$(RED)Error: Invalid SCOPE '$(SCOPE)'. Must be base, runtime, or all$(NC)"; \
+		exit 1; \
 	fi
-	@$(TERRAFORM_DOCKER_RUN) plan -var-file=/environments/$(ENV).tfvars -var="deployment_scope=$(SCOPE)"
 	@echo "$(GREEN)✓ Plan complete!$(NC)"
 
+_do-plan: check-terraform-init
+	@$(TERRAFORM_DOCKER_RUN) plan -var-file=/environments/$(ENV).tfvars
 
 
-infra-refresh: check-terraform-init ## Update state file with real infrastructure
+
+infra-refresh: ## Update state file with real infrastructure
 	@echo "$(CYAN)Refreshing Terraform state...$(NC)"
 	@echo "$(YELLOW)Environment: $(ENV)$(NC)"
-	@$(TERRAFORM_DOCKER_RUN) refresh -var-file=/environments/$(ENV).tfvars
+	@echo "$(YELLOW)Scope: $(SCOPE)$(NC)"
+	@if [ "$(SCOPE)" = "all" ]; then \
+		echo "$(BLUE)--- Refreshing base infrastructure ---$(NC)"; \
+		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/base _do-refresh; \
+		echo "$(GREEN)--- Refreshing runtime infrastructure ---$(NC)"; \
+		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/runtime _do-refresh; \
+	else \
+		$(MAKE) _do-refresh; \
+	fi
 	@echo "$(GREEN)✓ State refreshed!$(NC)"
 
-infra-output: check-terraform-init ## Show outputs from Terraform state (use FORMAT=json for JSON output)
+_do-refresh: check-terraform-init
+	@$(TERRAFORM_DOCKER_RUN) refresh -var-file=/environments/$(ENV).tfvars
+
+infra-output: ## Show outputs from Terraform state (use FORMAT=json for JSON output)
+	@echo "$(CYAN)Terraform Outputs:$(NC)"
+	@echo "$(YELLOW)Scope: $(SCOPE)$(NC)"
+	@if [ "$(SCOPE)" = "all" ]; then \
+		echo "$(BLUE)--- Base infrastructure outputs ---$(NC)"; \
+		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/base _do-output FORMAT="$(FORMAT)"; \
+		echo "$(GREEN)--- Runtime infrastructure outputs ---$(NC)"; \
+		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/runtime _do-output FORMAT="$(FORMAT)"; \
+	else \
+		$(MAKE) _do-output FORMAT="$(FORMAT)"; \
+	fi
+
+_do-output: check-terraform-init
 	@if [ "$(FORMAT)" = "json" ]; then \
 		$(TERRAFORM_DOCKER_RUN) output -json; \
 	else \
-		echo "$(CYAN)Terraform Outputs:$(NC)"; \
 		$(TERRAFORM_DOCKER_RUN) output; \
 	fi
 
@@ -253,7 +336,7 @@ infra-cost: ## Estimate monthly costs (requires Infracost)
 infra-check: infra-fmt infra-validate ## Format and validate configuration
 
 
-infra-up: check-terraform-init ## Deploy infrastructure (use AUTO=true for auto-approve, SCOPE=runtime|base|all)
+infra-up: ## Deploy infrastructure (use AUTO=true for auto-approve, SCOPE=runtime|base|all)
 	@echo "$(CYAN)Deploying infrastructure...$(NC)"
 	@echo "$(YELLOW)Environment: $(ENV)$(NC)"
 	@echo "$(YELLOW)AWS Profile: $(AWS_PROFILE)$(NC)"
@@ -261,23 +344,34 @@ infra-up: check-terraform-init ## Deploy infrastructure (use AUTO=true for auto-
 	@echo "$(YELLOW)Deployment Scope: $(SCOPE)$(NC)"
 	@if [ "$(SCOPE)" = "runtime" ]; then \
 		echo "$(GREEN)Deploying runtime resources only (ECS, ALB listeners, etc.)$(NC)"; \
+		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/runtime _do-apply AUTO="$(AUTO)"; \
 	elif [ "$(SCOPE)" = "base" ]; then \
 		echo "$(BLUE)Deploying base resources only (VPC, NAT, ECR, Route53)$(NC)"; \
-	else \
+		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/base _do-apply AUTO="$(AUTO)"; \
+	elif [ "$(SCOPE)" = "all" ]; then \
 		echo "$(YELLOW)Deploying all resources$(NC)"; \
+		echo "$(BLUE)--- Deploying base infrastructure first ---$(NC)"; \
+		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/base _do-apply AUTO="$(AUTO)" || exit 1; \
+		echo "$(GREEN)--- Deploying runtime infrastructure ---$(NC)"; \
+		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/runtime _do-apply AUTO="$(AUTO)"; \
+	else \
+		echo "$(RED)Error: Invalid SCOPE '$(SCOPE)'. Must be base, runtime, or all$(NC)"; \
+		exit 1; \
 	fi
+	@echo "$(GREEN)✓ Infrastructure deployed successfully!$(NC)"
+
+_do-apply: check-terraform-init
 	@if [ "$(AUTO)" = "true" ]; then \
 		echo "$(YELLOW)Auto-approve mode enabled$(NC)"; \
-		$(TERRAFORM_DOCKER_RUN) apply -var-file=/environments/$(ENV).tfvars -var="deployment_scope=$(SCOPE)" -auto-approve; \
+		$(TERRAFORM_DOCKER_RUN) apply -var-file=/environments/$(ENV).tfvars -auto-approve; \
 	else \
 		echo "$(RED)⚠️  This will create/modify real AWS resources!$(NC)"; \
 		echo "$(YELLOW)Press Ctrl+C to cancel, or wait 5 seconds to continue...$(NC)"; \
 		sleep 5; \
-		$(TERRAFORM_DOCKER_RUN_IT) apply -var-file=/environments/$(ENV).tfvars -var="deployment_scope=$(SCOPE)"; \
+		$(TERRAFORM_DOCKER_RUN_IT) apply -var-file=/environments/$(ENV).tfvars; \
 	fi
-	@echo "$(GREEN)✓ Infrastructure deployed successfully!$(NC)"
 
-infra-down: check-terraform-init ## Destroy infrastructure (use AUTO=true for auto-approve, SCOPE=runtime|base|all)
+infra-down: ## Destroy infrastructure (use AUTO=true for auto-approve, SCOPE=runtime|base|all)
 	@if [ "$(SCOPE)" = "all" ]; then \
 		echo "$(RED)╔════════════════════════════════════════════════════════════╗$(NC)"; \
 		echo "$(RED)║  ⚠️  WARNING: This will DESTROY ALL infrastructure! ⚠️     ║$(NC)"; \
@@ -311,20 +405,35 @@ infra-down: check-terraform-init ## Destroy infrastructure (use AUTO=true for au
 	@echo "$(YELLOW)AWS Profile: $(AWS_PROFILE)$(NC)"
 	@echo "$(YELLOW)AWS Region: $(AWS_REGION)$(NC)"
 	@echo "$(YELLOW)Destroy Scope: $(SCOPE)$(NC)"
+	@if [ "$(SCOPE)" = "runtime" ]; then \
+		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/runtime _do-destroy AUTO="$(AUTO)"; \
+	elif [ "$(SCOPE)" = "base" ]; then \
+		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/base _do-destroy AUTO="$(AUTO)"; \
+	elif [ "$(SCOPE)" = "all" ]; then \
+		echo "$(YELLOW)--- Destroying runtime infrastructure first ---$(NC)"; \
+		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/runtime _do-destroy AUTO="$(AUTO)" || exit 1; \
+		echo "$(BLUE)--- Destroying base infrastructure ---$(NC)"; \
+		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/base _do-destroy AUTO="$(AUTO)"; \
+	else \
+		echo "$(RED)Error: Invalid SCOPE '$(SCOPE)'. Must be runtime, base, or all$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(GREEN)✓ Infrastructure destroyed!$(NC)"
+
+_do-destroy: check-terraform-init
 	@if [ "$(AUTO)" = "true" ]; then \
 		echo "$(RED)Auto-approve mode enabled - destroying immediately!$(NC)"; \
-		$(TERRAFORM_DOCKER_RUN) destroy -var-file=/environments/$(ENV).tfvars -var="deployment_scope=$(SCOPE)" -auto-approve; \
+		$(TERRAFORM_DOCKER_RUN) destroy -var-file=/environments/$(ENV).tfvars -auto-approve; \
 	else \
-		if [ "$(SCOPE)" = "all" ] || [ "$(SCOPE)" = "base" ]; then \
+		if [ "$(TERRAFORM_DIR)" = "$(TERRAFORM_BASE_DIR)/workspaces/base" ]; then \
 			echo "$(RED)Press Ctrl+C to cancel, or wait 10 seconds to continue...$(NC)"; \
 			sleep 10; \
 		else \
 			echo "$(YELLOW)Press Ctrl+C to cancel, or wait 5 seconds to continue...$(NC)"; \
 			sleep 5; \
 		fi; \
-		$(TERRAFORM_DOCKER_RUN_IT) destroy -var-file=/environments/$(ENV).tfvars -var="deployment_scope=$(SCOPE)"; \
+		$(TERRAFORM_DOCKER_RUN_IT) destroy -var-file=/environments/$(ENV).tfvars; \
 	fi
-	@echo "$(GREEN)✓ Infrastructure destroyed!$(NC)"
 
 # Clean Commands
 infra-clean-cache: ## Remove Terraform cache (forces re-init)
@@ -333,3 +442,34 @@ infra-clean-cache: ## Remove Terraform cache (forces re-init)
 	@echo "$(GREEN)✓ Cache removed. Run 'make infra-init' to reinitialize.$(NC)"
 
 infra-reinit: infra-clean-cache infra-init ## Remove cache and reinitialize (for backend changes)
+
+infra-status: ## Show status of both workspaces
+	@echo "$(CYAN)Infrastructure Status$(NC)"
+	@echo "$(YELLOW)Environment: $(ENV)$(NC)"
+	@echo ""
+	@echo "$(BLUE)=== Base Infrastructure ===$(NC)"
+	@if $(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/base check-terraform-init >/dev/null 2>&1; then \
+		echo "$(GREEN)✓ Base workspace initialized$(NC)"; \
+		if $(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/base TERRAFORM_DOCKER_RUN="$(TERRAFORM_DOCKER_RUN)" _do-status 2>/dev/null; then \
+			echo "$(GREEN)✓ Base infrastructure deployed$(NC)"; \
+		else \
+			echo "$(YELLOW)⚠ Base infrastructure not deployed$(NC)"; \
+		fi; \
+	else \
+		echo "$(YELLOW)⚠ Base workspace not initialized$(NC)"; \
+	fi
+	@echo ""
+	@echo "$(GREEN)=== Runtime Infrastructure ===$(NC)"
+	@if $(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/runtime check-terraform-init >/dev/null 2>&1; then \
+		echo "$(GREEN)✓ Runtime workspace initialized$(NC)"; \
+		if $(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/runtime TERRAFORM_DOCKER_RUN="$(TERRAFORM_DOCKER_RUN)" _do-status 2>/dev/null; then \
+			echo "$(GREEN)✓ Runtime infrastructure deployed$(NC)"; \
+		else \
+			echo "$(YELLOW)⚠ Runtime infrastructure not deployed$(NC)"; \
+		fi; \
+	else \
+		echo "$(YELLOW)⚠ Runtime workspace not initialized$(NC)"; \
+	fi
+
+_do-status:
+	@$(TERRAFORM_DOCKER_RUN) output -json > /dev/null 2>&1
