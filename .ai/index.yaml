@@ -319,6 +319,10 @@ howto:
     purpose: "Manage AWS infrastructure using Terraform Make targets"
     key_commands: ["make infra-plan", "make infra-apply", "make infra-destroy", "make infra-check-aws"]
 
+  terraform-workspaces.md:
+    purpose: "Initialize and manage Terraform workspaces for base/runtime separation"
+    key_commands: ["./infra/scripts/workspace-init.sh base dev", "./infra/scripts/workspace-status.sh dev", "make infra-up-base", "make infra-up-runtime"]
+
   debug-issues.md:
     purpose: "Systematic debugging and troubleshooting"
     key_commands: ["make logs", "docker logs", "make status"]
@@ -468,6 +472,17 @@ common_workflows:
       - "Apply infrastructure with make infra-apply"
       - "Monitor costs and destroy when not needed"
     details_in: ".ai/howto/manage-infrastructure.md"
+
+  manage_terraform_workspaces:
+    steps:
+      - "Initialize base workspace with ./infra/scripts/workspace-init.sh base ENV"
+      - "Initialize runtime workspace with ./infra/scripts/workspace-init.sh runtime ENV"
+      - "Deploy base infrastructure with make infra-up-base ENV=dev"
+      - "Deploy runtime infrastructure with make infra-up-runtime ENV=dev"
+      - "Check status with ./infra/scripts/workspace-status.sh ENV"
+      - "Destroy runtime for cost savings with make infra-down-runtime ENV=dev"
+      - "Redeploy runtime next day with make infra-up-runtime ENV=dev"
+    details_in: "infra/terraform/workspaces/README.md"
 
   manage_roadmap:
     steps:
