@@ -16,7 +16,7 @@
 | [Frontend Critical Fixes](in_progress/frontend-critical-fixes/PROGRESS_TRACKER.md) | 🟡 | 57% | [████████████░░░░░░░░] | Critical | 4/7 PRs | `in_progress/` |
 | [AI Contributions](planning/ai-contributions/PROGRESS_TRACKER.md) | 🔴 | 0% | [░░░░░░░░░░░░░░░░░░░░] | High | 0/6 PRs | `planning/` |
 | [Example API Feature](planning/example-api-feature/PROGRESS_TRACKER.md) | 🔴 | 0% | [░░░░░░░░░░░░░░░░░░░░] | Medium | 0/6 PRs | `planning/` |
-| [Terraform Workspaces](in_progress/terraform-workspaces/PROGRESS_TRACKER.md) | 🟡 | 17% | [███░░░░░░░░░░░░░░░░░] | High | 1/6 PRs | `in_progress/` |
+| [Terraform Workspaces](in_progress/terraform-workspaces/PROGRESS_TRACKER.md) | 🟡 | 33% | [██████░░░░░░░░░░░░░░] | High | 2/6 PRs | `in_progress/` |
 | [Docker Linting Separation](in_progress/docker-linting-separation/PROGRESS_TRACKER.md) | 🟡 | 75% | [███████████████░░░░░] | High | 18/24 tasks | `in_progress/` |
 | [Docker Reorganization](in_progress/docker-reorganization/PROGRESS_TRACKER.md) | 🟡 | 80% | [████████████████░░░░] | High | 4/5 PRs | `in_progress/` |
 | [Deployment](in_progress/deployment/PROGRESS_TRACKER.md) | 🟡 | 45% | [█████████░░░░░░░░░░░] | Critical | 5/11 PRs | `in_progress/` |
