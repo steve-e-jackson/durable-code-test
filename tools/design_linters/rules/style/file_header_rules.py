@@ -638,6 +638,7 @@ class FileHeaderRule(ASTLintRule):
         return LintViolation(
             rule_id=self.rule_id,
             message="File missing documentation header",
+            description="All files should have proper documentation headers with required fields",
             severity=self.severity,
             line=1,
             column=0,

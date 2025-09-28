@@ -133,7 +133,8 @@ asyncio_mode = "auto"
 addopts = "--tb=short"
 cache_dir = "/tmp/.pytest_cache"
 markers = [
-    "integration: marks tests as integration tests (may require external services)"
+    "integration: marks tests as integration tests (may require external services)",
+    "slow: marks tests as slow running tests"
 ]
 
 [tool.coverage.run]
