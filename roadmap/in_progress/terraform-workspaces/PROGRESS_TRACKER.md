@@ -5,8 +5,8 @@ This is the **PRIMARY HANDOFF DOCUMENT** for implementing Terraform workspaces t
 
 ## 📊 Current Status
 - **Phase**: Implementation Phase
-- **Overall Progress**: [████████████░░░░░░░░] 66%
-- **Current PR**: PR4 Complete - Awaiting PR5
+- **Overall Progress**: [████████████████░░░░] 83%
+- **Current PR**: PR5 Complete - Awaiting PR6
 - **Blocked By**: None
 - **Priority**: High
 - **Complexity**: High
@@ -18,11 +18,11 @@ All documentation for this roadmap item is in: `roadmap/in_progress/terraform-wo
 - `PR_BREAKDOWN.md` - Detailed implementation steps
 
 ## 🚀 Next PR to Implement
-**PR5: Makefile Integration and Commands**
-- Branch: `feat/terraform-workspaces-pr5-makefile`
+**PR6: Documentation and Testing**
+- Branch: `feat/terraform-workspaces-pr6-docs`
 - Start by reading AI_CONTEXT.md for background
-- Then follow PR5 steps in PR_BREAKDOWN.md
-- Note: PR4 data sources were already implemented as part of PR3
+- Then follow PR6 steps in PR_BREAKDOWN.md
+- Note: All infrastructure separation is complete, this is final documentation
 
 ## 📈 PR Status Dashboard
 
@@ -32,7 +32,7 @@ All documentation for this roadmap item is in: `roadmap/in_progress/terraform-wo
 | PR2 | Base Infrastructure Workspace | 🟢 Complete | `feat/terraform-workspaces-pr2-base` | 100% |
 | PR3 | Runtime Infrastructure Workspace | 🟢 Complete | `feat/terraform-workspaces-pr3-runtime` | 100% |
 | PR4 | Data Sources and Cross-Workspace References | 🟢 Complete | Included in PR3 | 100% |
-| PR5 | Makefile Integration and Commands | 🔴 Not Started | `feat/terraform-workspaces-pr5-makefile` | 0% |
+| PR5 | Makefile Integration and Commands | 🟢 Complete | `feat/terraform-workspaces-pr5-makefile` | 100% |
 | PR6 | Documentation and Testing | 🔴 Not Started | `feat/terraform-workspaces-pr6-docs` | 0% |
 
 **Status Legend:**
@@ -90,14 +90,14 @@ All documentation for this roadmap item is in: `roadmap/in_progress/terraform-wo
 
 ### PR5: Makefile Integration and Commands
 **Purpose**: Update build system for workspace-aware operations
-- [ ] Update infra-init for workspace selection
-- [ ] Create infra-workspace-list command
-- [ ] Create infra-workspace-select command
-- [ ] Update infra-up for workspace awareness
-- [ ] Update infra-down for workspace awareness
-- [ ] Add workspace status commands
-- [ ] Create workspace migration commands
-- [ ] Test all makefile targets with workspaces
+- [x] Update infra-init for workspace selection
+- [x] Create infra-workspace-list command
+- [x] Create infra-workspace-select command
+- [x] Update infra-up for workspace awareness
+- [x] Update infra-down for workspace awareness
+- [x] Add workspace status commands
+- [x] Create workspace migration commands
+- [x] Test all makefile targets with workspaces
 
 ### PR6: Documentation and Testing
 **Purpose**: Complete documentation and validation
@@ -180,6 +180,23 @@ All documentation for this roadmap item is in: `roadmap/in_progress/terraform-wo
 - All data sources in runtime/data.tf are functional and properly configured
 - Workspace isolation verified - runtime can reference base resources via data sources
 - Note: PR5 (Makefile Integration) is needed to properly use workspace directories
+
+### Implementation Phase - PR5 Complete (2025-09-28)
+- Updated Makefile.infra to support workspace-specific directories
+  - Added TERRAFORM_BASE_DIR variable and workspace path resolution
+  - Modified Docker volume mounts to include backend-config directory
+  - Implemented workspace-specific .terraform cache volumes
+- Created parameter-driven commands with SCOPE parameter
+  - infra-up/down/plan now support SCOPE=base|runtime|all
+  - Added proper ordering: base before runtime for deploy, runtime before base for destroy
+  - Implemented safety checks for base infrastructure destruction
+- Created unified deployment and destruction scripts
+  - workspace-deploy.sh handles orchestration across workspaces
+  - workspace-destroy.sh ensures safe destruction with confirmations
+  - workspace-destroy-runtime.sh and workspace-destroy-base.sh for specific operations
+- Added infra-status command to show workspace deployment state
+- Fixed backend configuration paths for Docker context
+- All makefile targets successfully tested with workspace separation
 
 ## 🎯 Success Criteria
 
