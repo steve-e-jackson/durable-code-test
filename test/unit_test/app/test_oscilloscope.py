@@ -20,6 +20,7 @@ Implementation: Async test functions using FastAPI test client
 """
 
 import pytest
+from loguru import logger
 from app.main import app
 from app.oscilloscope import WaveformGenerator, WaveType
 from fastapi.testclient import TestClient
@@ -288,7 +289,8 @@ class TestOscilloscopePerformance:
         try:
             websocket.send_text("")  # Keep connection alive
             return True
-        except Exception:
+        except Exception as e:
+            logger.error("Failed to receive data from websocket", error=str(e), exc_info=True)
             return False
 
     def _update_counts(self, websocket, packet_count: int, sample_count: int) -> tuple[int, int]:
@@ -298,6 +300,6 @@ class TestOscilloscopePerformance:
             if "samples" in data:
                 packet_count += 1
                 sample_count += len(data["samples"])
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Could not update counts from websocket data", error=str(e))
         return packet_count, sample_count

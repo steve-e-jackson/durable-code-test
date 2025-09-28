@@ -24,6 +24,7 @@ from typing import Any
 from unittest.mock import patch
 
 import pytest
+from loguru import logger
 from app.core.circuit_breaker import (
     CircuitBreaker,
     CircuitBreakerState,
@@ -378,6 +379,7 @@ class TestErrorHandlingIntegration:
             try:
                 await data_layer()
             except (ExternalServiceError, RetryError) as e:
+                logger.error("Service operation failed", error=str(e), exc_info=True)
                 raise ServiceError(message="Service operation failed", details={"cause": str(e)})
 
         async def api_layer() -> None:
@@ -385,6 +387,7 @@ class TestErrorHandlingIntegration:
                 return await service_layer()
             except ServiceError as e:
                 # Transform to user-friendly error
+                logger.error("Service error in API layer", error=str(e), exc_info=True)
                 raise AppExceptionError(
                     message="Operation temporarily unavailable",
                     status_code=503,

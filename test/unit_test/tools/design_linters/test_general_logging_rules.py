@@ -19,8 +19,8 @@ from typing import Any, Dict
 
 sys.path.insert(0, "/home/stevejackson/Projects/durable-code-test/tools")
 
-from design_linters.framework.interfaces import LintContext, Severity
-from design_linters.rules.logging.general_logging_rules import (
+from tools.design_linters.framework.interfaces import LintContext, Severity
+from tools.design_linters.rules.logging.general_logging_rules import (
     LoggingInExceptionsRule,
     NoPlainPrintRule,
     ProperLogLevelsRule,

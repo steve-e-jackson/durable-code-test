@@ -17,11 +17,12 @@ import sys
 import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
+from loguru import logger
 
 sys.path.insert(0, "/home/stevejackson/Projects/durable-code-test/tools")
 
-from design_linters.framework.interfaces import LintContext, LintViolation, Severity
-from design_linters.rules.logging.loguru_rules import (
+from tools.design_linters.framework.interfaces import LintContext, LintViolation, Severity
+from tools.design_linters.rules.logging.loguru_rules import (
     LogLevelConsistencyRule,
     LoguruConfigurationRule,
     LoguruImportRule,
@@ -695,6 +696,7 @@ class TestRuleIntegration(unittest.TestCase):
                 violations = rule.check(empty_context)
                 self.assertIsInstance(violations, list)
             except Exception as e:
+                logger.error("Rule failed with empty context", rule_class=rule.__class__.__name__, error=str(e), exc_info=True)
                 self.fail(f"Rule {rule.__class__.__name__} failed with empty context: {e}")
 
     def test_violation_creation_consistency(self):

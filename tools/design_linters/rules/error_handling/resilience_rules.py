@@ -18,7 +18,7 @@ Implementation: AST-based rule implementations using node traversal and pattern 
 
 import ast
 
-from design_linters.framework.interfaces import ASTLintRule, LintViolation, Severity
+from tools.design_linters.framework.interfaces import ASTLintRule, LintViolation, Severity
 
 
 class NoBroadExceptionsRule(ASTLintRule):

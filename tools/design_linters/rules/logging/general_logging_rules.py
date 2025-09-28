@@ -21,8 +21,8 @@ Implementation: Rule-based architecture with logging pattern detection
 import ast
 from typing import Any
 
-from design_linters.framework.interfaces import ASTLintRule, LintContext, LintViolation, Severity
-from design_linters.utils.context_helpers import is_allowed_context
+from tools.design_linters.framework.interfaces import ASTLintRule, LintContext, LintViolation, Severity
+from tools.design_linters.utils.context_helpers import is_allowed_context
 
 
 class NoPlainPrintRule(ASTLintRule):

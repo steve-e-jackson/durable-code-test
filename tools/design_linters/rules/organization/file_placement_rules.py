@@ -48,14 +48,14 @@ class LayoutRulesLoader:
         try:
             layout_path = self._get_layout_path()
             if not layout_path.exists():
-                logger.warning(f"Layout rules file not found: {layout_path}, using default configuration")
+                logger.warning("Layout rules file not found, using default configuration", file_path=str(layout_path))
                 self.rules = self.get_default_rules()
                 return
 
             data = self._load_config_data(layout_path)
             self._process_config_data(data, layout_path)
         except Exception as e:
-            logger.warning(f"Error loading layout rules: {e}, using defaults")
+            logger.error("Error loading layout rules, using defaults", error=str(e), exc_info=True)
             self.rules = self.get_default_rules()
 
     def _get_layout_path(self) -> Path:
@@ -77,7 +77,7 @@ class LayoutRulesLoader:
         if "$schema" in data:
             del data["$schema"]
         self.rules = data
-        logger.debug(f"Loaded layout rules from {layout_path}")
+        logger.info("Loaded layout rules from file", file_path=str(layout_path))
 
     def get_rules(self) -> dict[str, Any] | None:
         """Get loaded layout rules."""
@@ -127,10 +127,10 @@ class GlobalPatternChecker:
                     LintViolation(
                         rule_id=rule_id,
                         message=reason or f"File '{rel_path}' matches denied pattern",
-                        node=None,
+                        description="File placement violates project organization rules",
                         severity=Severity.ERROR,
-                        line_number=1,
-                        column_number=0,
+                        line=1,
+                        column=0,
                         file_path=str(rel_path),
                         suggestion=FileSuggestionGenerator.get_suggestion(rel_path.name, path_str),
                     )
@@ -144,10 +144,10 @@ class GlobalPatternChecker:
                     LintViolation(
                         rule_id=rule_id,
                         message=f"File '{rel_path}' does not match any allowed patterns",
-                        node=None,
+                        description="File does not match allowed patterns for this location",
                         severity=Severity.WARNING,
-                        line_number=1,
-                        column_number=0,
+                        line=1,
+                        column=0,
                         file_path=str(rel_path),
                         suggestion="Ensure file matches project structure patterns",
                     )
@@ -196,9 +196,12 @@ class DirectoryRuleChecker:
                 violations.append(self._create_deny_violation(matched_path, reason))
 
         # Check allow patterns
-        if "allow" in dir_rule and "deny" not in dir_rule:
-            if not self.pattern_matcher.match_allow_patterns(self.current_path_str, dir_rule["allow"]):
-                violations.append(self._create_allow_violation(matched_path))
+        if (
+            "allow" in dir_rule
+            and "deny" not in dir_rule
+            and not self.pattern_matcher.match_allow_patterns(self.current_path_str, dir_rule["allow"])
+        ):
+            violations.append(self._create_allow_violation(matched_path))
 
         return violations
 
@@ -214,10 +217,10 @@ class DirectoryRuleChecker:
         return LintViolation(
             rule_id=self.current_rule_id,
             message=f"Test file '{self.current_rel_path}' should not be in project root",
-            node=None,
+            description="Test files should be organized in dedicated test directories",
             severity=Severity.ERROR,
-            line_number=1,
-            column_number=0,
+            line=1,
+            column=0,
             file_path=str(self.current_rel_path),
             suggestion="Move test files to test/ or tests/ directory to maintain project organization",
         )
@@ -247,10 +250,10 @@ class DirectoryRuleChecker:
         return LintViolation(
             rule_id=self.current_rule_id,
             message=message,
-            node=None,
+            description="File violates directory-specific organization rules",
             severity=Severity.ERROR,
-            line_number=1,
-            column_number=0,
+            line=1,
+            column=0,
             file_path=str(self.current_rel_path),
             suggestion=FileSuggestionGenerator.get_suggestion(self.current_rel_path.name, None),
         )
@@ -265,10 +268,10 @@ class DirectoryRuleChecker:
         return LintViolation(
             rule_id=self.current_rule_id,
             message=message,
-            node=None,
+            description="File does not match allowed patterns for this directory",
             severity=Severity.WARNING,
-            line_number=1,
-            column_number=0,
+            line=1,
+            column=0,
             file_path=str(self.current_rel_path),
             suggestion=suggestion,
         )
@@ -293,7 +296,7 @@ class FilePlacementChecker:
             cwd = Path.cwd()
             rel_path = file_path.relative_to(cwd) if file_path.is_absolute() else file_path
         except ValueError as e:
-            logger.debug("File is outside project directory: {}, error: {}", file_path, e)
+            logger.error("File is outside project directory", file_path=str(file_path), error=str(e))
             return violations
 
         # Convert to string for pattern matching
