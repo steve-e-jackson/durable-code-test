@@ -1,0 +1,84 @@
+# Example terraform.tfvars for runtime workspace
+# Copy to terraform.tfvars and customize for your environment
+
+environment     = "dev"
+aws_region      = "us-west-2"
+product_domain  = "durableai"
+project_name    = "durable-code"
+
+# Container Images
+backend_image_tag  = "latest"
+frontend_image_tag = "latest"
+
+# Service Ports
+backend_port  = 8000
+frontend_port = 3000
+
+# ECS Configuration (environment-specific overrides)
+ecs_task_cpu = {
+  dev     = "256"    # 0.25 vCPU
+  staging = "512"    # 0.5 vCPU
+  prod    = "1024"   # 1 vCPU
+}
+
+ecs_task_memory = {
+  dev     = "512"    # 512 MB
+  staging = "1024"   # 1 GB
+  prod    = "2048"   # 2 GB
+}
+
+ecs_service_desired_count = {
+  dev     = 1
+  staging = 2
+  prod    = 3
+}
+
+# Auto-scaling Configuration
+enable_autoscaling     = true
+autoscaling_target_cpu = 70
+autoscaling_target_memory = 80
+
+ecs_service_min_count = {
+  dev     = 1
+  staging = 2
+  prod    = 2
+}
+
+ecs_service_max_count = {
+  dev     = 2
+  staging = 4
+  prod    = 10
+}
+
+# Health Check Configuration
+health_check_path = {
+  backend  = "/health"
+  frontend = "/"
+}
+
+health_check_interval             = 30
+health_check_timeout              = 5
+health_check_healthy_threshold    = 2
+health_check_unhealthy_threshold  = 3
+
+# Feature Flags
+enable_container_insights = false  # Set to true for production
+enable_service_discovery  = false  # Enable for service mesh
+enable_ecs_exec          = true   # Enable for debugging
+
+# Logging Configuration
+log_retention_days = {
+  dev     = 7
+  staging = 14
+  prod    = 30
+}
+
+# Domain Configuration (leave empty if not using custom domain)
+domain_name = ""
+
+# Additional tags
+additional_tags = {
+  Owner       = "Infrastructure Team"
+  CostCenter  = "Engineering"
+  ManagedBy   = "Terraform"
+}
