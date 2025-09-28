@@ -70,7 +70,7 @@ make start
 - **Reverse Proxy**: Nginx (if configured)
 
 ### Production Configuration
-**File**: `docker-compose.yml`
+**File**: `.docker/compose/prod.yml`
 **Features**:
 - Production-optimized builds
 - Security hardening
@@ -130,7 +130,7 @@ docker-compose ps
 curl -Lo /usr/local/bin/ecs-cli https://amazon-ecs-cli.s3.amazonaws.com/ecs-cli-linux-amd64-latest
 
 # Deploy to ECS
-ecs-cli compose --file docker-compose.yml service up
+ecs-cli compose --file .docker/compose/prod.yml service up
 ```
 
 **ECR Image Registry**:
@@ -162,7 +162,7 @@ gcloud run deploy backend --image gcr.io/PROJECT-ID/durable-code-test-backend --
 az group create --name durable-code-test --location eastus
 
 # Deploy container group
-az container create --resource-group durable-code-test --file docker-compose.yml
+az container create --resource-group durable-code-test --file .docker/compose/prod.yml
 ```
 
 ## Database Deployment
@@ -182,7 +182,7 @@ docker exec -i durable-code-test-db-1 psql -U postgres durable_code < backup.sql
 ### Database Configuration
 **Production Settings**:
 ```yaml
-# docker-compose.yml
+# .docker/compose/prod.yml
 services:
   db:
     image: postgres:15-alpine
@@ -335,7 +335,7 @@ DB_SSL_MODE=require
 
 **Docker Security**:
 ```yaml
-# docker-compose.yml
+# .docker/compose/prod.yml
 services:
   frontend:
     security_opt:
@@ -368,7 +368,7 @@ aws s3 cp backup_$DATE.sql s3://your-backup-bucket/
 ### Application Backup
 ```bash
 # Backup configuration
-tar -czf config_backup.tar.gz .env docker-compose.yml nginx.conf
+tar -czf config_backup.tar.gz .env .docker/compose/prod.yml nginx.conf
 
 # Backup user uploads
 docker cp durable-code-test-backend-1:/app/uploads ./uploads_backup

@@ -86,7 +86,7 @@ class LayoutRulesLoader:
     @staticmethod
     def get_default_rules() -> dict[str, Any]:
         """Get default layout rules if no config file exists."""
-        return { "dont": "use"}
+        return {"dont": "use"}
 
 
 class PatternMatcher:
@@ -103,10 +103,7 @@ class PatternMatcher:
 
     def match_allow_patterns(self, path_str: str, allow_patterns: list[str]) -> bool:
         """Check if path matches any allow patterns."""
-        for pattern in allow_patterns:
-            if re.search(pattern, path_str, re.IGNORECASE):
-                return True
-        return False
+        return any(re.search(pattern, path_str, re.IGNORECASE) for pattern in allow_patterns)
 
 
 class GlobalPatternChecker:

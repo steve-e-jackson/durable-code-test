@@ -83,7 +83,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./durable-code-app/backend
-          file: ./durable-code-app/backend/Dockerfile
+          file: ./.docker/dockerfiles/backend/Dockerfile.prod
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_BACKEND }}:latest
@@ -98,7 +98,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./durable-code-app/frontend
-          file: ./durable-code-app/frontend/Dockerfile
+          file: ./.docker/dockerfiles/frontend/Dockerfile.prod
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_FRONTEND }}:latest

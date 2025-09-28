@@ -14,20 +14,20 @@ version: '3.8'
 services:
   python-linter:
     build:
-      context: .
-      dockerfile: docker/linting/Dockerfile.python-lint
+      context: ../..
+      dockerfile: .docker/dockerfiles/linting/Dockerfile.python-lint
     container_name: durable-code-python-linter-${BRANCH_NAME:-main}
     volumes:
       # Backend application code
-      - ./durable-code-app/backend:/workspace/backend
+      - ../../durable-code-app/backend:/workspace/backend
       # Design linters framework
-      - ./tools:/workspace/tools
+      - ../../tools:/workspace/tools
       # Test files
-      - ./test:/workspace/test
+      - ../../test:/workspace/test
       # Infrastructure files for TFLint
-      - ./infra:/workspace/infra
+      - ../../infra:/workspace/infra
       # Project root for file organization checks
-      - .:/workspace/root
+      - ../..:/workspace/root
     networks:
       - linting-network
     # Resource limits to prevent runaway processes
@@ -41,14 +41,14 @@ services:
 
   js-linter:
     build:
-      context: .
-      dockerfile: docker/linting/Dockerfile.js-lint
+      context: ../..
+      dockerfile: .docker/dockerfiles/linting/Dockerfile.js-lint
     container_name: durable-code-js-linter-${BRANCH_NAME:-main}
     volumes:
       # Frontend application code
-      - ./durable-code-app/frontend:/workspace/frontend
+      - ../../durable-code-app/frontend:/workspace/frontend
       # Project root for global configs
-      - .:/workspace/root
+      - ../..:/workspace/root
     networks:
       - linting-network
     # Resource limits for frontend linting

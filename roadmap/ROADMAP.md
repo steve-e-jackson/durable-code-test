@@ -17,7 +17,7 @@
 | [AI Contributions](planning/ai-contributions/PROGRESS_TRACKER.md) | 🔴 | 0% | [░░░░░░░░░░░░░░░░░░░░] | High | 0/6 PRs | `planning/` |
 | [Example API Feature](planning/example-api-feature/PROGRESS_TRACKER.md) | 🔴 | 0% | [░░░░░░░░░░░░░░░░░░░░] | Medium | 0/6 PRs | `planning/` |
 | [Docker Linting Separation](in_progress/docker-linting-separation/PROGRESS_TRACKER.md) | 🟡 | 75% | [███████████████░░░░░] | High | 18/24 tasks | `in_progress/` |
-| [Docker Reorganization](in_progress/docker-reorganization/PROGRESS_TRACKER.md) | 🟡 | 20% | [████░░░░░░░░░░░░░░░░] | High | 1/5 PRs | `in_progress/` |
+| [Docker Reorganization](in_progress/docker-reorganization/PROGRESS_TRACKER.md) | 🟡 | 80% | [████████████████░░░░] | High | 4/5 PRs | `in_progress/` |
 | [Deployment](in_progress/deployment/PROGRESS_TRACKER.md) | 🟡 | 45% | [█████████░░░░░░░░░░░] | Critical | 5/11 PRs | `in_progress/` |
 | [Frontend Upgrade](complete/frontend_upgrade/PROGRESS_TRACKER.md) | 🟢 | 100% | [████████████████████] | Medium | Complete | `complete/` |
 | [Make Robust](complete/make_robust/PROGRESS_TRACKER.md) | 🟢 | 100% | [████████████████████] | Low | Complete | `complete/` |
@@ -53,7 +53,7 @@ Complete    [██████████] 100% (2 items)
 ### 🟠 High Priority
 1. **AI Contributions** - 0% - AI workflow improvements planned
 2. **Docker Linting Separation** - 75% - Tasks 1-4 complete, documentation remaining
-3. **Docker Reorganization** - 20% - PR1 complete (directory structure created)
+3. **Docker Reorganization** - 80% - PR1, PR2, PR3+PR4 complete (compose files moved, all references updated)
 
 ### 🟡 Medium Priority
 1. **Example API Feature** - 0% - Template for new features

@@ -327,7 +327,7 @@ lsof -i :8000
 sudo fuser -k 8000/tcp
 
 # Change ports in docker-compose
-# Edit docker-compose.dev.yml to use different ports
+# Edit .docker/compose/dev.yml to use different ports
 ```
 
 ### Performance Debugging

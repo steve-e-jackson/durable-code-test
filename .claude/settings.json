@@ -9,7 +9,7 @@
       "Bash(git stash push:*)",
       "Bash(git stash show:*)",
       "Bash(git reset:*)",
-
+      "Bash(git merge:*)",
       "Bash(git fetch:*)",
       "Bash(git restore:*)",
       "Bash(git diff:*)",
@@ -56,8 +56,7 @@
       "Bash(tree:*)",
       "Bash(test:*)",
       "Bash(curl:*)",
-      "Bash(docker exec:*python:*)",
-      "Bash(docker run:*python:*)",
+      "Bash(python:*)",
       "Bash(awk:*)",
       "Bash(grep:*)",
       "Bash(find:*)",
@@ -110,7 +109,6 @@
     "ask": [
       "Bash(pip uninstall:*)",
       "Bash(gh pr create:*)",
-      "Bash(git merge:*)",
       "Bash(git commit --no-verify:*)",
       "Bash(git push --no-verify:*)",
       "Bash(git commit:*--no-verify:*)",

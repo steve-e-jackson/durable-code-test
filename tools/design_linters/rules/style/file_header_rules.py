@@ -504,9 +504,7 @@ class FileHeaderRule(ASTLintRule):
         super().__init__()
         self.config = config or {}
         self.strict_mode = self.config.get("strict_mode", True)
-        self.min_overview_words = self.config.get(
-            "min_overview_words", HeaderFieldValidator.DEFAULT_MIN_OVERVIEW_WORDS
-        )
+        self.min_overview_words = self.config.get("min_overview_words", HeaderFieldValidator.DEFAULT_MIN_OVERVIEW_WORDS)
         self.check_all_files = self.config.get("check_all_files", True)
         self.skip_test_files = self.config.get("skip_test_files", False)
         self.check_temporal = self.config.get("check_temporal_language", True)

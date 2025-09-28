@@ -154,8 +154,8 @@ make build    # Production build
 - **Makefile.test**: Comprehensive testing strategies
 
 **Docker Configuration**:
-- **Production**: `docker-compose.yml` - Optimized for deployment
-- **Development**: `docker-compose.dev.yml` - Hot reloading, debugging
+- **Production**: `.docker/compose/prod.yml` - Optimized for deployment
+- **Development**: `.docker/compose/dev.yml` - Hot reloading, debugging
 
 **Key Commands**:
 ```bash
@@ -381,7 +381,7 @@ make clean        # Clean environment
 ### Configuration Files
 
 - **Environment**: `.env.example` - Template for environment variables
-- **Docker**: `docker-compose.yml`, `docker-compose.dev.yml`
+- **Docker**: `.docker/compose/prod.yml`, `.docker/compose/dev.yml`
 - **Linting**: `tools/.flake8`, `Makefile.lint`
 - **Testing**: `pytest` configuration in `pyproject.toml`
 - **Pre-commit**: `.pre-commit-config.yaml`
