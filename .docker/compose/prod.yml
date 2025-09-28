@@ -17,23 +17,23 @@
 services:
   backend:
     build:
-      context: ./durable-code-app/backend
-      dockerfile: Dockerfile
+      context: ../../durable-code-app/backend
+      dockerfile: ../../.docker/dockerfiles/backend/Dockerfile.prod
     container_name: durable-code-backend
     ports:
       - "8001:8000"
     environment:
       - ENV=production
     volumes:
-      - ./durable-code-app/backend:/app
+      - ../../durable-code-app/backend:/app
     networks:
       - durable-network
     restart: unless-stopped
 
   frontend:
     build:
-      context: ./durable-code-app/frontend
-      dockerfile: Dockerfile
+      context: ../../durable-code-app/frontend
+      dockerfile: ../../.docker/dockerfiles/frontend/Dockerfile.prod
     container_name: durable-code-frontend
     ports:
       - "3000:3000"

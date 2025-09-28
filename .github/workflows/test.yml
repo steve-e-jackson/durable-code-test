@@ -61,7 +61,7 @@ jobs:
             --cache-to $BUILDX_CACHE_TO \
             --load \
             -t durable-code-backend-dev:latest \
-            -f ./durable-code-app/backend/Dockerfile.dev \
+            -f ./.docker/dockerfiles/backend/Dockerfile.dev \
             ./durable-code-app/backend
 
           docker buildx build \
@@ -69,7 +69,7 @@ jobs:
             --cache-to $BUILDX_CACHE_TO \
             --load \
             -t durable-code-frontend-dev:latest \
-            -f ./durable-code-app/frontend/Dockerfile.dev \
+            -f ./.docker/dockerfiles/frontend/Dockerfile.dev \
             ./durable-code-app/frontend
 
       # Move cache for next run

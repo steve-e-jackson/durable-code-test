@@ -39,13 +39,13 @@ echo "Building Docker images..."
 # Frontend
 echo "Building frontend..."
 cd durable-code-app/frontend
-docker build -t durableai-${ENV}-frontend:${TAG} -f Dockerfile .
+docker build -t durableai-${ENV}-frontend:${TAG} -f ../../.docker/dockerfiles/frontend/Dockerfile.prod .
 docker tag durableai-${ENV}-frontend:${TAG} ${ECR_REGISTRY}/durableai-${ENV}-frontend:${TAG}
 
 # Backend
 echo "Building backend..."
 cd ../backend
-docker build -t durableai-${ENV}-backend:${TAG} -f Dockerfile .
+docker build -t durableai-${ENV}-backend:${TAG} -f ../../.docker/dockerfiles/backend/Dockerfile.prod .
 docker tag durableai-${ENV}-backend:${TAG} ${ECR_REGISTRY}/durableai-${ENV}-backend:${TAG}
 
 # Push images to ECR
