@@ -83,7 +83,7 @@ Comprehensive testing automation with multiple execution strategies:
 
 #### Production Configuration
 
-**Location**: `docker-compose.yml`
+**Location**: `.docker/compose/prod.yml`
 
 - **Multi-service Architecture**: Frontend, backend, and supporting services
 - **Production Optimization**: Optimized build processes and resource allocation
@@ -92,7 +92,7 @@ Comprehensive testing automation with multiple execution strategies:
 
 #### Development Configuration
 
-**Location**: `docker-compose.dev.yml`
+**Location**: `.docker/compose/dev.yml`
 
 - **Development Features**:
   - Hot module replacement for frontend

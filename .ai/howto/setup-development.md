@@ -134,7 +134,7 @@ HOT_RELOAD=true
 ### Docker Configuration
 
 #### Development Configuration
-**File**: `docker-compose.dev.yml`
+**File**: `.docker/compose/dev.yml`
 **Features**:
 - Hot module replacement
 - Volume mounting for live code changes
@@ -142,7 +142,7 @@ HOT_RELOAD=true
 - Debug port exposure
 
 #### Production Configuration
-**File**: `docker-compose.yml`
+**File**: `.docker/compose/prod.yml`
 **Features**:
 - Optimized build process
 - Multi-stage Docker builds
@@ -333,6 +333,51 @@ docker exec -it durable-code-test-backend-1 alembic revision --autogenerate -m "
 
 ## Troubleshooting
 
+### Docker Reorganization Structure
+
+**New Docker Organization (as of Docker Reorganization PR)**:
+```
+.docker/
+├── compose/
+│   ├── dev.yml      # Development environment compose
+│   ├── prod.yml     # Production environment compose
+│   └── lint.yml     # Linting services compose
+└── dockerfiles/
+    ├── backend/
+    │   ├── Dockerfile.dev   # Backend development
+    │   └── Dockerfile.prod  # Backend production
+    ├── frontend/
+    │   ├── Dockerfile.dev   # Frontend development
+    │   └── Dockerfile.prod  # Frontend production
+    ├── linting/
+    │   ├── Dockerfile.python-lint  # Python linting tools
+    │   └── Dockerfile.js-lint      # JavaScript linting tools
+    ├── testing/
+    │   └── Dockerfile.playwright   # E2E testing
+    └── deployment/
+        └── Dockerfile.simple-backend  # Deployment image
+```
+
+**Migration from Old Structure**:
+- Old: `docker-compose.yml` → New: `.docker/compose/prod.yml`
+- Old: `docker-compose.dev.yml` → New: `.docker/compose/dev.yml`
+- Old: `docker-compose.lint.yml` → New: `.docker/compose/lint.yml`
+- Old: Scattered Dockerfiles → New: Organized in `.docker/dockerfiles/`
+
+**Path Resolution Issues**:
+If you encounter path errors after the reorganization:
+```bash
+# Ensure you're using the latest Makefile
+git pull origin main
+
+# Clean and rebuild
+make clean
+make init
+
+# Verify new paths are being used
+grep -r "\.docker" Makefile
+```
+
 ### Common Issues
 
 **Port Already in Use**:
@@ -341,7 +386,7 @@ docker exec -it durable-code-test-backend-1 alembic revision --autogenerate -m "
 lsof -i :3000
 lsof -i :8000
 
-# Kill processes or change ports in docker-compose.dev.yml
+# Kill processes or change ports in .docker/compose/dev.yml
 ```
 
 **Docker Build Failures**:
@@ -486,5 +531,4 @@ make lint-stop     # Stop containers
 
 For more details, see:
 - `.ai/howto/run-linting.md` - Complete linting guide
-- `docker/linting/README.md` - Architecture documentation
-- `docker/linting/TROUBLESHOOTING.md` - Common issues
+- `.docker/dockerfiles/linting/` - Linting Dockerfiles location
