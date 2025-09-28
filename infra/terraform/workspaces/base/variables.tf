@@ -1,5 +1,17 @@
-# Base Infrastructure Variables
-# Only includes variables needed for persistent base resources
+# Purpose: Variable definitions for base infrastructure workspace configuration
+# Scope: Input variables for persistent base resources including networking, DNS, and registries
+# Overview: Defines all input variables required for the base infrastructure workspace which manages
+#     persistent resources that form the foundation of the application infrastructure. These variables
+#     control the configuration of VPC networking, availability zones, NAT Gateway enablement, ECR
+#     repositories, Route53 zones, and ACM certificates. Each variable includes validation rules to
+#     ensure proper values and sensible defaults optimized for different environments. The variables
+#     support cost optimization through optional resource creation and environment-specific sizing.
+# Dependencies: Used by all resource files in the base workspace
+# Exports: Variables available for use throughout the base workspace configuration
+# Configuration: Overridden by environment-specific tfvars files (dev.tfvars, staging.tfvars, prod.tfvars)
+# Environment: Supports dev, staging, and production with environment-specific defaults
+# Related: terraform.tfvars.example for sample values, outputs.tf for exposed values
+# Implementation: Validation blocks ensure data integrity, defaults optimize for cost
 
 # Core Configuration
 variable "product_domain" {

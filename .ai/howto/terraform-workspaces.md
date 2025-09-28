@@ -1,8 +1,18 @@
----
-description: How to use Terraform workspaces for base/runtime infrastructure separation
-original_location: infra/terraform/workspaces/README.md
-purpose: Guide for managing Terraform workspaces and implementing cost-optimized infrastructure
----
+# Purpose: Comprehensive guide for implementing and managing Terraform workspace separation
+# Scope: Base and runtime workspace architecture, deployment procedures, and cost optimization
+# Overview: This guide documents the Terraform workspace separation strategy that divides infrastructure
+#     into base (persistent) and runtime (ephemeral) workspaces for independent lifecycle management.
+#     The separation enables significant cost optimization by allowing runtime resources to be destroyed
+#     nightly while preserving expensive base resources like NAT Gateways and Route53 zones. It covers
+#     workspace naming conventions, initialization procedures, deployment workflows, and operational
+#     best practices. The guide includes detailed steps for managing both workspaces, implementing
+#     cross-workspace data sources, and maintaining clean separation between resource lifecycles.
+# Dependencies: Terraform CLI, AWS credentials, backend configurations, workspace scripts
+# Exports: Workspace management procedures, deployment commands, architectural patterns
+# Configuration: Separate backend states, workspace naming conventions, environment variables
+# Environment: Supports dev, staging, and production with isolated workspace states
+# Related: terraform-base-workspace.md for base details, terraform-runtime-workspace.md for runtime
+# Implementation: PR-based implementation approach with 6 phases of deployment
 
 # Terraform Workspaces Management Guide
 
@@ -33,8 +43,13 @@ workspaces/
 │   ├── data.tf    # Data sources for base resources
 │   ├── variables.tf
 │   └── outputs.tf
-└── README.md       # This file
+└── README.md       # Pointer to AI documentation
 ```
+
+## Related Documentation
+
+- [Base Workspace Guide](terraform-base-workspace.md) - Detailed guide for base infrastructure
+- [Runtime Workspace Guide](terraform-runtime-workspace.md) - Detailed guide for runtime infrastructure (coming in PR3)
 
 ## Workspace Naming Convention
 

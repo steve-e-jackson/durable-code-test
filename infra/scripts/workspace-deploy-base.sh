@@ -1,6 +1,20 @@
 #!/bin/bash
-# Base workspace deployment script
-# Deploys base infrastructure (VPC, NAT, ECR, Route53, ALB)
+# Purpose: Deploy base infrastructure workspace containing persistent resources
+# Scope: Manages VPC, NAT, ECR, Route53, ACM, ALB base resources via Terraform workspace
+# Overview: This script automates the deployment of base infrastructure resources that are
+#     expensive to recreate and should persist across runtime deployments. It handles workspace
+#     initialization, selection, planning, and applying of Terraform configurations for the base
+#     workspace. The script ensures proper backend configuration, validates tfvars file existence,
+#     and provides colored output for better visibility. It supports multiple environments (dev,
+#     staging, prod) and includes safety checks with user confirmation before applying changes.
+#     The base workspace contains networking, container registries, DNS zones, certificates, and
+#     the application load balancer itself (without listeners).
+# Dependencies: Terraform, AWS credentials, backend configuration files, environment tfvars
+# Usage: ./workspace-deploy-base.sh [dev|staging|prod]
+# Environment: Requires AWS credentials and proper IAM permissions for infrastructure creation
+# Configuration: Uses backend-config/base-{env}.hcl and environments/{env}.tfvars
+# Error Handling: Exits on any error with proper cleanup of temporary plan files
+# Output: JSON-formatted terraform outputs and deployment status messages
 
 set -e
 

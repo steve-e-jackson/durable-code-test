@@ -1,5 +1,18 @@
-# Base Infrastructure Outputs
-# These outputs are used by the runtime workspace via data sources
+# Purpose: Output definitions for base infrastructure resources consumed by runtime workspace
+# Scope: Exports all base resource identifiers, endpoints, and configuration values
+# Overview: Provides comprehensive outputs from the base infrastructure workspace that are consumed
+#     by the runtime workspace via Terraform data sources. These outputs include all necessary
+#     identifiers and configuration values for VPC networking, subnets, security groups, ECR
+#     repositories, ALB resources, Route53 zones, and ACM certificates. The outputs enable the
+#     runtime workspace to reference base resources without direct state file dependencies, maintaining
+#     clean separation between persistent and ephemeral infrastructure. Each output includes a
+#     description for documentation and proper handling of conditional resources.
+# Dependencies: All base workspace resources (networking.tf, ecr.tf, dns.tf, alb.tf)
+# Exports: Resource IDs, ARNs, URLs, and configuration values for runtime consumption
+# Configuration: Conditional outputs based on resource creation flags
+# Environment: Workspace and environment-aware values included in outputs
+# Related: Runtime workspace data.tf will consume these outputs via remote state or data sources
+# Implementation: Comprehensive output strategy for cross-workspace resource sharing
 
 # VPC Outputs
 output "vpc_id" {
