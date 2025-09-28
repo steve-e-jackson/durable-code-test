@@ -1,11 +1,11 @@
 # Project Roadmap Overview
 
 **Last Updated**: Auto-generated from roadmap items
-**Overall Completion**: 40% (3.64 of 9 items complete)
+**Overall Completion**: 56% (5.07 of 9 items complete)
 
 ## Status Summary
 - 🔴 Planning: 2 items (0% avg)
-- 🟡 In Progress: 5 items (55% avg)
+- 🟡 In Progress: 5 items (61% avg)
 - 🟢 Complete: 2 items (100%)
 - 📝 Total: 9 items
 
@@ -16,7 +16,7 @@
 | [Frontend Critical Fixes](in_progress/frontend-critical-fixes/PROGRESS_TRACKER.md) | 🟡 | 57% | [████████████░░░░░░░░] | Critical | 4/7 PRs | `in_progress/` |
 | [AI Contributions](planning/ai-contributions/PROGRESS_TRACKER.md) | 🔴 | 0% | [░░░░░░░░░░░░░░░░░░░░] | High | 0/6 PRs | `planning/` |
 | [Example API Feature](planning/example-api-feature/PROGRESS_TRACKER.md) | 🔴 | 0% | [░░░░░░░░░░░░░░░░░░░░] | Medium | 0/6 PRs | `planning/` |
-| [Terraform Workspaces](in_progress/terraform-workspaces/PROGRESS_TRACKER.md) | 🟡 | 33% | [██████░░░░░░░░░░░░░░] | High | 2/6 PRs | `in_progress/` |
+| [Terraform Workspaces](in_progress/terraform-workspaces/PROGRESS_TRACKER.md) | 🟡 | 50% | [██████████░░░░░░░░░░] | High | 3/6 PRs | `in_progress/` |
 | [Docker Linting Separation](in_progress/docker-linting-separation/PROGRESS_TRACKER.md) | 🟡 | 75% | [███████████████░░░░░] | High | 18/24 tasks | `in_progress/` |
 | [Docker Reorganization](in_progress/docker-reorganization/PROGRESS_TRACKER.md) | 🟡 | 80% | [████████████████░░░░] | High | 4/5 PRs | `in_progress/` |
 | [Deployment](in_progress/deployment/PROGRESS_TRACKER.md) | 🟡 | 45% | [█████████░░░░░░░░░░░] | Critical | 5/11 PRs | `in_progress/` |
@@ -53,7 +53,7 @@ Complete    [██████████] 100% (2 items)
 
 ### 🟠 High Priority
 1. **AI Contributions** - 0% - AI workflow improvements planned
-2. **Terraform Workspaces** - 0% - Separate base/runtime infrastructure with workspaces
+2. **Terraform Workspaces** - 50% - PR1, PR2, PR3 complete (base and runtime workspaces implemented)
 3. **Docker Linting Separation** - 75% - Tasks 1-4 complete, documentation remaining
 4. **Docker Reorganization** - 80% - PR1, PR2, PR3+PR4 complete (compose files moved, all references updated)
 
@@ -90,8 +90,8 @@ This file is maintained by:
 
 ## Metrics
 
-- **Average Completion**: 49%
-- **Items Started**: 3 of 7 (42.9%)
+- **Average Completion**: 56%
+- **Items Started**: 5 of 7 (71.4%)
 - **Items Complete**: 2 of 7 (28.6%)
 - **Items Needing Setup**: 0 of 7 (0%)
 

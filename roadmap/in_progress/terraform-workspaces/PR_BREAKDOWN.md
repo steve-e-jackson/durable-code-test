@@ -414,294 +414,383 @@ terraform plan -var-file="../../environments/dev.tfvars"
 2. `infra/scripts/workspace-deploy.sh`
 3. `infra/scripts/workspace-destroy.sh`
 4. `infra/scripts/workspace-status.sh`
+5. `infra/scripts/deploy-app.sh` (update for workspace model)
 
 ### Implementation Steps:
 
-#### 1. Update Makefile.infra with workspace commands
+#### 1. Update Makefile.infra with parameter-driven workspace commands
 ```makefile
-# Workspace management targets
-.PHONY: infra-workspace-init-base infra-workspace-init-runtime
+# Infrastructure management with SCOPE parameter
+.PHONY: infra-up infra-down infra-status deploy
 
-infra-workspace-init-base: ## Initialize base infrastructure workspace
-	@echo "$(CYAN)Initializing base workspace for $(ENV)...$(NC)"
-	@./infra/scripts/workspace-init.sh base $(ENV)
-	@echo "$(GREEN)✓ Base workspace initialized$(NC)"
-
-infra-workspace-init-runtime: ## Initialize runtime infrastructure workspace
-	@echo "$(CYAN)Initializing runtime workspace for $(ENV)...$(NC)"
-	@./infra/scripts/workspace-init.sh runtime $(ENV)
-	@echo "$(GREEN)✓ Runtime workspace initialized$(NC)"
-
-infra-up-base: infra-workspace-init-base ## Deploy base infrastructure
-	@echo "$(CYAN)Deploying base infrastructure...$(NC)"
-	@cd infra/terraform/workspaces/base && \
-		terraform apply -var-file="../../environments/$(ENV).tfvars" $(TF_ARGS)
-	@echo "$(GREEN)✓ Base infrastructure deployed$(NC)"
-
-infra-up-runtime: infra-workspace-init-runtime ## Deploy runtime infrastructure
-	@echo "$(CYAN)Deploying runtime infrastructure...$(NC)"
-	@cd infra/terraform/workspaces/runtime && \
-		terraform apply -var-file="../../environments/$(ENV).tfvars" $(TF_ARGS)
-	@echo "$(GREEN)✓ Runtime infrastructure deployed$(NC)"
-
-infra-down-runtime: infra-workspace-init-runtime ## Destroy runtime infrastructure
-	@echo "$(RED)Destroying runtime infrastructure...$(NC)"
-	@cd infra/terraform/workspaces/runtime && \
-		terraform destroy -var-file="../../environments/$(ENV).tfvars" $(TF_ARGS)
-	@echo "$(GREEN)✓ Runtime infrastructure destroyed$(NC)"
-
-infra-down-base: infra-workspace-init-base ## Destroy base infrastructure (DANGEROUS)
-	@if [ "$(CONFIRM)" != "destroy-base" ]; then \
-		echo "$(RED)ERROR: Base destruction requires CONFIRM=destroy-base$(NC)"; \
+infra-up: ## Deploy infrastructure (SCOPE=base|runtime|all ENV=dev)
+	@if [ -z "$(SCOPE)" ]; then \
+		echo "$(RED)Error: SCOPE required (base|runtime|all)$(NC)"; \
+		echo "Usage: make infra-up SCOPE=runtime ENV=dev"; \
 		exit 1; \
 	fi
-	@cd infra/terraform/workspaces/base && \
-		terraform destroy -var-file="../../environments/$(ENV).tfvars" $(TF_ARGS)
-	@echo "$(GREEN)✓ Base infrastructure destroyed$(NC)"
+	@./infra/scripts/workspace-deploy.sh $(ENV) $(SCOPE)
 
-infra-status: ## Show workspace status
+infra-down: ## Destroy infrastructure (SCOPE=runtime|all ENV=dev)
+	@if [ -z "$(SCOPE)" ]; then \
+		echo "$(RED)Error: SCOPE required (runtime|all)$(NC)"; \
+		echo "Usage: make infra-down SCOPE=runtime ENV=dev"; \
+		exit 1; \
+	fi
+	@if [ "$(SCOPE)" = "base" ] || [ "$(SCOPE)" = "all" ]; then \
+		if [ "$(CONFIRM)" != "destroy-base" ]; then \
+			echo "$(RED)Error: Base destruction requires CONFIRM=destroy-base$(NC)"; \
+			exit 1; \
+		fi; \
+	fi
+	@./infra/scripts/workspace-destroy.sh $(ENV) $(SCOPE)
+
+infra-status: ## Show infrastructure status (ENV=dev)
 	@./infra/scripts/workspace-status.sh $(ENV)
+
+infra-check: ## Verify infrastructure is ready for deployment
+	@./infra/scripts/check-infra-ready.sh $(ENV)
+
+deploy: infra-check ## Deploy application to ECS (ENV=dev)
+	@ENV=$(ENV) ./infra/scripts/deploy-app.sh
 ```
 
-#### 2. Create workspace status script
+#### 2. Create unified workspace-deploy.sh script
 ```bash
 #!/bin/bash
-# infra/scripts/workspace-status.sh
+# infra/scripts/workspace-deploy.sh
+# Handles deployment based on SCOPE parameter
 
 ENV=$1
+SCOPE=$2
 
-echo "=== Terraform Workspace Status for $ENV ==="
-echo ""
+if [[ -z "$ENV" || -z "$SCOPE" ]]; then
+    echo "Usage: $0 <env> <scope>"
+    echo "  env: dev|staging|prod"
+    echo "  scope: base|runtime|all"
+    exit 1
+fi
 
-echo "Base Workspace (base-$ENV):"
-cd infra/terraform/workspaces/base
-terraform workspace select base-$ENV 2>/dev/null
-terraform output -json | jq -r 'keys[]' | head -5
-echo ""
+case $SCOPE in
+    base)
+        echo "Deploying base infrastructure..."
+        ./infra/scripts/workspace-deploy-base.sh $ENV
+        ;;
+    runtime)
+        echo "Deploying runtime infrastructure..."
+        ./infra/scripts/workspace-deploy-runtime.sh $ENV
+        ;;
+    all)
+        echo "Deploying all infrastructure..."
+        ./infra/scripts/workspace-deploy-base.sh $ENV
+        if [ $? -eq 0 ]; then
+            ./infra/scripts/workspace-deploy-runtime.sh $ENV
+        fi
+        ;;
+    *)
+        echo "Invalid SCOPE: $SCOPE (must be base|runtime|all)"
+        exit 1
+        ;;
+esac
+```
 
-echo "Runtime Workspace (runtime-$ENV):"
-cd ../runtime
-terraform workspace select runtime-$ENV 2>/dev/null
-terraform output -json | jq -r 'keys[]' | head -5
+#### 3. Create unified workspace-destroy.sh script
+```bash
+#!/bin/bash
+# infra/scripts/workspace-destroy.sh
+# Handles destruction based on SCOPE parameter
+
+ENV=$1
+SCOPE=$2
+
+if [[ -z "$ENV" || -z "$SCOPE" ]]; then
+    echo "Usage: $0 <env> <scope>"
+    echo "  env: dev|staging|prod"
+    echo "  scope: runtime|all"
+    exit 1
+fi
+
+case $SCOPE in
+    runtime)
+        echo "Destroying runtime infrastructure..."
+        ./infra/scripts/workspace-destroy-runtime.sh $ENV
+        ;;
+    all)
+        echo "Destroying all infrastructure..."
+        ./infra/scripts/workspace-destroy-runtime.sh $ENV
+        if [ $? -eq 0 ]; then
+            ./infra/scripts/workspace-destroy-base.sh $ENV
+        fi
+        ;;
+    base)
+        echo "ERROR: Use SCOPE=all with CONFIRM=destroy-base to destroy base"
+        exit 1
+        ;;
+    *)
+        echo "Invalid SCOPE: $SCOPE (must be runtime|all)"
+        exit 1
+        ;;
+esac
+```
+
+#### 4. Update deploy-app.sh for workspace model
+```bash
+# Key updates needed:
+# - Use workspace outputs for resource names
+# - Check if runtime workspace is deployed
+# - Use consistent naming from workspace variables
 ```
 
 ### Testing:
 ```bash
-# Test new commands
-make infra-up-base ENV=dev
-make infra-up-runtime ENV=dev
+# Test parameter-driven commands
+make infra-up SCOPE=base ENV=dev
+make infra-up SCOPE=runtime ENV=dev
 make infra-status ENV=dev
-make infra-down-runtime ENV=dev
-# Verify base still exists
-make infra-status ENV=dev
+make deploy ENV=dev
+
+# Test teardown and restore
+make infra-down SCOPE=runtime ENV=dev
+make infra-status ENV=dev  # Should show base still exists
+make infra-up SCOPE=runtime ENV=dev
+make deploy ENV=dev
+
+# Test all-in-one deployment
+make infra-up SCOPE=all ENV=staging
 ```
 
 ---
 
-## PR6: Documentation and Testing
+## PR6: Documentation, Testing, and Scheduling
 
 ### Branch: `feat/terraform-workspaces-pr6-docs`
 
 ### Files to Create/Modify:
-1. `infra/terraform/WORKSPACES.md`
-2. `infra/terraform/MIGRATION.md`
-3. `infra/terraform/RUNBOOK.md`
-4. `infra/terraform/TROUBLESHOOTING.md`
-5. `infra/terraform/README.md` (update)
-6. `.github/workflows/terraform-test.yml`
+1. `.ai/howto/terraform-workspaces-operations.md`
+2. `.ai/howto/infrastructure-deployment.md`
+3. `.ai/runbooks/cost-optimization.md`
+4. `.ai/troubleshooting/terraform-workspaces.md`
+5. `.github/workflows/nightly-teardown.yml`
+6. `.github/workflows/morning-startup.yml`
+7. `.github/workflows/terraform-test.yml`
 
 ### Implementation Steps:
 
-#### 1. Create comprehensive workspace documentation
-```markdown
-# infra/terraform/WORKSPACES.md
+#### 1. Create GitHub Actions for scheduled operations
+```yaml
+# .github/workflows/nightly-teardown.yml
+name: Nightly Infrastructure Teardown
 
-## Terraform Workspace Architecture
+on:
+  schedule:
+    - cron: '0 1 0 * * *'  # 8 PM PST
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to teardown'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+
+jobs:
+  teardown:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+
+      - name: Teardown runtime infrastructure
+        run: |
+          make infra-down SCOPE=runtime ENV=${{ inputs.environment || 'dev' }}
+```
+
+```yaml
+# .github/workflows/morning-startup.yml
+name: Morning Infrastructure Startup
+
+on:
+  schedule:
+    - cron: '0 15 * * 1-5'  # 8 AM PST, weekdays only
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to startup'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+
+jobs:
+  startup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+
+      - name: Startup runtime infrastructure
+        run: |
+          make infra-up SCOPE=runtime ENV=${{ inputs.environment || 'dev' }}
+
+      - name: Deploy latest application
+        run: |
+          make deploy ENV=${{ inputs.environment || 'dev' }}
+```
+
+#### 2. Create comprehensive documentation in AI folder
+```markdown
+# .ai/howto/terraform-workspaces-operations.md
+
+## Terraform Workspace Operations
 
 ### Overview
-We use Terraform workspaces to separate base (persistent) and runtime (ephemeral) infrastructure.
+Infrastructure is split into base (persistent) and runtime (ephemeral) workspaces.
 
-### Workspace Structure
-- **base-{env}**: VPC, NAT, ECR, Route53 - rarely changed
-- **runtime-{env}**: ECS, ALB listeners - frequently updated
+### Common Commands
+- `make infra-up SCOPE=all ENV=dev` - Deploy everything
+- `make infra-up SCOPE=runtime ENV=dev` - Deploy runtime only
+- `make infra-down SCOPE=runtime ENV=dev` - Teardown runtime
+- `make deploy ENV=dev` - Deploy application
 
-### Common Operations
+### Cost Optimization
+GitHub Actions automatically:
+- Tears down runtime infrastructure at 8 PM PST (weekdays)
+- Restores runtime infrastructure at 8 AM PST (weekdays)
+- Preserves base infrastructure (VPC, NAT, ECR)
 
-#### Deploy everything
-```bash
-make infra-up-base ENV=dev
-make infra-up-runtime ENV=dev
+### Manual Override
+Workflows can be triggered manually from GitHub Actions tab.
 ```
 
-#### Nightly shutdown
-```bash
-make infra-down-runtime ENV=dev
-```
-
-#### Morning startup
-```bash
-make infra-up-runtime ENV=dev
-```
-```
-
-#### 2. Create migration guide
 ```markdown
-# infra/terraform/MIGRATION.md
+# .ai/runbooks/cost-optimization.md
 
-## Migration from Single State to Workspaces
+## Cost Optimization Runbook
 
-### Prerequisites
-1. Backup current state
-2. No pending changes
-3. Maintenance window scheduled
+### Automated Schedule
+- **Teardown**: 8 PM PST daily (saves ~$15/day)
+- **Startup**: 8 AM PST weekdays
+- **Weekend**: Infrastructure remains down
 
-### Migration Steps
-
-#### Step 1: Export current state
+### Manual Cost Savings
 ```bash
-terraform state pull > backup.tfstate
-```
+# Immediate teardown
+make infra-down SCOPE=runtime ENV=dev
 
-#### Step 2: Import to base workspace
-```bash
-cd infra/terraform/workspaces/base
-terraform import aws_vpc.main vpc-xxx
-terraform import aws_subnet.public[0] subnet-xxx
-# ... continue for all base resources
-```
-
-#### Step 3: Import to runtime workspace
-```bash
-cd infra/terraform/workspaces/runtime
-terraform import aws_ecs_cluster.main arn:aws:ecs:xxx
-# ... continue for all runtime resources
-```
-
-#### Step 4: Verify
-```bash
-make infra-status ENV=dev
-```
-```
-
-#### 3. Create operational runbook
-```markdown
-# infra/terraform/RUNBOOK.md
-
-## Operational Runbook
-
-### Daily Operations
-
-#### Morning Startup (8 AM)
-```bash
-make infra-up-runtime ENV=dev
-make infra-status ENV=dev
-```
-
-#### Evening Shutdown (8 PM)
-```bash
-make infra-down-runtime ENV=dev
-```
-
-### Deployment Operations
-
-#### Deploy Code Changes
-```bash
-# Only affects runtime workspace
+# Restore when needed
+make infra-up SCOPE=runtime ENV=dev
 make deploy ENV=dev
 ```
 
-#### Infrastructure Updates
-```bash
-# Base changes (rare)
-make infra-up-base ENV=dev
-
-# Runtime changes (common)
-make infra-up-runtime ENV=dev
+### Cost Breakdown
+- Runtime (ECS Fargate): ~$0.60/day
+- Base (NAT Gateway): ~$1.08/day (persistent)
+- Total savings: ~60% with scheduled teardowns
 ```
 
-### Emergency Procedures
-
-#### Full Recovery
-```bash
-make infra-up-base ENV=dev
-make infra-up-runtime ENV=dev
-make deploy ENV=dev
-```
-```
-
-#### 4. Create troubleshooting guide
 ```markdown
-# infra/terraform/TROUBLESHOOTING.md
+# .ai/troubleshooting/terraform-workspaces.md
 
-## Common Issues and Solutions
+## Troubleshooting Terraform Workspaces
 
-### Issue: "No matching VPC found"
-**Cause**: Runtime workspace can't find base resources
-**Solution**:
-1. Verify base workspace deployed: `make infra-status ENV=dev`
-2. Check tags on base resources
-3. Redeploy base if needed: `make infra-up-base ENV=dev`
+### Runtime won't deploy
+```bash
+# Check base is deployed
+make infra-status ENV=dev
 
-### Issue: "Backend initialization failed"
-**Cause**: S3 backend not accessible
-**Solution**:
-1. Check AWS credentials
-2. Verify S3 bucket exists
-3. Check backend config file
-
-### Issue: "Workspace already exists"
-**Cause**: Trying to create existing workspace
-**Solution**: Use `terraform workspace select` instead
+# If missing, deploy base first
+make infra-up SCOPE=base ENV=dev
 ```
 
-#### 5. Add CI/CD tests
+### Application deployment fails
+```bash
+# Verify runtime is up
+make infra-status ENV=dev
+
+# If runtime is down, restore it
+make infra-up SCOPE=runtime ENV=dev
+```
+
+### GitHub Actions failing
+1. Check AWS credentials in GitHub Secrets
+2. Verify IAM permissions
+3. Check CloudWatch logs for Terraform errors
+```
+
+#### 3. Add CI/CD tests
 ```yaml
 # .github/workflows/terraform-test.yml
-
 name: Terraform Workspace Tests
 
 on:
   pull_request:
     paths:
       - 'infra/terraform/**'
+      - 'infra/scripts/**'
 
 jobs:
-  test-workspaces:
+  validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
 
-      - name: Test Base Workspace Init
+      - name: Validate Base Workspace
         run: |
           cd infra/terraform/workspaces/base
           terraform init -backend=false
           terraform validate
 
-      - name: Test Runtime Workspace Init
+      - name: Validate Runtime Workspace
         run: |
           cd infra/terraform/workspaces/runtime
           terraform init -backend=false
           terraform validate
 
-      - name: Check Workspace Dependencies
+      - name: Test Scripts
         run: |
-          ./infra/scripts/check-workspace-deps.sh
+          bash -n infra/scripts/workspace-*.sh
+          bash -n infra/scripts/deploy-app.sh
 ```
 
 ### Testing:
 ```bash
-# Full integration test
-make infra-up-base ENV=dev
-make infra-up-runtime ENV=dev
-make infra-down-runtime ENV=dev
-make infra-up-runtime ENV=dev
+# Test complete deployment flow
+make infra-up SCOPE=all ENV=dev
+make deploy ENV=dev
 make infra-status ENV=dev
 
-# Verify documentation
-grep -r "workspace" infra/terraform/*.md
+# Test cost optimization flow
+make infra-down SCOPE=runtime ENV=dev
+make infra-up SCOPE=runtime ENV=dev
+
+# Verify GitHub Actions
+gh workflow run nightly-teardown --field environment=dev
+gh workflow run morning-startup --field environment=dev
 ```
 
 ---
@@ -713,14 +802,16 @@ After all PRs are complete, verify:
 - [ ] Base and runtime in separate workspaces
 - [ ] Each workspace has independent state
 - [ ] Runtime references base via data sources
-- [ ] `make infra-down-runtime` works without errors
-- [ ] `make infra-up-runtime` restores service
+- [ ] `make infra-down SCOPE=runtime ENV=dev` works without errors
+- [ ] `make infra-up SCOPE=runtime ENV=dev` restores service
+- [ ] `make infra-up SCOPE=all ENV=dev` deploys everything
+- [ ] `make deploy ENV=dev` deploys application successfully
 - [ ] Base resources unchanged during runtime operations
-- [ ] All Makefile commands updated
-- [ ] Documentation complete
-- [ ] Migration guide tested
-- [ ] CI/CD pipeline updated
-- [ ] Cost optimization verified
+- [ ] Parameter-driven Makefile commands (SCOPE, ENV)
+- [ ] GitHub Actions for scheduled teardown/startup
+- [ ] Documentation in .ai/ folder structure
+- [ ] CI/CD pipeline validates workspaces
+- [ ] Cost optimization (~60% savings) achieved
 
 ## Rollback Plan
 
