@@ -71,4 +71,3 @@ export const OscilloscopeProvider: React.FC<OscilloscopeProviderProps> = ({
     </OscilloscopeContext.Provider>
   );
 };
-
