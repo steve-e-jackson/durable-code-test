@@ -36,7 +36,7 @@ quick_actions:
     purpose: "Verify correct location for any file type"
     note: "MUST be checked before creating or moving files"
   generate_code:
-    guide: ".ai/howto/create-new-code-files.md"
+    guide: ".ai/howto/code-authoring-workflow.md"
     process: "1. Check layout.yaml 2. Select template 3. Read template details in index_expanded.md 4. Follow code creation guide"
   ask_questions:
     command: "/ask [your question]"
@@ -350,9 +350,9 @@ howto:
     purpose: "Verify React app renders correctly using various testing tools"
     key_commands: ["node scripts/check-page-content.js", "node scripts/test-rendered-content.js", "node scripts/simple-check.js --watch"]
 
-  create-new-code-files.md:
-    purpose: "Step-by-step guide for creating production-ready code files"
-    key_commands: ["Follow 9-step process", "Check layout.yaml first", "Use templates"]
+  code-authoring-workflow.md:
+    purpose: "Comprehensive workflow for code creation and authoring"
+    key_commands: ["Setup environment and branch", "Discover resources through index", "Follow 10-step workflow"]
 
 common_workflows:
   add_linting_rule:
