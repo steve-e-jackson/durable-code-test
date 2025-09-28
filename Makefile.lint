@@ -18,7 +18,19 @@
 # Detect which docker compose command to use (for CI compatibility)
 DOCKER_COMPOSE := $(shell which docker-compose 2>/dev/null || echo "docker compose")
 
-# Start dedicated linting containers
+# Ensure linting containers are running (auto-start if needed)
+lint-ensure-containers: ## Ensure linting containers are running
+	@if ! docker ps | grep -q "durable-code-python-linter-$(BRANCH_NAME)"; then \
+		echo "$(CYAN)Starting Python linting container...$(NC)"; \
+		$(DOCKER_COMPOSE) -f .docker/compose/lint.yml up -d python-linter; \
+	fi
+	@if ! docker ps | grep -q "durable-code-js-linter-$(BRANCH_NAME)"; then \
+		echo "$(CYAN)Starting JS linting container...$(NC)"; \
+		$(DOCKER_COMPOSE) -f .docker/compose/lint.yml up -d js-linter; \
+	fi
+	@echo "$(GREEN)✓ Linting containers ready$(NC)"
+
+# Start dedicated linting containers (force start)
 lint-start: ## Start dedicated linting containers
 	@echo "$(CYAN)Starting dedicated linting containers...$(NC)"
 	@$(DOCKER_COMPOSE) -f .docker/compose/lint.yml up -d
@@ -31,7 +43,7 @@ lint-stop: ## Stop dedicated linting containers
 	@echo "$(GREEN)✓ Linting containers stopped$(NC)"
 
 # Run all linters - REQUIRED BY GITHUB ACTIONS
-lint-all: lint-start ## Run ALL linters (Python, JS/TS, and custom design rules) in parallel
+lint-all: lint-ensure-containers ## Run ALL linters (Python, JS/TS, and custom design rules) in parallel
 	@echo "$(CYAN)╔════════════════════════════════════════════════════════════╗$(NC)"
 	@echo "$(CYAN)║        Running ALL Linters (Parallel Execution)           ║$(NC)"
 	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
@@ -45,7 +57,7 @@ lint-all: lint-start ## Run ALL linters (Python, JS/TS, and custom design rules)
 	@echo "$(GREEN)✅ ALL linting checks passed!$(NC)"
 
 # Python linting target (can be run independently or in parallel)
-lint-python: lint-start ## Run Python linters using dedicated container
+lint-python: lint-ensure-containers ## Run Python linters using dedicated container
 	@echo "$(YELLOW)━━━ Python Linters ━━━$(NC)"
 	@docker exec -u root durable-code-python-linter-$(BRANCH_NAME) bash -c "cd /workspace/backend && \
 		mkdir -p /tmp/.cache/ruff /tmp/.cache/mypy && \
@@ -58,7 +70,7 @@ lint-python: lint-start ## Run Python linters using dedicated container
 	@echo "$(GREEN)✓ Python linting passed$(NC)"
 
 # JavaScript/TypeScript linting target (can be run independently or in parallel)
-lint-js: lint-start ## Run JavaScript/TypeScript linters using dedicated container
+lint-js: lint-ensure-containers ## Run JavaScript/TypeScript linters using dedicated container
 	@echo "$(YELLOW)━━━ TypeScript/React Linters ━━━$(NC)"
 	@docker exec durable-code-js-linter-$(BRANCH_NAME) sh -c "cd /workspace/frontend && \
 		echo '• TypeScript...' && npm run typecheck && \
@@ -69,7 +81,7 @@ lint-js: lint-start ## Run JavaScript/TypeScript linters using dedicated contain
 	@echo "$(GREEN)✓ Frontend linting passed$(NC)"
 
 # Design linting target (can be run independently or in parallel)
-lint-design: lint-start ## Run custom design linters using dedicated container
+lint-design: lint-ensure-containers ## Run custom design linters using dedicated container
 	@echo "$(YELLOW)━━━ Custom Design Linters ━━━$(NC)"
 	@docker exec durable-code-python-linter-$(BRANCH_NAME) bash -c "cd /workspace && \
 		echo '• File headers...' && PYTHONPATH=/workspace/tools python -m design_linters --rules style.file-header --format text --recursive --fail-on-error backend tools test && \
@@ -90,7 +102,7 @@ lint-design: lint-start ## Run custom design linters using dedicated container
 	@echo "$(GREEN)✓ Custom design linting passed$(NC)"
 
 # Auto-fix formatting issues
-lint-fix: lint-start ## Auto-fix linting issues (Ruff, ESLint, Prettier, Stylelint)
+lint-fix: lint-ensure-containers ## Auto-fix linting issues (Ruff, ESLint, Prettier, Stylelint)
 	@echo "$(CYAN)Auto-fixing code formatting...$(NC)"
 	@echo "$(YELLOW)Fixing Python code...$(NC)"
 	@docker exec -u root durable-code-python-linter-$(BRANCH_NAME) bash -c "cd /workspace/backend && \
@@ -105,7 +117,7 @@ lint-fix: lint-start ## Auto-fix linting issues (Ruff, ESLint, Prettier, Styleli
 	@echo "$(GREEN)✅ Auto-fix complete!$(NC)"
 
 # Run custom design linters only
-lint-custom: lint-start ## Run custom design linters with all categories
+lint-custom: lint-ensure-containers ## Run custom design linters with all categories
 	@echo "$(CYAN)╔════════════════════════════════════════════════════════════╗$(NC)"
 	@echo "$(CYAN)║                Custom Design Linters                      ║$(NC)"
 	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
@@ -113,7 +125,7 @@ lint-custom: lint-start ## Run custom design linters with all categories
 	@echo "$(GREEN)✓ Custom linting complete$(NC)"
 
 # Lint infrastructure files (Terraform and shell scripts)
-lint-infra: lint-start ## Lint infrastructure files (Terraform format/validate, TFLint, and shell scripts)
+lint-infra: lint-ensure-containers ## Lint infrastructure files (Terraform format/validate, TFLint, and shell scripts)
 	@echo "$(CYAN)╔════════════════════════════════════════════════════════════╗$(NC)"
 	@echo "$(CYAN)║              Infrastructure Linting                       ║$(NC)"
 	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
@@ -153,7 +165,7 @@ lint-infra: lint-start ## Lint infrastructure files (Terraform format/validate, 
 	@echo "$(GREEN)✓ Infrastructure linting passed$(NC)"
 
 # List all custom rule categories
-lint-categories: lint-start ## List all custom rule categories with descriptions
+lint-categories: lint-ensure-containers ## List all custom rule categories with descriptions
 	@echo "$(CYAN)╔════════════════════════════════════════════════════════════╗$(NC)"
 	@echo "$(CYAN)║                 Custom Rule Categories                    ║$(NC)"
 	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
