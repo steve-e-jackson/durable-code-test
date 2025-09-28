@@ -1,13 +1,13 @@
 # Project Roadmap Overview
 
 **Last Updated**: Auto-generated from roadmap items
-**Overall Completion**: 46% (3.64 of 8 items complete)
+**Overall Completion**: 40% (3.64 of 9 items complete)
 
 ## Status Summary
-- 🔴 Planning: 2 items (0% avg)
+- 🔴 Planning: 3 items (0% avg)
 - 🟡 In Progress: 4 items (49% avg)
 - 🟢 Complete: 2 items (100%)
-- 📝 Total: 8 items
+- 📝 Total: 9 items
 
 ## Roadmap Items
 
@@ -16,6 +16,7 @@
 | [Frontend Critical Fixes](in_progress/frontend-critical-fixes/PROGRESS_TRACKER.md) | 🟡 | 57% | [████████████░░░░░░░░] | Critical | 4/7 PRs | `in_progress/` |
 | [AI Contributions](planning/ai-contributions/PROGRESS_TRACKER.md) | 🔴 | 0% | [░░░░░░░░░░░░░░░░░░░░] | High | 0/6 PRs | `planning/` |
 | [Example API Feature](planning/example-api-feature/PROGRESS_TRACKER.md) | 🔴 | 0% | [░░░░░░░░░░░░░░░░░░░░] | Medium | 0/6 PRs | `planning/` |
+| [Terraform Workspaces](planning/terraform-workspaces/PROGRESS_TRACKER.md) | 🔴 | 0% | [░░░░░░░░░░░░░░░░░░░░] | High | 0/6 PRs | `planning/` |
 | [Docker Linting Separation](in_progress/docker-linting-separation/PROGRESS_TRACKER.md) | 🟡 | 75% | [███████████████░░░░░] | High | 18/24 tasks | `in_progress/` |
 | [Docker Reorganization](in_progress/docker-reorganization/PROGRESS_TRACKER.md) | 🟡 | 80% | [████████████████░░░░] | High | 4/5 PRs | `in_progress/` |
 | [Deployment](in_progress/deployment/PROGRESS_TRACKER.md) | 🟡 | 45% | [█████████░░░░░░░░░░░] | Critical | 5/11 PRs | `in_progress/` |
@@ -34,14 +35,14 @@ Items are automatically organized by completion percentage:
 
 ### By Status
 ```
-Planning    [░░░░░░░░░░] 0%   (2 items)
+Planning    [░░░░░░░░░░] 0%   (3 items)
 In Progress [█████░░░░░] 49%  (4 items)
 Complete    [██████████] 100% (2 items)
 ```
 
 ### Overall Project Progress
 ```
-[█████████░░░░░░░░░░░] 46% Complete
+[████████░░░░░░░░░░░░] 40% Complete
 ```
 
 ## Priority Matrix
@@ -52,8 +53,9 @@ Complete    [██████████] 100% (2 items)
 
 ### 🟠 High Priority
 1. **AI Contributions** - 0% - AI workflow improvements planned
-2. **Docker Linting Separation** - 75% - Tasks 1-4 complete, documentation remaining
-3. **Docker Reorganization** - 80% - PR1, PR2, PR3+PR4 complete (compose files moved, all references updated)
+2. **Terraform Workspaces** - 0% - Separate base/runtime infrastructure with workspaces
+3. **Docker Linting Separation** - 75% - Tasks 1-4 complete, documentation remaining
+4. **Docker Reorganization** - 80% - PR1, PR2, PR3+PR4 complete (compose files moved, all references updated)
 
 ### 🟡 Medium Priority
 1. **Example API Feature** - 0% - Template for new features
