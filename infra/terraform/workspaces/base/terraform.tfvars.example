@@ -1,0 +1,26 @@
+# Example terraform.tfvars for base workspace
+# Copy to terraform.tfvars and customize for your environment
+
+environment     = "dev"
+aws_region      = "us-west-2"
+product_domain  = "durableai"
+project_name    = "durable-code"
+
+# Networking
+vpc_cidr           = "10.0.0.0/16"
+az_count           = 2
+enable_nat_gateway = true  # Set to false for cost savings in dev
+
+# Domain and DNS (leave empty if not using custom domain yet)
+domain_name         = ""
+create_route53_zone = false
+
+# Security
+enable_waf = false
+
+# Additional tags
+additional_tags = {
+  Owner       = "Infrastructure Team"
+  CostCenter  = "Engineering"
+  ManagedBy   = "Terraform"
+}
