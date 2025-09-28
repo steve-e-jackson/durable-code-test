@@ -11,7 +11,7 @@
  * Props/Interfaces: ButtonProps extending HTMLButtonElement with variant, size, isLoading, fullWidth options
  * State/Behavior: No internal state, controlled component with loading state management and disabled handling
  */
-import React from 'react';
+import React, { useMemo } from 'react';
 import styles from './Button.module.css';
 import type { ButtonProps } from './Button.types';
 
@@ -26,16 +26,20 @@ export const Button = React.memo<ButtonProps>(
     className = '',
     ...rest
   }) => {
-    const classNames = [
-      styles.button,
-      styles[variant],
-      styles[size],
-      fullWidth && styles.fullWidth,
-      isLoading && styles.loading,
-      className,
-    ]
-      .filter(Boolean)
-      .join(' ');
+    const classNames = useMemo(
+      () =>
+        [
+          styles.button,
+          styles[variant],
+          styles[size],
+          fullWidth && styles.fullWidth,
+          isLoading && styles.loading,
+          className,
+        ]
+          .filter(Boolean)
+          .join(' '),
+      [variant, size, fullWidth, isLoading, className],
+    );
 
     return (
       <button className={classNames} disabled={disabled || isLoading} {...rest}>
