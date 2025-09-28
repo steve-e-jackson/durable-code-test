@@ -30,7 +30,6 @@
       "Bash(poetry run mypy:*)",
       "Bash(poetry add:*)",
       "Bash(ruff check:*)",
-      "Bash(python -m mypy:*)",
       "Bash(docker logs:*)",
       "Bash(docker ps:*)",
       "Bash(docker images:*)",
@@ -78,7 +77,6 @@
       "Bash(sh)",
       "Bash(. .env)",
       "Bash(source .env)",
-      "SlashCommand(/done)"
     ],
     "deny": [],
     "ask": [
