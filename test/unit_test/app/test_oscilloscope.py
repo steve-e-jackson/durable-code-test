@@ -261,23 +261,43 @@ class TestOscilloscopePerformance:
         with client.websocket_connect("/api/oscilloscope/stream") as websocket:
             websocket.send_json({"command": "start", "wave_type": "sine", "frequency": 50.0})
 
-            # Collect data for a short period
-            import time
-
-            start_time = time.time()
-            packet_count = 0
-            sample_count = 0
-
-            while time.time() - start_time < 1.0:  # Collect for 1 second
-                try:
-                    websocket.send_text("")  # Keep connection alive
-                    data = websocket.receive_json()
-                    if "samples" in data:
-                        packet_count += 1
-                        sample_count += len(data["samples"])
-                except Exception:
-                    break
+            packet_count, sample_count = self._collect_streaming_data(websocket)
 
             # Should receive reasonable amount of data
             assert packet_count > 0
             assert sample_count > 0
+
+    def _collect_streaming_data(self, websocket) -> tuple[int, int]:
+        """Collect streaming data for performance testing."""
+        import time
+
+        start_time = time.time()
+        packet_count = 0
+        sample_count = 0
+
+        while time.time() - start_time < 1.0:  # Collect for 1 second
+            if self._try_receive_data(websocket, packet_count, sample_count):
+                packet_count, sample_count = self._update_counts(websocket, packet_count, sample_count)
+            else:
+                break
+
+        return packet_count, sample_count
+
+    def _try_receive_data(self, websocket, packet_count: int, sample_count: int) -> bool:
+        """Try to receive data from websocket, return False if failed."""
+        try:
+            websocket.send_text("")  # Keep connection alive
+            return True
+        except Exception:
+            return False
+
+    def _update_counts(self, websocket, packet_count: int, sample_count: int) -> tuple[int, int]:
+        """Update packet and sample counts from received data."""
+        try:
+            data = websocket.receive_json()
+            if "samples" in data:
+                packet_count += 1
+                sample_count += len(data["samples"])
+        except Exception:
+            pass
+        return packet_count, sample_count

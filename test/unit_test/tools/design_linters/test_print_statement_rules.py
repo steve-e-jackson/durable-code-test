@@ -23,7 +23,7 @@ from design_linters.framework.interfaces import LintContext, LintViolation, Seve
 from design_linters.rules.style.print_statement_rules import ConsoleOutputRule, PrintStatementRule
 
 
-class TestPrintStatementRule(unittest.TestCase):
+class TestPrintStatementRule(unittest.TestCase):  # design-lint: ignore[solid.srp.class-too-big,solid.srp.too-many-methods]
     """Test PrintStatementRule class."""
 
     def setUp(self):
@@ -295,7 +295,7 @@ class TestPrintStatementRule(unittest.TestCase):
         self.assertEqual(len(violations), 0)
 
 
-class TestConsoleOutputRule(unittest.TestCase):
+class TestConsoleOutputRule(unittest.TestCase):  # design-lint: ignore[solid.srp.class-too-big,solid.srp.too-many-methods]
     """Test ConsoleOutputRule class."""
 
     def setUp(self):
@@ -616,7 +616,7 @@ class TestConsoleOutputRule(unittest.TestCase):
         self.assertEqual(result, {})
 
 
-class TestRuleIntegration(unittest.TestCase):
+class TestRuleIntegration(unittest.TestCase):  # design-lint: ignore[solid.srp.class-too-big,solid.srp.too-many-methods]
     """Test integration between rules and framework."""
 
     def test_both_rules_implement_astlintrule(self):

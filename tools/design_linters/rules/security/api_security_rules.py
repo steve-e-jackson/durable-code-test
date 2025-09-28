@@ -74,11 +74,10 @@ class MissingRateLimitingRule(ASTLintRule):
         api_methods = {"get", "post", "put", "delete", "patch", "options", "head"}
 
         for decorator in node.decorator_list:
-            if (
-                isinstance(decorator, ast.Call)
-                and isinstance(decorator.func, ast.Attribute)
-                or isinstance(decorator, ast.Attribute)
-            ) and decorator.func.attr in api_methods:
+            if isinstance(decorator, ast.Call) and isinstance(decorator.func, ast.Attribute):
+                if decorator.func.attr in api_methods:
+                    return True
+            elif isinstance(decorator, ast.Attribute) and decorator.attr in api_methods:
                 return True
 
         return False
@@ -171,17 +170,34 @@ class MissingInputValidationRule(ASTLintRule):
     def _accepts_user_input(self, node: ast.FunctionDef) -> bool:
         """Check if function accepts user input."""
         # Check for Request parameters, form data, or JSON body
-        for arg in node.args.args:
-            if arg.annotation:
-                if isinstance(arg.annotation, ast.Name):
-                    # Look for Request, BaseModel, or form parameters
-                    if arg.annotation.id in ["Request"]:
-                        return True
-                # Look for Pydantic model parameters (often indicate user input)
-                elif isinstance(arg.annotation, ast.Attribute):
-                    return True
+        if self._has_request_parameters(node):
+            return True
 
         # Check for POST/PUT methods that typically accept data
+        return self._is_data_accepting_endpoint(node)
+
+    def _has_request_parameters(self, node: ast.FunctionDef) -> bool:
+        """Check if function has request parameters that accept user input."""
+        for arg in node.args.args:
+            if not arg.annotation:
+                continue
+
+            if self._is_request_annotation(arg.annotation):
+                return True
+
+        return False
+
+    def _is_request_annotation(self, annotation: ast.AST) -> bool:
+        """Check if annotation indicates user input parameter."""
+        if isinstance(annotation, ast.Name):
+            # Look for Request, BaseModel, or form parameters
+            return annotation.id in ["Request"]
+
+        # Look for Pydantic model parameters (often indicate user input)
+        return bool(isinstance(annotation, ast.Attribute))
+
+    def _is_data_accepting_endpoint(self, node: ast.FunctionDef) -> bool:
+        """Check if endpoint accepts data via POST/PUT/PATCH methods."""
         for decorator in node.decorator_list:
             if (
                 isinstance(decorator, ast.Call)
@@ -189,7 +205,6 @@ class MissingInputValidationRule(ASTLintRule):
                 and decorator.func.attr in ["post", "put", "patch"]
             ):
                 return True
-
         return False
 
     def _has_input_validation(self, node: ast.FunctionDef) -> bool:
@@ -321,24 +336,30 @@ class HardcodedSecretsRule(ASTLintRule):
 
     def _contains_hardcoded_secret(self, node: ast.Assign) -> bool:
         """Check if assignment contains hardcoded secrets."""
-        # Check variable names that suggest secrets
         secret_indicators = {"password", "secret", "key", "token", "credential", "auth"}
 
         for target in node.targets:
-            if isinstance(target, ast.Name):
-                var_name = target.id.lower()
-                # Check if variable name suggests a secret and value is a string literal
-                if (
-                    any(indicator in var_name for indicator in secret_indicators)
-                    and isinstance(node.value, ast.Constant)
-                    and isinstance(node.value.value, str)
-                ):
-                    # Ignore obvious dummy values
-                    value = node.value.value.lower()
-                    if not any(dummy in value for dummy in ["test", "dummy", "example", "placeholder"]):
-                        return True
+            if isinstance(target, ast.Name) and self._is_secret_assignment(target, node.value, secret_indicators):
+                return True
 
         return False
+
+    def _is_secret_assignment(self, target: ast.Name, value: ast.AST, secret_indicators: set[str]) -> bool:
+        """Check if this assignment contains a secret value."""
+        var_name = target.id.lower()
+
+        # Check if variable name suggests a secret
+        if not any(indicator in var_name for indicator in secret_indicators):
+            return False
+
+        # Check if value is a string literal
+        if not (isinstance(value, ast.Constant) and isinstance(value.value, str)):
+            return False
+
+        # Ignore obvious dummy values
+        value_str = value.value.lower()
+        dummy_values = ["test", "dummy", "example", "placeholder"]
+        return not any(dummy in value_str for dummy in dummy_values)
 
 
 class MissingSecurityHeadersRule(ASTLintRule):

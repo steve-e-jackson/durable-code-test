@@ -23,13 +23,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-try:
-    from loguru import logger
-except ImportError:
-    import logging
-
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger(__name__)
+from loguru import logger
 
 from .interfaces import (
     ASTLintRule,

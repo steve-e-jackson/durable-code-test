@@ -23,7 +23,7 @@ from design_linters.framework.interfaces import LintContext, Severity
 from design_linters.rules.style.nesting_rules import DeepFunctionRule, ExcessiveNestingRule
 
 
-class TestExcessiveNestingRule(unittest.TestCase):
+class TestExcessiveNestingRule(unittest.TestCase):  # design-lint: ignore[solid.srp.class-too-big,solid.srp.too-many-methods]
     """Test ExcessiveNestingRule functionality."""
 
     def setUp(self):
@@ -274,7 +274,7 @@ def simple_function():
         self.assertEqual(len(violations2), 0)
 
 
-class TestDeepFunctionRule(unittest.TestCase):
+class TestDeepFunctionRule(unittest.TestCase):  # design-lint: ignore[solid.srp.class-too-big,solid.srp.too-many-methods]
     """Test DeepFunctionRule functionality."""
 
     def setUp(self):
@@ -560,7 +560,7 @@ def function_with_match():
         self.assertEqual(len(nesting_violations), 1)
 
 
-class TestNestingRulesIntegration(unittest.TestCase):
+class TestNestingRulesIntegration(unittest.TestCase):  # design-lint: ignore[solid.srp.class-too-big,solid.srp.too-many-methods]
     """Integration tests for nesting rules."""
 
     def setUp(self):

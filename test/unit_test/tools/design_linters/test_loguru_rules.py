@@ -686,13 +686,16 @@ class TestRuleIntegration(unittest.TestCase):
         empty_context = LintContext()
 
         for rule in rules:
-            with self.subTest(rule=rule.__class__.__name__):
-                # Should not crash with empty context
-                try:
-                    violations = rule.check(empty_context)
-                    self.assertIsInstance(violations, list)
-                except Exception as e:
-                    self.fail(f"Rule {rule.__class__.__name__} failed with empty context: {e}")
+            self._test_rule_with_empty_context(rule, empty_context)
+
+    def _test_rule_with_empty_context(self, rule, empty_context):
+        """Test a single rule with empty context."""
+        with self.subTest(rule=rule.__class__.__name__):
+            try:
+                violations = rule.check(empty_context)
+                self.assertIsInstance(violations, list)
+            except Exception as e:
+                self.fail(f"Rule {rule.__class__.__name__} failed with empty context: {e}")
 
     def test_violation_creation_consistency(self):
         """Test that all rules create violations with consistent structure."""
@@ -702,19 +705,27 @@ class TestRuleIntegration(unittest.TestCase):
         violations = rule.check_node(node, self.context)
 
         if violations:
-            violation = violations[0]
-            self.assertIsInstance(violation.rule_id, str)
-            self.assertIsInstance(violation.file_path, str)
-            self.assertIsInstance(violation.line, int)
-            self.assertIsInstance(violation.column, int)
-            self.assertIsInstance(violation.severity, Severity)
-            self.assertIsInstance(violation.message, str)
-            self.assertIsInstance(violation.description, str)
-            # suggestion and context can be None, but if present should be proper types
-            if violation.suggestion is not None:
-                self.assertIsInstance(violation.suggestion, str)
-            if violation.context is not None:
-                self.assertIsInstance(violation.context, dict)
+            self._validate_violation_structure(violations[0])
+
+    def _validate_violation_structure(self, violation):
+        """Validate the structure of a violation object."""
+        self.assertIsInstance(violation.rule_id, str)
+        self.assertIsInstance(violation.file_path, str)
+        self.assertIsInstance(violation.line, int)
+        self.assertIsInstance(violation.column, int)
+        self.assertIsInstance(violation.severity, Severity)
+        self.assertIsInstance(violation.message, str)
+        self.assertIsInstance(violation.description, str)
+
+        # suggestion and context can be None, but if present should be proper types
+        self._validate_optional_fields(violation)
+
+    def _validate_optional_fields(self, violation):
+        """Validate optional fields in violation object."""
+        if violation.suggestion is not None:
+            self.assertIsInstance(violation.suggestion, str)
+        if violation.context is not None:
+            self.assertIsInstance(violation.context, dict)
 
 
 if __name__ == "__main__":

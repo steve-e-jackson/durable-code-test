@@ -19,15 +19,15 @@ services:
     container_name: durable-code-python-linter-${BRANCH_NAME:-main}
     volumes:
       # Backend application code
-      - ../../durable-code-app/backend:/workspace/backend:ro
+      - ../../durable-code-app/backend:/workspace/backend
       # Design linters framework
-      - ../../tools:/workspace/tools:ro
+      - ../../tools:/workspace/tools
       # Test files
-      - ../../test:/workspace/test:ro
+      - ../../test:/workspace/test
       # Infrastructure files for TFLint
-      - ../../infra:/workspace/infra:ro
+      - ../../infra:/workspace/infra
       # Project root for file organization checks
-      - ../..:/workspace/root:ro
+      - ../..:/workspace/root
     networks:
       - linting-network
     # Resource limits to prevent runaway processes
@@ -46,9 +46,9 @@ services:
     container_name: durable-code-js-linter-${BRANCH_NAME:-main}
     volumes:
       # Frontend application code
-      - ../../durable-code-app/frontend:/workspace/frontend:ro
+      - ../../durable-code-app/frontend:/workspace/frontend
       # Project root for global configs
-      - ../..:/workspace/root:ro
+      - ../..:/workspace/root
     networks:
       - linting-network
     # Resource limits for frontend linting

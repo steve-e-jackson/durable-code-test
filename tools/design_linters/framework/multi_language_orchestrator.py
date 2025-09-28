@@ -17,15 +17,10 @@ Interfaces: Implements BaseOrchestrator for multi-language support
 Implementation: Extends existing orchestrator with language-agnostic capabilities
 """
 
-import logging
 from pathlib import Path
 from typing import Any
 
-try:
-    from loguru import logger
-except ImportError:
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger(__name__)
+from loguru import logger
 
 from .analyzer import DefaultLintOrchestrator, PythonAnalyzer
 from .base_interfaces import BaseLintAnalyzer, BaseLintContext, BaseLintRule, BaseOrchestrator

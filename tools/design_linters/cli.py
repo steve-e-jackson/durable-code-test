@@ -20,14 +20,7 @@ import traceback
 from pathlib import Path
 from typing import Any
 
-try:
-    from loguru import logger
-except ImportError:
-    # Fallback to standard logging if loguru is not available
-    import logging
-
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger(__name__)
+from loguru import logger
 
 from .framework import LintOrchestrator, LintViolation, create_orchestrator
 from .framework.reporters import ReporterFactory
@@ -357,8 +350,8 @@ class LintingExecutor:
         """Create and configure the linting orchestrator."""
         try:
             return create_orchestrator()
-        except Exception as e:
-            logger.error("Failed to create orchestrator: %s", e)
+        except Exception:
+            logger.exception("Failed to create orchestrator")
             raise
 
     def _lint_all_paths(
@@ -376,16 +369,22 @@ class LintingExecutor:
         violations = []
         if path.is_file():
             violations.extend(self.orchestrator.lint_file(path, config))
+            self.files_analyzed += 1
         elif path.is_dir() and args.recursive:
             for py_file in path.rglob("*.py"):
                 violations.extend(self.orchestrator.lint_file(py_file, config))
+                self.files_analyzed += 1
         return violations
 
     def _apply_severity_filter(self, violations: list[LintViolation], args: argparse.Namespace) -> list[LintViolation]:
         """Filter violations by minimum severity level."""
         if not hasattr(args, "min_severity") or not args.min_severity:
             return violations
-        return [v for v in violations if v.severity.value >= getattr(args, "min_severity", 0)]
+
+        from .framework.types import Severity
+
+        min_severity = Severity.from_string(args.min_severity)
+        return [v for v in violations if v.severity >= min_severity]
 
     def _generate_metadata(self, violations: list[LintViolation]) -> dict[str, Any]:
         """Generate metadata about the linting results."""
@@ -472,8 +471,8 @@ class DesignLinterCLI:  # design-lint: ignore[solid.srp.low-cohesion]
         """Create and configure the linting orchestrator."""
         try:
             return create_orchestrator()
-        except Exception as e:
-            logger.error("Failed to create orchestrator: %s", e)
+        except Exception:
+            logger.exception("Failed to create orchestrator")
             raise
 
     def _determine_exit_code(self, violations: list[LintViolation], args: argparse.Namespace) -> int:
