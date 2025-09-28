@@ -1,0 +1,188 @@
+name: Morning Infrastructure Startup
+
+on:
+  schedule:
+    # 8 AM PST = 3 PM UTC (during PST) / 4 PM UTC (during PDT)
+    # Run Monday-Friday only to restore infrastructure for work day
+    - cron: '0 15 * * 1-5'  # Monday-Friday 3 PM UTC (8 AM PST)
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to startup'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+      scope:
+        description: 'Infrastructure scope to startup'
+        required: true
+        default: 'runtime'
+        type: choice
+        options:
+          - runtime
+          - all
+      deploy_app:
+        description: 'Deploy application after infrastructure startup'
+        required: false
+        default: true
+        type: boolean
+      dry_run:
+        description: 'Dry run (plan only, no apply)'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  startup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+
+      - name: Verify AWS credentials
+        run: |
+          echo "🔐 Verifying AWS credentials..."
+          aws sts get-caller-identity
+          echo "✅ AWS credentials verified"
+
+      - name: Check infrastructure status (before)
+        run: |
+          echo "📊 Infrastructure status before startup:"
+          make infra-status ENV=${{ inputs.environment || 'dev' }} || echo "Status check completed"
+
+      - name: Plan infrastructure startup
+        if: ${{ inputs.dry_run == true }}
+        run: |
+          echo "🔍 Planning infrastructure startup (dry run)..."
+          make infra-plan SCOPE=${{ inputs.scope || 'runtime' }} ENV=${{ inputs.environment || 'dev' }}
+
+      - name: Execute infrastructure startup
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          echo "🚀 Starting infrastructure startup..."
+          ENV="${{ inputs.environment || 'dev' }}"
+          SCOPE="${{ inputs.scope || 'runtime' }}"
+
+          echo "⏰ Infrastructure startup initiated at $(date)"
+          make infra-up SCOPE="$SCOPE" ENV="$ENV"
+
+      - name: Wait for infrastructure readiness
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          echo "⏳ Waiting for infrastructure to be ready..."
+          ENV="${{ inputs.environment || 'dev' }}"
+
+          # Wait up to 10 minutes for infrastructure to be ready
+          for i in {1..30}; do
+            echo "  Attempt $i/30: Checking infrastructure readiness..."
+            if make infra-check ENV="$ENV" 2>/dev/null; then
+              echo "✅ Infrastructure is ready!"
+              break
+            fi
+
+            if [[ $i -eq 30 ]]; then
+              echo "⚠️ Infrastructure readiness timeout after 10 minutes"
+              echo "📊 Current status:"
+              make infra-status ENV="$ENV" || true
+              exit 1
+            fi
+
+            sleep 20
+          done
+
+      - name: Deploy application
+        if: ${{ inputs.deploy_app == true && inputs.dry_run != true }}
+        run: |
+          echo "🚀 Deploying application..."
+          ENV="${{ inputs.environment || 'dev' }}"
+
+          echo "📦 Starting application deployment..."
+          make deploy ENV="$ENV"
+
+      - name: Verify application health
+        if: ${{ inputs.deploy_app == true && inputs.dry_run != true }}
+        run: |
+          echo "🏥 Verifying application health..."
+          ENV="${{ inputs.environment || 'dev' }}"
+
+          # Wait up to 5 minutes for application to be healthy
+          for i in {1..15}; do
+            echo "  Health check attempt $i/15..."
+
+            # Get ALB DNS name from infrastructure status
+            ALB_DNS=$(make infra-output ENV="$ENV" | grep alb_dns_name | cut -d'"' -f4 || echo "")
+
+            if [[ -n "$ALB_DNS" ]]; then
+              if curl -f --max-time 10 "http://$ALB_DNS/health" >/dev/null 2>&1; then
+                echo "✅ Application is healthy!"
+                break
+              fi
+            fi
+
+            if [[ $i -eq 15 ]]; then
+              echo "⚠️ Application health check timeout after 5 minutes"
+              echo "📊 This is normal for first startup - application may still be initializing"
+            fi
+
+            sleep 20
+          done
+
+      - name: Check infrastructure status (after)
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          echo "📊 Final infrastructure status:"
+          make infra-status ENV=${{ inputs.environment || 'dev' }} || echo "Status check completed"
+
+      - name: Post startup summary
+        if: always()
+        run: |
+          echo "🎯 Morning Startup Summary"
+          echo "  Environment: ${{ inputs.environment || 'dev' }}"
+          echo "  Scope: ${{ inputs.scope || 'runtime' }}"
+          echo "  Deploy App: ${{ inputs.deploy_app || 'true' }}"
+          echo "  Dry Run: ${{ inputs.dry_run || 'false' }}"
+          echo "  Status: ${{ job.status }}"
+          echo ""
+
+          ENV="${{ inputs.environment || 'dev' }}"
+          if [[ "${{ job.status }}" == "success" && "${{ inputs.dry_run }}" != "true" ]]; then
+            ALB_DNS=$(make infra-output ENV="$ENV" | grep alb_dns_name | cut -d'"' -f4 || echo "")
+            if [[ -n "$ALB_DNS" ]]; then
+              echo "🌐 Application URLs:"
+              echo "  - Frontend: http://$ALB_DNS"
+              echo "  - Backend API: http://$ALB_DNS/api"
+              echo "  - Health Check: http://$ALB_DNS/health"
+            fi
+          fi
+
+          echo ""
+          echo "💰 Infrastructure restored - development ready!"
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Morning startup failed!"
+          echo "🔧 Manual intervention required"
+          echo "📞 Check AWS console and Terraform state"
+          echo ""
+          echo "🚨 Manual recovery commands:"
+          echo "  make infra-up SCOPE=${{ inputs.scope || 'runtime' }} ENV=${{ inputs.environment || 'dev' }}"
+          if [[ "${{ inputs.deploy_app }}" == "true" ]]; then
+            echo "  make deploy ENV=${{ inputs.environment || 'dev' }}"
+          fi

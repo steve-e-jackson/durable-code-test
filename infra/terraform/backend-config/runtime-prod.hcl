@@ -11,4 +11,4 @@ bucket         = "durable-code-terraform-state"
 key            = "runtime/prod/terraform.tfstate"
 region         = "us-west-2"
 encrypt        = true
-dynamodb_table = "terraform-state-lock"
+dynamodb_table = "durable-code-terraform-locks"
