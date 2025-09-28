@@ -21,6 +21,14 @@ data "aws_caller_identity" "current" {}
 # Data source for current AWS region
 data "aws_region" "current" {}
 
+# Internet Gateway Lookup - Required for NAT Gateway dependencies
+data "aws_internet_gateway" "main" {
+  filter {
+    name   = "attachment.vpc-id"
+    values = [data.aws_vpc.main.id]
+  }
+}
+
 # VPC Lookup - Find VPC created by base workspace
 data "aws_vpc" "main" {
   filter {
@@ -111,14 +119,7 @@ data "aws_ecr_repository" "frontend" {
   name = "${var.product_domain}-${local.environment}-frontend"
 }
 
-# Application Load Balancer Lookup
-data "aws_lb" "main" {
-  tags = {
-    Name        = "${var.project_name}-${local.environment}-alb"
-    Environment = local.environment
-    Scope       = "base"
-  }
-}
+# ALB moved to runtime workspace - created directly instead of looked up
 
 # Route53 Hosted Zone Lookup (conditional - only if domain is configured)
 data "aws_route53_zone" "main" {
@@ -137,9 +138,3 @@ data "aws_acm_certificate" "main" {
   most_recent = true
 }
 
-# Add variable for domain name if not already present
-variable "domain_name" {
-  description = "Domain name for the application (optional)"
-  type        = string
-  default     = ""
-}

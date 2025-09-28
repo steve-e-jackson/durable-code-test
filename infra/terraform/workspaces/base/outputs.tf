@@ -57,10 +57,7 @@ output "ecs_tasks_security_group_id" {
   value       = aws_security_group.ecs_tasks.id
 }
 
-output "vpc_endpoints_security_group_id" {
-  description = "VPC endpoints security group ID (if NAT disabled)"
-  value       = !var.enable_nat_gateway ? aws_security_group.vpc_endpoints[0].id : ""
-}
+# VPC endpoints security group moved to runtime workspace
 
 # ECR Repository Outputs
 output "backend_ecr_repository_url" {
@@ -93,26 +90,7 @@ output "frontend_ecr_repository_name" {
   value       = aws_ecr_repository.frontend.name
 }
 
-# ALB Outputs
-output "alb_arn" {
-  description = "ALB ARN for target group attachment"
-  value       = aws_lb.main.arn
-}
-
-output "alb_dns_name" {
-  description = "ALB DNS name"
-  value       = aws_lb.main.dns_name
-}
-
-output "alb_zone_id" {
-  description = "ALB zone ID for Route53 alias records"
-  value       = aws_lb.main.zone_id
-}
-
-output "alb_name" {
-  description = "ALB name"
-  value       = aws_lb.main.name
-}
+# ALB outputs moved to runtime workspace
 
 # Route53 Outputs
 output "route53_zone_id" {
@@ -146,37 +124,9 @@ output "acm_certificate_status" {
   value       = var.domain_name != "" && var.create_route53_zone ? aws_acm_certificate.main[0].status : ""
 }
 
-# NAT Gateway Outputs
-output "nat_gateway_ids" {
-  description = "NAT Gateway IDs (if enabled)"
-  value       = var.enable_nat_gateway ? aws_nat_gateway.main[*].id : []
-}
+# NAT Gateway outputs moved to runtime workspace
 
-output "nat_gateway_public_ips" {
-  description = "NAT Gateway public IP addresses (if enabled)"
-  value       = var.enable_nat_gateway ? aws_eip.nat[*].public_ip : []
-}
-
-# VPC Endpoint Outputs (if NAT disabled)
-output "vpc_endpoint_s3_id" {
-  description = "S3 VPC endpoint ID (if NAT disabled)"
-  value       = !var.enable_nat_gateway ? aws_vpc_endpoint.s3[0].id : ""
-}
-
-output "vpc_endpoint_ecr_api_id" {
-  description = "ECR API VPC endpoint ID (if NAT disabled)"
-  value       = !var.enable_nat_gateway ? aws_vpc_endpoint.ecr_api[0].id : ""
-}
-
-output "vpc_endpoint_ecr_dkr_id" {
-  description = "ECR DKR VPC endpoint ID (if NAT disabled)"
-  value       = !var.enable_nat_gateway ? aws_vpc_endpoint.ecr_dkr[0].id : ""
-}
-
-output "vpc_endpoint_logs_id" {
-  description = "CloudWatch Logs VPC endpoint ID (if NAT disabled)"
-  value       = !var.enable_nat_gateway ? aws_vpc_endpoint.logs[0].id : ""
-}
+# VPC Endpoint outputs moved to runtime workspace
 
 # Resource Tags (for data source filtering)
 output "base_resource_tags" {

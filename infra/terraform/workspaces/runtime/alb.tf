@@ -1,13 +1,13 @@
-# Base Infrastructure - Application Load Balancer
-# The ALB itself is a base resource, but listeners and target groups are runtime resources
+# Runtime Infrastructure - Application Load Balancer
+# Moved to runtime workspace for cost optimization - can be destroyed nightly
 
-# Application Load Balancer
+# Application Load Balancer (expensive - moved to runtime for cost optimization)
 resource "aws_lb" "main" {
   name               = "${var.project_name}-${local.environment}-alb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb.id]
-  subnets            = aws_subnet.public[*].id
+  security_groups    = [data.aws_security_group.alb.id]
+  subnets            = data.aws_subnets.public.ids
 
   enable_deletion_protection       = local.environment == "prod" ? true : false
   enable_http2                     = true

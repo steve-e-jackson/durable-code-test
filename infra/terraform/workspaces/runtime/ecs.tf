@@ -298,7 +298,7 @@ resource "aws_ecs_task_definition" "frontend" {
         },
         {
           name  = "BACKEND_URL"
-          value = "http://${data.aws_lb.main.dns_name}/api"
+          value = "http://${aws_lb.main.dns_name}/api"
         }
       ]
 
