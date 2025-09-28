@@ -65,7 +65,7 @@ test-playwright-build: ## Build Playwright test container
 test-playwright: dev-start test-playwright-build ## Run Playwright integration tests
 	@echo "$(CYAN)Running Playwright integration tests...$(NC)"
 	@if [ "$(CI)" = "true" ]; then \
-		docker run --rm --network durable-code-test_durable-network-dev \
+		docker run --rm --network compose_durable-network-dev \
 			-e PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
 			-e BRANCH_NAME="$(BRANCH_NAME)" \
 			-e FRONTEND_PORT="$(FRONTEND_PORT)" \
@@ -86,7 +86,7 @@ test-playwright: dev-start test-playwright-build ## Run Playwright integration t
 test-playwright-oscilloscope: dev-start test-playwright-build ## Run oscilloscope Playwright tests (REQUIRED BY CI)
 	@echo "$(CYAN)Running oscilloscope integration tests...$(NC)"
 	@if [ "$(CI)" = "true" ]; then \
-		docker run --rm --network durable-code-test_durable-network-dev \
+		docker run --rm --network compose_durable-network-dev \
 			-e PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
 			-e BRANCH_NAME="$(BRANCH_NAME)" \
 			-e FRONTEND_PORT="$(FRONTEND_PORT)" \
