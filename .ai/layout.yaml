@@ -54,10 +54,15 @@ ai_guidance:
     infrastructure_placement:
       question: "Where should this infrastructure file go?"
       criteria:
-        terraform_module: "→ infra/terraform/"
+        base_infrastructure: "→ infra/terraform/workspaces/base/"
+        runtime_infrastructure: "→ infra/terraform/workspaces/runtime/"
+        backend_configuration: "→ infra/terraform/backend-config/"
+        shared_module: "→ infra/terraform/modules/"
+        shared_variables: "→ infra/terraform/shared/"
+        legacy_terraform: "→ infra/terraform/ (being migrated to workspaces)"
         environment_config: "→ infra/environments/"
         deployment_script: "→ infra/scripts/"
-        terraform_state: "→ infra/terraform/.terraform/ (auto-managed)"
+        terraform_state: "→ workspace/.terraform/ (auto-managed per workspace)"
         aws_credentials: "→ Never commit! Use environment variables"
 
     docker_file_placement:
@@ -82,6 +87,9 @@ ai_guidance:
     scripts_scattered: "Don't scatter scripts - organize by scope"
     tools_root_files: "Don't place Python files in tools root - use subdirectories"
     terraform_in_wrong_dir: "Don't put .tf files outside infra/terraform/"
+    mixing_workspaces: "Don't mix base and runtime resources in same workspace"
+    wrong_workspace_resources: "Don't put ECS in base or VPC in runtime workspace"
+    backend_config_in_code: "Don't hardcode backend config - use backend-config files"
     env_vars_in_terraform: "Don't hardcode environment-specific values in .tf files - use .tfvars"
     credentials_in_code: "Never commit AWS credentials or secrets - use environment variables"
     state_files_committed: "Don't commit terraform.tfstate files - use remote backend"
@@ -353,6 +361,91 @@ linter_rules:
         - '\\.tf$'
         - '\\.(ts|tsx|js|jsx)$'
         - '\\.tfvars$'
+
+    infra/terraform/workspaces/:
+      description: "Terraform workspaces for base and runtime infrastructure separation"
+      allow:
+        - '/workspaces/README\\.md$'
+        - '/workspaces/base/.*\\.tf$'
+        - '/workspaces/base/.*\\.tfvars$'
+        - '/workspaces/base/\\.terraform/'
+        - '/workspaces/runtime/.*\\.tf$'
+        - '/workspaces/runtime/.*\\.tfvars$'
+        - '/workspaces/runtime/\\.terraform/'
+        - '/workspaces/.*\\.gitkeep$'
+      deny:
+        - '\\.py$'
+        - '\\.js$'
+        - '\\.ts$'
+        - '\\.tsx$'
+        - '\\.sh$'
+
+    infra/terraform/workspaces/base/:
+      description: "Base workspace for persistent infrastructure (VPC, NAT, ECR, Route53)"
+      allow:
+        - '/base/main\\.tf$'
+        - '/base/variables\\.tf$'
+        - '/base/outputs\\.tf$'
+        - '/base/providers\\.tf$'
+        - '/base/.*\\.tf$'
+        - '/base/\\.terraform/'
+        - '/base/\\.gitkeep$'
+      deny:
+        - '\\.py$'
+        - '\\.js$'
+        - '\\.sh$'
+        - 'test'
+
+    infra/terraform/workspaces/runtime/:
+      description: "Runtime workspace for ephemeral infrastructure (ECS, ALB listeners)"
+      allow:
+        - '/runtime/main\\.tf$'
+        - '/runtime/data\\.tf$'
+        - '/runtime/variables\\.tf$'
+        - '/runtime/outputs\\.tf$'
+        - '/runtime/providers\\.tf$'
+        - '/runtime/.*\\.tf$'
+        - '/runtime/\\.terraform/'
+        - '/runtime/\\.gitkeep$'
+      deny:
+        - '\\.py$'
+        - '\\.js$'
+        - '\\.sh$'
+        - 'test'
+
+    infra/terraform/backend-config/:
+      description: "Backend configurations for workspace state management"
+      allow:
+        - '/backend-config/base-.*\\.hcl$'
+        - '/backend-config/runtime-.*\\.hcl$'
+      deny:
+        - '\\.tf$'
+        - '\\.py$'
+        - '\\.js$'
+        - '\\.sh$'
+
+    infra/terraform/modules/:
+      description: "Shared Terraform modules for workspaces"
+      allow:
+        - '/modules/[^/]+/.*\\.tf$'
+        - '/modules/[^/]+/README\\.md$'
+        - '/modules/\\.gitkeep$'
+      deny:
+        - '\\.py$'
+        - '\\.js$'
+        - '\\.sh$'
+
+    infra/terraform/shared/:
+      description: "Shared configurations and variables for workspaces"
+      allow:
+        - '/shared/.*\\.tf$'
+        - '/shared/.*\\.tfvars$'
+        - '/shared/README\\.md$'
+        - '/shared/\\.gitkeep$'
+      deny:
+        - '\\.py$'
+        - '\\.js$'
+        - '\\.sh$'
 
     roadmap/:
       description: "Roadmap organization directory with status-based subdirectories"

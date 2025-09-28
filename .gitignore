@@ -82,6 +82,13 @@ durable-code-app/frontend/*.local
 .terraformrc
 terraform.rc
 
+# Terraform Workspaces
+infra/terraform/workspaces/*/.terraform/
+infra/terraform/workspaces/*/terraform.tfstate*
+infra/terraform/workspaces/*/*.tfplan
+infra/terraform/workspaces/*/crash.log
+infra/terraform/workspaces/*/crash.*.log
+
 # Override files
 **/override.tf
 **/override.tf.json

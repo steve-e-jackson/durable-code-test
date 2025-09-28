@@ -4,8 +4,8 @@
 **Overall Completion**: 40% (3.64 of 9 items complete)
 
 ## Status Summary
-- 🔴 Planning: 3 items (0% avg)
-- 🟡 In Progress: 4 items (49% avg)
+- 🔴 Planning: 2 items (0% avg)
+- 🟡 In Progress: 5 items (55% avg)
 - 🟢 Complete: 2 items (100%)
 - 📝 Total: 9 items
 
@@ -16,7 +16,7 @@
 | [Frontend Critical Fixes](in_progress/frontend-critical-fixes/PROGRESS_TRACKER.md) | 🟡 | 57% | [████████████░░░░░░░░] | Critical | 4/7 PRs | `in_progress/` |
 | [AI Contributions](planning/ai-contributions/PROGRESS_TRACKER.md) | 🔴 | 0% | [░░░░░░░░░░░░░░░░░░░░] | High | 0/6 PRs | `planning/` |
 | [Example API Feature](planning/example-api-feature/PROGRESS_TRACKER.md) | 🔴 | 0% | [░░░░░░░░░░░░░░░░░░░░] | Medium | 0/6 PRs | `planning/` |
-| [Terraform Workspaces](planning/terraform-workspaces/PROGRESS_TRACKER.md) | 🔴 | 0% | [░░░░░░░░░░░░░░░░░░░░] | High | 0/6 PRs | `planning/` |
+| [Terraform Workspaces](in_progress/terraform-workspaces/PROGRESS_TRACKER.md) | 🟡 | 17% | [███░░░░░░░░░░░░░░░░░] | High | 1/6 PRs | `in_progress/` |
 | [Docker Linting Separation](in_progress/docker-linting-separation/PROGRESS_TRACKER.md) | 🟡 | 75% | [███████████████░░░░░] | High | 18/24 tasks | `in_progress/` |
 | [Docker Reorganization](in_progress/docker-reorganization/PROGRESS_TRACKER.md) | 🟡 | 80% | [████████████████░░░░] | High | 4/5 PRs | `in_progress/` |
 | [Deployment](in_progress/deployment/PROGRESS_TRACKER.md) | 🟡 | 45% | [█████████░░░░░░░░░░░] | Critical | 5/11 PRs | `in_progress/` |
@@ -35,8 +35,8 @@ Items are automatically organized by completion percentage:
 
 ### By Status
 ```
-Planning    [░░░░░░░░░░] 0%   (3 items)
-In Progress [█████░░░░░] 49%  (4 items)
+Planning    [░░░░░░░░░░] 0%   (2 items)
+In Progress [█████░░░░░] 55%  (5 items)
 Complete    [██████████] 100% (2 items)
 ```
 
