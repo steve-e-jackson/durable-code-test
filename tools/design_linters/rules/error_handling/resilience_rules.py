@@ -33,51 +33,69 @@ class NoBroadExceptionsRule(ASTLintRule):
         violations = []
 
         for node in ast.walk(tree):
-            if isinstance(node, ast.ExceptHandler):
-                if node.type is None:
-                    # Bare except: clause
-                    violations.append(
-                        LintViolation(
-                            rule_id=self.name,
-                            file_path=filepath,
-                            line=node.lineno,
-                            column=node.col_offset,
-                            message="Bare except clause found - catch specific exceptions",
-                            severity=Severity.ERROR,
-                            description=self.description,
-                        )
-                    )
-                elif isinstance(node.type, ast.Name):
-                    if node.type.id in ["Exception", "BaseException"]:
-                        violations.append(
-                            LintViolation(
-                                rule_id=self.name,
-                                file_path=filepath,
-                                line=node.lineno,
-                                column=node.col_offset,
-                                message=f"Broad exception type '{node.type.id}' - use specific exceptions",
-                                severity=Severity.ERROR,
-                                description=self.description,
-                            )
-                        )
-                elif isinstance(node.type, ast.Tuple):
-                    # Check tuple of exceptions
-                    for exc in node.type.elts:
-                        if isinstance(exc, ast.Name) and exc.id in [
-                            "Exception",
-                            "BaseException",
-                        ]:
-                            violations.append(
-                                LintViolation(
-                                    rule_id=self.name,
-                                    file_path=filepath,
-                                    line=node.lineno,
-                                    column=node.col_offset,
-                                    message=f"Broad exception type '{exc.id}' in tuple - use specific exceptions",
-                                    severity=Severity.ERROR,
-                                    description=self.description,
-                                )
-                            )
+            if not isinstance(node, ast.ExceptHandler):
+                continue
+
+            violation = self._check_exception_handler(node, filepath)
+            if violation:
+                violations.append(violation)
+                continue
+
+            violations.extend(self._check_exception_tuple(node, filepath))
+
+        return violations
+
+    def _check_exception_handler(self, node: ast.ExceptHandler, filepath: str) -> LintViolation | None:
+        """Check if exception handler is too broad."""
+        if node.type is None:
+            # Bare except: clause
+            return LintViolation(
+                rule_id=self.name,
+                file_path=filepath,
+                line=node.lineno,
+                column=node.col_offset,
+                message="Bare except clause found - catch specific exceptions",
+                severity=Severity.ERROR,
+                description=self.description,
+            )
+
+        if isinstance(node.type, ast.Name) and node.type.id in ["Exception", "BaseException"]:
+            return LintViolation(
+                rule_id=self.name,
+                file_path=filepath,
+                line=node.lineno,
+                column=node.col_offset,
+                message=f"Broad exception type '{node.type.id}' - use specific exceptions",
+                severity=Severity.ERROR,
+                description=self.description,
+            )
+
+        return None
+
+    def _check_exception_tuple(self, node: ast.ExceptHandler, filepath: str) -> list[LintViolation]:
+        """Check tuple of exceptions for broad types."""
+        violations = []
+
+        if not isinstance(node.type, ast.Tuple):
+            return violations
+
+        for exc in node.type.elts:
+            if not isinstance(exc, ast.Name):
+                continue
+            if exc.id not in ["Exception", "BaseException"]:
+                continue
+
+            violations.append(
+                LintViolation(
+                    rule_id=self.name,
+                    file_path=filepath,
+                    line=node.lineno,
+                    column=node.col_offset,
+                    message=f"Broad exception type '{exc.id}' in tuple - use specific exceptions",
+                    severity=Severity.ERROR,
+                    description=self.description,
+                )
+            )
 
         return violations
 
@@ -91,60 +109,76 @@ class RequireRetryLogicRule(ASTLintRule):
 
     def check(self, tree: ast.AST, filepath: str, source: str) -> list[LintViolation]:
         """Check that external operations have retry decorators."""
-        violations = []
-
         # Skip if this is a test file
         if "test" in filepath:
-            return violations
+            return []
 
+        violations = []
         for node in ast.walk(tree):
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                # Check if function name suggests external operation
-                is_external = any(
-                    keyword in node.name.lower()
-                    for keyword in [
-                        "fetch",
-                        "call",
-                        "request",
-                        "api",
-                        "external",
-                        "remote",
-                        "database",
-                        "db",
-                        "query",
-                        "http",
-                        "webhook",
-                    ]
-                )
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
 
-                if is_external:
-                    # Check if it has retry decorator
-                    has_retry = any(self._is_retry_decorator(dec) for dec in node.decorator_list)
-
-                    if not has_retry:
-                        violations.append(
-                            LintViolation(
-                                rule_id=self.name,
-                                file_path=filepath,
-                                line=node.lineno,
-                                column=node.col_offset,
-                                message=f"External operation '{node.name}' should have retry logic",
-                                severity=Severity.WARNING,
-                                description=self.description,
-                            )
-                        )
+            violation = self._check_function_for_retry(node, filepath)
+            if violation:
+                violations.append(violation)
 
         return violations
+
+    def _check_function_for_retry(
+        self, node: ast.FunctionDef | ast.AsyncFunctionDef, filepath: str
+    ) -> LintViolation | None:
+        """Check if function needs retry logic."""
+        if not self._is_external_operation(node):
+            return None
+
+        if self._has_retry_decorator(node):
+            return None
+
+        return LintViolation(
+            rule_id=self.name,
+            file_path=filepath,
+            line=node.lineno,
+            column=node.col_offset,
+            message=f"External operation '{node.name}' should have retry logic",
+            severity=Severity.WARNING,
+            description=self.description,
+        )
+
+    def _is_external_operation(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+        """Check if function name suggests external operation."""
+        external_keywords = [
+            "fetch",
+            "call",
+            "request",
+            "api",
+            "external",
+            "remote",
+            "database",
+            "db",
+            "query",
+            "http",
+            "webhook",
+        ]
+        return any(keyword in node.name.lower() for keyword in external_keywords)
+
+    def _has_retry_decorator(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+        """Check if function has retry decorator."""
+        return any(self._is_retry_decorator(dec) for dec in node.decorator_list)
 
     def _is_retry_decorator(self, decorator: ast.AST) -> bool:
         """Check if decorator is retry-related."""
         if isinstance(decorator, ast.Name):
             return "retry" in decorator.id.lower()
-        elif isinstance(decorator, ast.Call):
-            if isinstance(decorator.func, ast.Name):
-                return "retry" in decorator.func.id.lower()
-            elif isinstance(decorator.func, ast.Attribute):
-                return "retry" in decorator.func.attr.lower()
+
+        if not isinstance(decorator, ast.Call):
+            return False
+
+        if isinstance(decorator.func, ast.Name):
+            return "retry" in decorator.func.id.lower()
+
+        if isinstance(decorator.func, ast.Attribute):
+            return "retry" in decorator.func.attr.lower()
+
         return False
 
 
@@ -157,64 +191,88 @@ class StructuredExceptionsRule(ASTLintRule):
 
     def check(self, tree: ast.AST, filepath: str, source: str) -> list[LintViolation]:
         """Check that exception classes are properly structured."""
-        violations = []
-
         # Only check exception files
         if "exception" not in filepath.lower() and "error" not in filepath.lower():
-            return violations
+            return []
 
+        violations = []
         for node in ast.walk(tree):
-            if isinstance(node, ast.ClassDef):
-                # Check if it's an exception class
-                is_exception = any(
-                    (isinstance(base, ast.Name) and "Exception" in base.id)
-                    or (isinstance(base, ast.Name) and "Error" in base.id)
-                    for base in node.bases
-                )
+            if not isinstance(node, ast.ClassDef):
+                continue
 
-                if is_exception:
-                    # Check for required attributes
-                    has_status_code = False
-                    has_error_code = False
-                    has_init = False
+            if not self._is_exception_class(node):
+                continue
 
-                    for item in node.body:
-                        if isinstance(item, ast.FunctionDef) and item.name == "__init__":
-                            has_init = True
-                            # Check if __init__ sets required attributes
-                            init_source = ast.unparse(item)
-                            if "status_code" in init_source:
-                                has_status_code = True
-                            if "error_code" in init_source:
-                                has_error_code = True
-
-                    if has_init and not has_status_code and node.name not in ["AppException", "AppExceptionError"]:
-                        violations.append(
-                            LintViolation(
-                                rule_id=self.name,
-                                file_path=filepath,
-                                line=node.lineno,
-                                column=node.col_offset,
-                                message=f"Exception '{node.name}' should define status_code",
-                                severity=Severity.WARNING,
-                                description=self.description,
-                            )
-                        )
-
-                    if has_init and not has_error_code and node.name not in ["AppException", "AppExceptionError"]:
-                        violations.append(
-                            LintViolation(
-                                rule_id=self.name,
-                                file_path=filepath,
-                                line=node.lineno,
-                                column=node.col_offset,
-                                message=f"Exception '{node.name}' should define error_code",
-                                severity=Severity.WARNING,
-                                description=self.description,
-                            )
-                        )
+            violations.extend(self._check_exception_structure(node, filepath))
 
         return violations
+
+    def _is_exception_class(self, node: ast.ClassDef) -> bool:
+        """Check if class is an exception class."""
+        for base in node.bases:
+            if not isinstance(base, ast.Name):
+                continue
+            if "Exception" in base.id or "Error" in base.id:
+                return True
+        return False
+
+    def _check_exception_structure(self, node: ast.ClassDef, filepath: str) -> list[LintViolation]:
+        """Check exception class structure for required attributes."""
+        violations = []
+
+        # Skip base exception classes
+        if node.name in ["AppException", "AppExceptionError"]:
+            return violations
+
+        init_attrs = self._get_init_attributes(node)
+        if not init_attrs["has_init"]:
+            return violations
+
+        if not init_attrs["has_status_code"]:
+            violations.append(
+                LintViolation(
+                    rule_id=self.name,
+                    file_path=filepath,
+                    line=node.lineno,
+                    column=node.col_offset,
+                    message=f"Exception '{node.name}' should define status_code",
+                    severity=Severity.WARNING,
+                    description=self.description,
+                )
+            )
+
+        if not init_attrs["has_error_code"]:
+            violations.append(
+                LintViolation(
+                    rule_id=self.name,
+                    file_path=filepath,
+                    line=node.lineno,
+                    column=node.col_offset,
+                    message=f"Exception '{node.name}' should define error_code",
+                    severity=Severity.WARNING,
+                    description=self.description,
+                )
+            )
+
+        return violations
+
+    def _get_init_attributes(self, node: ast.ClassDef) -> dict:
+        """Get attributes defined in __init__ method."""
+        result = {"has_init": False, "has_status_code": False, "has_error_code": False}
+
+        for item in node.body:
+            if not isinstance(item, ast.FunctionDef):
+                continue
+            if item.name != "__init__":
+                continue
+
+            result["has_init"] = True
+            init_source = ast.unparse(item)
+            result["has_status_code"] = "status_code" in init_source
+            result["has_error_code"] = "error_code" in init_source
+            break
+
+        return result
 
 
 class RequireErrorLoggingRule(ASTLintRule):
@@ -229,38 +287,44 @@ class RequireErrorLoggingRule(ASTLintRule):
         violations = []
 
         for node in ast.walk(tree):
-            if isinstance(node, ast.ExceptHandler):
-                # Check if the except block logs the error
-                has_logging = False
+            if not isinstance(node, ast.ExceptHandler):
+                continue
 
-                for stmt in node.body:
-                    if self._contains_logging(stmt):
-                        has_logging = True
-                        break
-                    # Also check if it re-raises
-                    if isinstance(stmt, ast.Raise):
-                        has_logging = True  # Re-raising is acceptable
-                        break
+            if self._has_logging_or_reraise(node):
+                continue
 
-                if not has_logging and node.type:
-                    # Get exception type name for better error message
-                    exc_type = "exception"
-                    if isinstance(node.type, ast.Name):
-                        exc_type = node.type.id
+            if not node.type:
+                continue
 
-                    violations.append(
-                        LintViolation(
-                            rule_id=self.name,
-                            file_path=filepath,
-                            line=node.lineno,
-                            column=node.col_offset,
-                            message=f"Caught {exc_type} should be logged or re-raised",
-                            severity=Severity.WARNING,
-                            description=self.description,
-                        )
-                    )
+            exc_type = self._get_exception_type_name(node)
+            violations.append(
+                LintViolation(
+                    rule_id=self.name,
+                    file_path=filepath,
+                    line=node.lineno,
+                    column=node.col_offset,
+                    message=f"Caught {exc_type} should be logged or re-raised",
+                    severity=Severity.WARNING,
+                    description=self.description,
+                )
+            )
 
         return violations
+
+    def _has_logging_or_reraise(self, node: ast.ExceptHandler) -> bool:
+        """Check if except block has logging or re-raise."""
+        for stmt in node.body:
+            if self._contains_logging(stmt):
+                return True
+            if isinstance(stmt, ast.Raise):
+                return True
+        return False
+
+    def _get_exception_type_name(self, node: ast.ExceptHandler) -> str:
+        """Get exception type name for error message."""
+        if isinstance(node.type, ast.Name):
+            return node.type.id
+        return "exception"
 
     def _contains_logging(self, node: ast.AST) -> bool:
         """Check if node contains logging call."""
@@ -291,59 +355,62 @@ class CircuitBreakerUsageRule(ASTLintRule):
 
     def check(self, tree: ast.AST, filepath: str, source: str) -> list[LintViolation]:
         """Check for circuit breaker usage on external calls."""
-        violations = []
-
         # Skip test files
         if "test" in filepath:
-            return violations
+            return []
 
+        violations = []
         for node in ast.walk(tree):
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                # Check if it's an external service call
-                is_service_call = any(
-                    keyword in node.name.lower()
-                    for keyword in [
-                        "service",
-                        "api",
-                        "external",
-                        "remote",
-                        "database",
-                        "cache",
-                    ]
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+
+            if not self._is_service_call(node):
+                continue
+
+            if self._has_circuit_breaker_protection(node):
+                continue
+
+            violations.append(
+                LintViolation(
+                    rule_id=self.name,
+                    file_path=filepath,
+                    line=node.lineno,
+                    column=node.col_offset,
+                    message=f"Service call '{node.name}' could benefit from circuit breaker",
+                    severity=Severity.INFO,
+                    description=self.description,
                 )
-
-                if is_service_call:
-                    # Check for circuit breaker decorator or usage
-                    has_circuit_breaker = any(self._is_circuit_breaker(dec) for dec in node.decorator_list)
-
-                    if not has_circuit_breaker:
-                        # Check if circuit breaker is used inside the function
-                        has_internal_cb = self._contains_circuit_breaker(node)
-
-                        if not has_internal_cb:
-                            violations.append(
-                                LintViolation(
-                                    rule_id=self.name,
-                                    file_path=filepath,
-                                    line=node.lineno,
-                                    column=node.col_offset,
-                                    message=f"Service call '{node.name}' could benefit from circuit breaker",
-                                    severity=Severity.INFO,
-                                    description=self.description,
-                                )
-                            )
+            )
 
         return violations
+
+    def _is_service_call(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+        """Check if function is an external service call."""
+        service_keywords = ["service", "api", "external", "remote", "database", "cache"]
+        return any(keyword in node.name.lower() for keyword in service_keywords)
+
+    def _has_circuit_breaker_protection(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+        """Check if function has circuit breaker protection."""
+        # Check decorators
+        if any(self._is_circuit_breaker(dec) for dec in node.decorator_list):
+            return True
+        # Check internal usage
+        return self._contains_circuit_breaker(node)
 
     def _is_circuit_breaker(self, decorator: ast.AST) -> bool:
         """Check if decorator is circuit breaker related."""
         if isinstance(decorator, ast.Name):
             return "circuit" in decorator.id.lower() or "breaker" in decorator.id.lower()
-        elif isinstance(decorator, ast.Call):
-            if isinstance(decorator.func, ast.Name):
-                return "circuit" in decorator.func.id.lower() or "breaker" in decorator.func.id.lower()
-            elif isinstance(decorator.func, ast.Attribute):
-                return "circuit" in decorator.func.attr.lower() or "breaker" in decorator.func.attr.lower()
+
+        if not isinstance(decorator, ast.Call):
+            return False
+
+        if isinstance(decorator.func, ast.Name):
+            return "circuit" in decorator.func.id.lower() or "breaker" in decorator.func.id.lower()
+
+        if isinstance(decorator.func, ast.Attribute):
+            return "circuit" in decorator.func.attr.lower() or "breaker" in decorator.func.attr.lower()
+
         return False
 
     def _contains_circuit_breaker(self, node: ast.AST) -> bool:

@@ -24,7 +24,7 @@ from design_linters.framework.interfaces import LintContext, LintViolation, Seve
 from design_linters.rules.literals.magic_number_rules import MagicComplexRule, MagicNumberRule
 
 
-class TestMagicNumberRule(unittest.TestCase):
+class TestMagicNumberRule(unittest.TestCase):  # design-lint: ignore[solid.srp.class-too-big,solid.srp.too-many-methods]
     """Test cases for MagicNumberRule class."""
 
     def setUp(self):
@@ -352,7 +352,7 @@ class TestMagicNumberRule(unittest.TestCase):
         self.assertEqual(context_info["class"], "TestClass")
 
 
-class TestMagicComplexRule(unittest.TestCase):
+class TestMagicComplexRule(unittest.TestCase):  # design-lint: ignore[solid.srp.class-too-big,solid.srp.too-many-methods]
     """Test cases for MagicComplexRule class."""
 
     def setUp(self):
@@ -510,7 +510,7 @@ class TestMagicComplexRule(unittest.TestCase):
         self.assertEqual(context_info["class"], "ComplexClass")
 
 
-class TestMagicNumberRuleIntegration(unittest.TestCase):
+class TestMagicNumberRuleIntegration(unittest.TestCase):  # design-lint: ignore[solid.srp.class-too-big,solid.srp.too-many-methods]
     """Integration tests for magic number rules with AST parsing."""
 
     def setUp(self):
@@ -564,7 +564,7 @@ class TestMagicNumberRuleIntegration(unittest.TestCase):
         self.assertEqual(len(violations), 0)
 
 
-class TestMagicComplexRuleIntegration(unittest.TestCase):
+class TestMagicComplexRuleIntegration(unittest.TestCase):  # design-lint: ignore[solid.srp.class-too-big,solid.srp.too-many-methods]
     """Integration tests for magic complex number rules with AST parsing."""
 
     def setUp(self):
@@ -600,7 +600,7 @@ class TestMagicComplexRuleIntegration(unittest.TestCase):
         self.assertEqual(len(violations), 2)
 
 
-class TestEdgeCasesAndErrorConditions(unittest.TestCase):
+class TestEdgeCasesAndErrorConditions(unittest.TestCase):  # design-lint: ignore[solid.srp.class-too-big,solid.srp.too-many-methods]
     """Test edge cases and error conditions for both rules."""
 
     def test_magic_number_rule_with_none_context(self):

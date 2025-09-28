@@ -47,7 +47,7 @@ class TooManyMethodsRule(ASTLintRule):
 
     @property
     def severity(self) -> Severity:
-        return Severity.WARNING
+        return Severity.ERROR
 
     @property
     def categories(self) -> set[str]:
@@ -300,7 +300,7 @@ class LowCohesionRule(ASTLintRule):
 
     @property
     def severity(self) -> Severity:
-        return Severity.WARNING
+        return Severity.ERROR
 
     @property
     def categories(self) -> set[str]:
@@ -415,6 +415,12 @@ class ClassTooBigRule(ASTLintRule):
 
     DEFAULT_MAX_LINES = 200
 
+    def __init__(self):
+        super().__init__()
+        from loguru import logger
+
+        logger.debug(f"ClassTooBigRule initialized with max_lines={self.DEFAULT_MAX_LINES}")
+
     @property
     def rule_id(self) -> str:
         return "solid.srp.class-too-big"
@@ -429,14 +435,19 @@ class ClassTooBigRule(ASTLintRule):
 
     @property
     def severity(self) -> Severity:
-        return Severity.INFO
+        return Severity.ERROR
 
     @property
     def categories(self) -> set[str]:
         return {"solid", "srp", "size"}
 
     def should_check_node(self, node: ast.AST, context: LintContext) -> bool:
-        return isinstance(node, ast.ClassDef)
+        result = isinstance(node, ast.ClassDef)
+        if result:
+            from loguru import logger
+
+            logger.debug(f"ClassTooBigRule.should_check_node: Will check class '{node.name}'")
+        return result
 
     def check_node(self, node: ast.AST, context: LintContext) -> list[LintViolation]:
         if not isinstance(node, ast.ClassDef):
@@ -444,8 +455,13 @@ class ClassTooBigRule(ASTLintRule):
         config = self.get_configuration(context.metadata or {})
         max_lines = config.get("max_class_lines", self.DEFAULT_MAX_LINES)
 
+        from loguru import logger
+
+        logger.debug(f"ClassTooBigRule checking class '{node.name}' in {context.file_path}")
+
         if node.end_lineno and node.lineno:
             line_count = node.end_lineno - node.lineno
+            logger.debug(f"  Class '{node.name}': {line_count} lines (max: {max_lines})")
 
             if line_count > max_lines:
                 return [
@@ -478,7 +494,7 @@ class TooManyDependenciesRule(ASTLintRule):
 
     @property
     def severity(self) -> Severity:
-        return Severity.WARNING
+        return Severity.ERROR
 
     @property
     def categories(self) -> set[str]:

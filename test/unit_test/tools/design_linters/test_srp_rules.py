@@ -29,7 +29,7 @@ from design_linters.rules.solid.srp_rules import (
 )
 
 
-class TestTooManyMethodsRule(unittest.TestCase):
+class TestTooManyMethodsRule(unittest.TestCase):  # design-lint: ignore[solid.srp.class-too-big,solid.srp.too-many-methods]
     """Test suite for TooManyMethodsRule."""
 
     def setUp(self):
@@ -42,7 +42,7 @@ class TestTooManyMethodsRule(unittest.TestCase):
         self.assertEqual(self.rule.rule_id, "solid.srp.too-many-methods")
         self.assertEqual(self.rule.rule_name, "Too Many Methods")
         self.assertIn("too many methods", self.rule.description.lower())
-        self.assertEqual(self.rule.severity, Severity.WARNING)
+        self.assertEqual(self.rule.severity, Severity.ERROR)
         self.assertEqual(self.rule.categories, {"solid", "srp", "complexity"})
 
     def test_should_check_node_with_class_def(self):
@@ -108,7 +108,7 @@ class LargeClass:
         self.assertEqual(len(violations), 1)
         violation = violations[0]
         self.assertEqual(violation.rule_id, "solid.srp.too-many-methods")
-        self.assertEqual(violation.severity, Severity.WARNING)
+        self.assertEqual(violation.severity, Severity.ERROR)
         self.assertIn("LargeClass", violation.message)
         self.assertIn("20 methods", violation.message)
         self.assertIn("max: 15", violation.message)
@@ -162,7 +162,7 @@ class MixedClass:
         self.assertEqual(len(violations), 0)
 
 
-class TestTooManyResponsibilitiesRule(unittest.TestCase):
+class TestTooManyResponsibilitiesRule(unittest.TestCase):  # design-lint: ignore[solid.srp.class-too-big,solid.srp.too-many-methods]
     """Test suite for TooManyResponsibilitiesRule."""
 
     def setUp(self):
@@ -364,7 +364,7 @@ class TestClass:
         self.assertNotIn("_private_method", str(groups))
 
 
-class TestLowCohesionRule(unittest.TestCase):
+class TestLowCohesionRule(unittest.TestCase):  # design-lint: ignore[solid.srp.class-too-big,solid.srp.too-many-methods]
     """Test suite for LowCohesionRule."""
 
     def setUp(self):
@@ -377,7 +377,7 @@ class TestLowCohesionRule(unittest.TestCase):
         self.assertEqual(self.rule.rule_id, "solid.srp.low-cohesion")
         self.assertEqual(self.rule.rule_name, "Low Cohesion")
         self.assertIn("high cohesion", self.rule.description.lower())
-        self.assertEqual(self.rule.severity, Severity.WARNING)
+        self.assertEqual(self.rule.severity, Severity.ERROR)
         self.assertEqual(self.rule.categories, {"solid", "srp", "cohesion"})
 
     def test_should_check_node_with_class_def(self):
@@ -486,7 +486,7 @@ class LowCohesionClass:
         self.assertEqual(len(violations), 1)
         violation = violations[0]
         self.assertEqual(violation.rule_id, "solid.srp.low-cohesion")
-        self.assertEqual(violation.severity, Severity.WARNING)
+        self.assertEqual(violation.severity, Severity.ERROR)
         self.assertIn("LowCohesionClass", violation.message)
         self.assertIn("low cohesion", violation.message)
 
@@ -571,7 +571,7 @@ def test_method(self):
         self.assertEqual(cohesion, 1.0)
 
 
-class TestClassTooBigRule(unittest.TestCase):
+class TestClassTooBigRule(unittest.TestCase):  # design-lint: ignore[solid.srp.class-too-big,solid.srp.too-many-methods]
     """Test suite for ClassTooBigRule."""
 
     def setUp(self):
@@ -584,7 +584,7 @@ class TestClassTooBigRule(unittest.TestCase):
         self.assertEqual(self.rule.rule_id, "solid.srp.class-too-big")
         self.assertEqual(self.rule.rule_name, "Class Too Big")
         self.assertIn("excessively large", self.rule.description.lower())
-        self.assertEqual(self.rule.severity, Severity.INFO)
+        self.assertEqual(self.rule.severity, Severity.ERROR)
         self.assertEqual(self.rule.categories, {"solid", "srp", "size"})
 
     def test_should_check_node_with_class_def(self):
@@ -628,7 +628,7 @@ class TestClassTooBigRule(unittest.TestCase):
 
         violation = violations[0]
         self.assertEqual(violation.rule_id, "solid.srp.class-too-big")
-        self.assertEqual(violation.severity, Severity.INFO)
+        self.assertEqual(violation.severity, Severity.ERROR)
         self.assertIn("LargeClass", violation.message)
         self.assertIn("249 lines", violation.message)
 
@@ -663,7 +663,7 @@ class TestClassTooBigRule(unittest.TestCase):
         self.assertEqual(len(violations), 0)
 
 
-class TestTooManyDependenciesRule(unittest.TestCase):
+class TestTooManyDependenciesRule(unittest.TestCase):  # design-lint: ignore[solid.srp.class-too-big,solid.srp.too-many-methods]
     """Test suite for TooManyDependenciesRule."""
 
     def setUp(self):
@@ -676,7 +676,7 @@ class TestTooManyDependenciesRule(unittest.TestCase):
         self.assertEqual(self.rule.rule_id, "solid.srp.too-many-dependencies")
         self.assertEqual(self.rule.rule_name, "Too Many Dependencies")
         self.assertIn("excessive dependencies", self.rule.description.lower())
-        self.assertEqual(self.rule.severity, Severity.WARNING)
+        self.assertEqual(self.rule.severity, Severity.ERROR)
         self.assertEqual(self.rule.categories, {"solid", "srp", "dependencies"})
 
     def test_should_check_node_with_class_def(self):
@@ -732,7 +732,7 @@ class DependentClass:
         self.assertEqual(len(violations), 1)
         violation = violations[0]
         self.assertEqual(violation.rule_id, "solid.srp.too-many-dependencies")
-        self.assertEqual(violation.severity, Severity.WARNING)
+        self.assertEqual(violation.severity, Severity.ERROR)
         self.assertIn("DependentClass", violation.message)
         self.assertIn("dependencies", violation.message)
 

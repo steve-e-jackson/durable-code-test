@@ -27,7 +27,7 @@ from pathlib import Path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../../../tools"))
 
 
-class TestBasicImports(unittest.TestCase):
+class TestBasicImports(unittest.TestCase):  # design-lint: ignore[solid.srp.class-too-big,solid.srp.too-many-methods]
     """Test that all modules can be imported without errors."""
 
     def test_framework_imports(self):
@@ -61,7 +61,7 @@ class TestBasicImports(unittest.TestCase):
             self.fail(f"CLI import failed: {e}")
 
 
-class TestBasicFunctionality(unittest.TestCase):
+class TestBasicFunctionality(unittest.TestCase):  # design-lint: ignore[solid.srp.class-too-big,solid.srp.too-many-methods]
     """Test basic functionality without complex scenarios."""
 
     def test_severity_enum(self):
@@ -149,7 +149,7 @@ class TestBasicFunctionality(unittest.TestCase):
         self.assertEqual(rule.rule_id, "style.print-statement")
 
 
-class TestCategoriesFilter(unittest.TestCase):
+class TestCategoriesFilter(unittest.TestCase):  # design-lint: ignore[solid.srp.class-too-big,solid.srp.too-many-methods]
     """Test that --categories filter works correctly."""
 
     def setUp(self):
@@ -268,7 +268,7 @@ class VeryLongClassWithManyLines:
         self.assertIn("solid", solid_rules[0].categories)
 
 
-class TestIgnoreFunctionality(unittest.TestCase):
+class TestIgnoreFunctionality(unittest.TestCase):  # design-lint: ignore[solid.srp.class-too-big,solid.srp.too-many-methods]
     """Test that ignore directives work correctly."""
 
     def setUp(self):

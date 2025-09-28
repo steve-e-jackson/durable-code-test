@@ -19,12 +19,50 @@ from enum import Enum
 from typing import Any
 
 
-class Severity(Enum):
+class Severity(Enum):  # design-lint: ignore[solid.srp.low-cohesion]
     """Enumeration of violation severity levels."""
 
     ERROR = "error"
     WARNING = "warning"
     INFO = "info"
+
+    @property
+    def level(self) -> int:
+        """Return numeric severity level for comparison (higher = more severe)."""
+        levels = {"info": 0, "warning": 1, "error": 2}
+        return levels.get(self.value, 0)
+
+    def __ge__(self, other: "Severity") -> bool:
+        """Compare severity levels."""
+        if not isinstance(other, Severity):
+            return NotImplemented
+        return self.level >= other.level
+
+    def __gt__(self, other: "Severity") -> bool:
+        """Compare severity levels."""
+        if not isinstance(other, Severity):
+            return NotImplemented
+        return self.level > other.level
+
+    def __le__(self, other: "Severity") -> bool:
+        """Compare severity levels."""
+        if not isinstance(other, Severity):
+            return NotImplemented
+        return self.level <= other.level
+
+    def __lt__(self, other: "Severity") -> bool:
+        """Compare severity levels."""
+        if not isinstance(other, Severity):
+            return NotImplemented
+        return self.level < other.level
+
+    @classmethod
+    def from_string(cls, value: str) -> "Severity":
+        """Create severity from string value."""
+        for severity in cls:
+            if severity.value == value:
+                return severity
+        raise ValueError(f"Invalid severity value: {value}")
 
 
 @dataclass

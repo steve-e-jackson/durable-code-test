@@ -16,16 +16,18 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-from design_linters.framework.interfaces import LintContext, Severity
-from design_linters.rules.organization.file_placement_rules import FileOrganizationRule
+from tools.design_linters.framework.interfaces import LintContext, Severity
+from tools.design_linters.rules.organization.file_placement_rules import FileOrganizationRule
 
 
-class TestFileOrganizationRule:
+class TestFileOrganizationRule:  # design-lint: ignore[solid.srp.class-too-big,solid.srp.too-many-methods]
     """Test suite for FileOrganizationRule."""
 
     def setup_method(self):
         """Set up test fixtures."""
-        self.rule = FileOrganizationRule()
+        # Mock Path.exists to prevent loading actual layout.yaml
+        with patch("pathlib.Path.exists", return_value=False):
+            self.rule = FileOrganizationRule()
 
     def create_context(self, file_path: str, content: str = "# Test file\n") -> LintContext:
         """Helper to create a LintContext with given file path."""
@@ -200,7 +202,8 @@ class TestFileOrganizationRule:
 
     def test_custom_configuration(self):
         """Test that rule uses default configuration when no custom layout file exists."""
-        rule = FileOrganizationRule({})
+        with patch("pathlib.Path.exists", return_value=False):
+            rule = FileOrganizationRule({})
 
         # Test that default configuration is loaded
         assert rule.layout_rules is not None

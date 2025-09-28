@@ -24,313 +24,402 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from design_linters.framework.interfaces import ASTLintRule, LintContext, LintViolation, Severity
+from loguru import logger
 
-try:
-    from loguru import logger
-except ImportError:
-    import logging
+from tools.design_linters.framework.interfaces import (
+    ASTLintRule,
+    LintContext,
+    LintViolation,
+    Severity,
+)
 
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger(__name__)
 
+class LayoutRulesLoader:
+    """Handles loading and parsing of layout rules from configuration files."""
 
-class FileOrganizationRule(ASTLintRule):
-    """Detect improperly placed files based on JSON layout configuration."""
+    def __init__(self, layout_file: str):
+        """Initialize with layout file path."""
+        self.layout_file = layout_file
+        self.rules = None
+        self._load_rules()
 
-    def __init__(self, config: dict[str, Any] | None = None):
-        """Initialize the rule with configuration."""
-        super().__init__()
-        self.config = config or {}
-        self.layout_rules = None
-
-        # Load layout rules from JSON file if specified
-        layout_file = self.config.get("layout_rules_file", ".ai/layout.yaml")
-        self._load_layout_rules(layout_file)
-
-        # Fallback to default config if no JSON file found
-        if not self.layout_rules:
-            logger.warning(f"Layout rules file not found: {layout_file}, using default configuration")
-            self._use_default_config()
-
-    def _load_layout_rules(self, layout_file: str) -> None:
+    def _load_rules(self) -> None:
         """Load layout rules from JSON or YAML file."""
         try:
-            layout_path = Path(layout_file)
-            if not layout_path.is_absolute():
-                # Try to find it relative to project root
-                layout_path = Path.cwd() / layout_path
+            layout_path = self._get_layout_path()
+            if not layout_path.exists():
+                logger.warning(f"Layout rules file not found: {layout_path}, using default configuration")
+                self.rules = self.get_default_rules()
+                return
 
-            if layout_path.exists():
-                with open(layout_path, encoding="utf-8") as f:
-                    # Determine file format from extension
-                    data = yaml.safe_load(f) if layout_path.suffix in [".yaml", ".yml"] else json.load(f)
-
-                    if "linter_rules" in data:
-                        self.layout_rules = data["linter_rules"]
-                        logger.debug(f"Loaded layout rules from {layout_path}")
-                    else:
-                        logger.error(f"No 'linter_rules' section found in {layout_path}")
+            data = self._load_config_data(layout_path)
+            self._process_config_data(data, layout_path)
         except Exception as e:
-            logger.error(f"Failed to load layout rules from {layout_file}: {e}")
+            logger.warning(f"Error loading layout rules: {e}, using defaults")
+            self.rules = self.get_default_rules()
 
-    def _use_default_config(self) -> None:
-        """Fall back to default configuration for backward compatibility."""
-        self.layout_rules = {
-            "paths": {
-                ".": {
-                    "description": "Root directory (fallback rules)",
-                    "allow": [
-                        "^[^/]+\\.md$",
-                        "^[^/]+\\.yml$",
-                        "^[^/]+\\.yaml$",
-                        "^[^/]+\\.json$",
-                        "^[^/]+\\.toml$",
-                        "^Makefile",
-                        "^setup\\.py$",
-                        "^conftest\\.py$",
-                        "^manage\\.py$",
-                    ],
-                    "deny": [
-                        "^debug[_-].*\\.py$",
-                        "^tmp[_-].*\\.py$",
-                        "^temp[_-].*\\.py$",
-                    ],
-                }
-            },
-            "global_patterns": {
-                "test_files": {
-                    "patterns": ["test[_-].*\\.py$", ".*[_-]test\\.py$"],
-                    "must_be_in": ["^test/"],
-                }
-            },
-        }
+    def _get_layout_path(self) -> Path:
+        """Get absolute path to layout file."""
+        path = Path(self.layout_file)
+        if not path.is_absolute():
+            path = Path.cwd() / path
+        return path
 
-    @property
-    def rule_id(self) -> str:
-        return "organization.file-placement"
+    def _load_config_data(self, layout_path: Path) -> dict[str, Any]:
+        """Load data from config file."""
+        with open(layout_path) as f:
+            if layout_path.suffix in [".yaml", ".yml"]:
+                return yaml.safe_load(f)
+            return json.load(f)
 
-    @property
-    def rule_name(self) -> str:
-        return "File Placement Check"
+    def _process_config_data(self, data: dict[str, Any], layout_path: Path) -> None:
+        """Process loaded configuration data."""
+        if "$schema" in data:
+            del data["$schema"]
+        self.rules = data
+        logger.debug(f"Loaded layout rules from {layout_path}")
 
-    @property
-    def description(self) -> str:
-        return "Ensures files are placed in appropriate directories according to JSON layout configuration"
+    def get_rules(self) -> dict[str, Any] | None:
+        """Get loaded layout rules."""
+        return self.rules
 
-    @property
-    def severity(self) -> Severity:
-        return Severity.WARNING
+    @staticmethod
+    def get_default_rules() -> dict[str, Any]:
+        """Get default layout rules if no config file exists."""
+        return { "dont": "use"}
 
-    @property
-    def categories(self) -> set[str]:
-        return {"organization", "structure", "conventions"}
 
-    def should_check_node(self, node: Any, context: LintContext) -> bool:
-        """Check only module nodes to validate file placement once per file."""
-        return hasattr(node, "__class__") and node.__class__.__name__ == "Module"
+class PatternMatcher:
+    """Handles pattern matching logic for file paths."""
 
-    def check_node(self, node: Any, context: LintContext) -> list[LintViolation]:
-        """Check if the file is properly placed according to layout rules."""
+    def match_deny_patterns(self, path_str: str, deny_patterns: list[dict[str, str]]) -> tuple[bool, str | None]:
+        """Check if path matches any deny patterns."""
+        for deny_item in deny_patterns:
+            pattern = deny_item["pattern"]
+            if re.search(pattern, path_str, re.IGNORECASE):
+                reason = deny_item.get("reason", "File not allowed in this location")
+                return True, reason
+        return False, None
+
+    def match_allow_patterns(self, path_str: str, allow_patterns: list[str]) -> bool:
+        """Check if path matches any allow patterns."""
+        for pattern in allow_patterns:
+            if re.search(pattern, path_str, re.IGNORECASE):
+                return True
+        return False
+
+
+class GlobalPatternChecker:
+    """Checks files against global pattern rules."""
+
+    def __init__(self, pattern_matcher: PatternMatcher):
+        """Initialize with pattern matcher."""
+        self.pattern_matcher = pattern_matcher
+
+    def check_patterns(
+        self, path_str: str, rel_path: Path, global_patterns: dict[str, Any], rule_id: str
+    ) -> list[LintViolation]:
+        """Check path against global patterns."""
         violations = []
 
-        if not context.file_path or not self.layout_rules:
+        # Check global deny patterns
+        if "deny" in global_patterns:
+            is_denied, reason = self.pattern_matcher.match_deny_patterns(path_str, global_patterns["deny"])
+            if is_denied:
+                violations.append(
+                    LintViolation(
+                        rule_id=rule_id,
+                        message=reason or f"File '{rel_path}' matches denied pattern",
+                        node=None,
+                        severity=Severity.ERROR,
+                        line_number=1,
+                        column_number=0,
+                        file_path=str(rel_path),
+                        suggestion=FileSuggestionGenerator.get_suggestion(rel_path.name, path_str),
+                    )
+                )
+
+        # Check global allow patterns
+        if "allow" in global_patterns:
+            allow_patterns = global_patterns["allow"]
+            if not self.pattern_matcher.match_allow_patterns(path_str, allow_patterns):
+                violations.append(
+                    LintViolation(
+                        rule_id=rule_id,
+                        message=f"File '{rel_path}' does not match any allowed patterns",
+                        node=None,
+                        severity=Severity.WARNING,
+                        line_number=1,
+                        column_number=0,
+                        file_path=str(rel_path),
+                        suggestion="Ensure file matches project structure patterns",
+                    )
+                )
+
+        return violations
+
+
+class DirectoryRuleChecker:
+    """Checks files against directory-specific rules."""
+
+    def __init__(self, pattern_matcher: PatternMatcher):
+        """Initialize with pattern matcher."""
+        self.pattern_matcher = pattern_matcher
+        self.current_path_str = ""
+        self.current_rel_path = None
+        self.current_rule_id = ""
+        self.current_directories = {}
+
+    def check_directory_rules(
+        self, path_str: str, rel_path: Path, directories: dict[str, Any], rule_id: str
+    ) -> list[LintViolation]:
+        """Check if file complies with directory-specific rules."""
+        # Store state for use by other methods
+        self.current_path_str = path_str
+        self.current_rel_path = rel_path
+        self.current_rule_id = rule_id
+        self.current_directories = directories
+
+        violations = []
+
+        # Check for test files in root
+        if self._is_test_file_in_root():
+            violations.append(self._create_test_file_violation())
             return violations
 
-        file_path = Path(context.file_path)
+        # Find matching directory rule
+        dir_rule, matched_path = self._find_matching_directory_rule()
+        if not dir_rule:
+            return violations
+
+        # Check deny patterns
+        if "deny" in dir_rule:
+            is_denied, reason = self.pattern_matcher.match_deny_patterns(self.current_path_str, dir_rule["deny"])
+            if is_denied:
+                violations.append(self._create_deny_violation(matched_path, reason))
+
+        # Check allow patterns
+        if "allow" in dir_rule and "deny" not in dir_rule:
+            if not self.pattern_matcher.match_allow_patterns(self.current_path_str, dir_rule["allow"]):
+                violations.append(self._create_allow_violation(matched_path))
+
+        return violations
+
+    def _is_test_file_in_root(self) -> bool:
+        """Check if this is a test file in root directory."""
+        if len(self.current_rel_path.parts) == 1:
+            filename = self.current_rel_path.name.lower()
+            return filename.startswith("test_") or filename.endswith("_test.py") or "test" in filename
+        return False
+
+    def _create_test_file_violation(self) -> LintViolation:
+        """Create violation for test file in root."""
+        return LintViolation(
+            rule_id=self.current_rule_id,
+            message=f"Test file '{self.current_rel_path}' should not be in project root",
+            node=None,
+            severity=Severity.ERROR,
+            line_number=1,
+            column_number=0,
+            file_path=str(self.current_rel_path),
+            suggestion="Move test files to test/ or tests/ directory to maintain project organization",
+        )
+
+    def _find_matching_directory_rule(self) -> tuple[dict[str, Any] | None, str | None]:
+        """Find the most specific directory rule that matches the path."""
+        best_match = None
+        best_path = None
+        best_depth = -1
+
+        for dir_path, rules in self.current_directories.items():
+            if self.current_path_str.startswith(dir_path) or (dir_path == "root" and "/" not in self.current_path_str):
+                depth = len(dir_path.split("/"))
+                if depth > best_depth:
+                    best_match = rules
+                    best_path = dir_path
+                    best_depth = depth
+
+        return best_match, best_path
+
+    def _create_deny_violation(self, matched_path: str | None, reason: str | None) -> LintViolation:
+        """Create violation for denied file."""
+        message = f"File '{self.current_rel_path}' not allowed in {matched_path or 'this location'}"
+        if reason:
+            message = f"{message}: {reason}"
+
+        return LintViolation(
+            rule_id=self.current_rule_id,
+            message=message,
+            node=None,
+            severity=Severity.ERROR,
+            line_number=1,
+            column_number=0,
+            file_path=str(self.current_rel_path),
+            suggestion=FileSuggestionGenerator.get_suggestion(self.current_rel_path.name, None),
+        )
+
+    def _create_allow_violation(self, matched_path: str | None) -> LintViolation:
+        """Create violation for file not matching allow patterns."""
+        message = (
+            f"File '{self.current_rel_path}' does not match allowed patterns for {matched_path or 'this directory'}"
+        )
+        suggestion = f"Ensure file type is appropriate for {matched_path or 'this location'}"
+
+        return LintViolation(
+            rule_id=self.current_rule_id,
+            message=message,
+            node=None,
+            severity=Severity.WARNING,
+            line_number=1,
+            column_number=0,
+            file_path=str(self.current_rel_path),
+            suggestion=suggestion,
+        )
+
+
+class FilePlacementChecker:
+    """Handles the actual file placement validation logic."""
+
+    def __init__(self, layout_rules: dict[str, Any]):
+        """Initialize with layout rules."""
+        self.layout_rules = layout_rules
+        self.pattern_matcher = PatternMatcher()
+        self.global_checker = GlobalPatternChecker(self.pattern_matcher)
+        self.directory_checker = DirectoryRuleChecker(self.pattern_matcher)
+
+    def check_file_placement(self, file_path: Path, rule_id: str) -> list[LintViolation]:
+        """Check if file is properly placed according to layout rules."""
+        violations = []
 
         # Get relative path from project root
         try:
             cwd = Path.cwd()
             rel_path = file_path.relative_to(cwd) if file_path.is_absolute() else file_path
         except ValueError as e:
-            logger.debug(f"File is outside project directory: {file_path}, error: {e}")
+            logger.debug("File is outside project directory: {}, error: {}", file_path, e)
             return violations
 
         # Convert to string for pattern matching
-        path_str = str(rel_path).replace("\\", "/")  # Normalize path separators
+        path_str = str(rel_path).replace("\\", "/")
 
-        # Check directory-specific rules first (includes debug/temp file checks for root)
-        dir_violations = self._check_directory_rules(path_str, rel_path)
-        violations.extend(dir_violations)
+        # Check directory-specific rules first
+        if "directories" in self.layout_rules:
+            dir_violations = self.directory_checker.check_directory_rules(
+                path_str, rel_path, self.layout_rules["directories"], rule_id
+            )
+            violations.extend(dir_violations)
 
         # Check global patterns only if not already flagged by directory rules
-        if not dir_violations:
-            violations.extend(self._check_global_patterns(path_str, rel_path))
+        if not violations and "global_patterns" in self.layout_rules:
+            global_violations = self.global_checker.check_patterns(
+                path_str, rel_path, self.layout_rules["global_patterns"], rule_id
+            )
+            violations.extend(global_violations)
 
         return violations
 
-    def _check_global_patterns(self, path_str: str, rel_path: Path) -> list[LintViolation]:
-        """Check file against global patterns that apply everywhere."""
-        violations = []
 
-        if "global_patterns" not in self.layout_rules:
-            return violations
+class FileSuggestionGenerator:
+    """Generates suggestions for file placement."""
 
-        global_patterns = self.layout_rules["global_patterns"]
+    @staticmethod
+    def get_suggestion(filename: str, pattern: str | None) -> str:
+        """Get suggestion for where to move a file based on its type."""
+        if "test" in filename.lower():
+            return "Move to test/ or tests/ directory"
 
-        # Check if file should be denied everywhere
-        if "deny_everywhere" in global_patterns:
-            for pattern in global_patterns["deny_everywhere"]:
-                if re.search(pattern, path_str):
-                    violations.append(
-                        LintViolation(
-                            rule_id=self.rule_id,
-                            file_path=str(rel_path),
-                            line=1,
-                            column=0,
-                            severity=Severity.ERROR,
-                            message=f"File type is forbidden: {rel_path.name}",
-                            description=f"Files matching pattern '{pattern}' should not be committed",
-                            suggestion="Remove this file or add it to .gitignore",
-                        )
-                    )
-                    return violations  # No need to check further if file is forbidden
+        if filename.endswith((".ts", ".tsx", ".jsx")):
+            return FileSuggestionGenerator._get_typescript_suggestion(filename)
 
-        # Check test file placement
-        if "test_files" in global_patterns:
-            test_config = global_patterns["test_files"]
-            # Check patterns against filename only
-            is_test_file = any(re.search(pattern, rel_path.name) for pattern in test_config["patterns"])
+        if filename.endswith(".py"):
+            return FileSuggestionGenerator._get_python_suggestion(pattern)
 
-            if is_test_file:
-                in_test_dir = any(re.match(pattern, path_str) for pattern in test_config["must_be_in"])
-                if not in_test_dir:
-                    violations.append(
-                        LintViolation(
-                            rule_id=self.rule_id,
-                            file_path=str(rel_path),
-                            line=1,
-                            column=0,
-                            severity=self.severity,
-                            message=f"Test file '{rel_path.name}' is not in test directory",
-                            description="Test files must be placed in the test/ directory",
-                            suggestion="Move to test/unit_test/ or test/integration_test/",
-                        )
-                    )
+        if filename.startswith("debug") or filename.startswith("temp"):
+            return "Move to debug/ or tmp/ directory, or remove if not needed"
 
-        return violations
+        if filename.endswith(".log"):
+            return "Move to logs/ directory or add to .gitignore"
 
-    def _check_directory_rules(self, path_str: str, rel_path: Path) -> list[LintViolation]:
-        """Check file against specific directory rules."""
-        violations = []
+        return "Review file organization and move to appropriate directory"
 
-        if "paths" not in self.layout_rules:
-            return violations
-
-        # Check for test files, but exclude debug/temp prefixed files
-        # This ensures debug/temp files are handled by their specific rules
-        if "global_patterns" in self.layout_rules and "test_files" in self.layout_rules["global_patterns"]:
-            test_config = self.layout_rules["global_patterns"]["test_files"]
-            # Check patterns against filename only, but skip if it starts with debug/tmp/temp
-            if not re.match(r"^(debug|tmp|temp)[_-]", rel_path.name):
-                is_test_file = any(re.search(pattern, rel_path.name) for pattern in test_config["patterns"])
-
-                if is_test_file and len(rel_path.parts) == 1:  # Test file in root
-                    violations.append(
-                        LintViolation(
-                            rule_id=self.rule_id,
-                            file_path=str(rel_path),
-                            line=1,
-                            column=0,
-                            severity=self.severity,
-                            message=f"Test file '{rel_path.name}' should not be in the root directory",
-                            description="Test files must be placed in the test/ directory",
-                            suggestion="Move to test/unit_test/ or test/integration_test/",
-                        )
-                    )
-                    return violations  # Skip other checks if it's a misplaced test file
-
-        # Find the most specific matching directory rule
-        matched_rule = None
-        matched_path = None
-
-        for dir_path, rules in self.layout_rules["paths"].items():
-            # Check if file is in this directory
-            if dir_path == ".":
-                # Root directory - check if file has no parent directories
-                if len(rel_path.parts) == 1:
-                    matched_rule = rules
-                    matched_path = dir_path
-            elif path_str.startswith(dir_path) and (not matched_path or len(dir_path) > len(matched_path)):
-                # Use the most specific (longest) matching path
-                matched_rule = rules
-                matched_path = dir_path
-
-        if not matched_rule:
-            return violations
-
-        # Check against deny patterns first
-        if "deny" in matched_rule:
-            for pattern in matched_rule["deny"]:
-                # For root directory patterns, check against filename only
-                check_target = rel_path.name if matched_path == "." else path_str
-
-                if re.search(pattern, check_target):
-                    # Special message for debug/temp files in root
-                    if matched_path == "." and re.match(r"^(debug|tmp|temp)[_-]", rel_path.name):
-                        message = f"File '{rel_path.name}' should not be in the root directory"
-                    else:
-                        message = f"File '{rel_path.name}' is forbidden in {matched_path or 'root'}"
-
-                    violations.append(
-                        LintViolation(
-                            rule_id=self.rule_id,
-                            file_path=str(rel_path),
-                            line=1,
-                            column=0,
-                            severity=self.severity,
-                            message=message,
-                            description=f"Files matching pattern '{pattern}' are not allowed here",
-                            suggestion=self._get_suggestion_for_file(rel_path.name, pattern),
-                        )
-                    )
-                    return violations  # Don't check allow if denied
-
-        # Check against allow patterns (if specified)
-        if "allow" in matched_rule:
-            file_allowed = any(re.search(pattern, path_str) for pattern in matched_rule["allow"])
-            if not file_allowed:
-                # File doesn't match any allow pattern
-                # Special handling for Python files in root
-                if matched_path == "." and rel_path.name.endswith(".py"):
-                    message = f"Python file '{rel_path.name}' in root directory"
-                    description = "Consider if this file belongs in the root directory"
-                else:
-                    message = f"File '{rel_path.name}' may not belong in {matched_path or 'root'}"
-                    description = "File doesn't match expected patterns for this directory"
-
-                violations.append(
-                    LintViolation(
-                        rule_id=self.rule_id,
-                        file_path=str(rel_path),
-                        line=1,
-                        column=0,
-                        severity=Severity.INFO,
-                        message=message,
-                        description=description,
-                        suggestion=self._get_suggestion_for_file(rel_path.name, None),
-                    )
-                )
-
-        return violations
-
-    def _get_suggestion_for_file(self, filename: str, pattern: str | None) -> str:
-        """Generate suggestion for where to place a file."""
-        if re.match(r"^debug|^tmp|^temp", filename):
-            return "Move to 'scripts/debug/' or remove if no longer needed"
-        elif re.match(r"test_.*\.py$|.*_test\.py$", filename):
-            return "Move to 'test/unit_test/' following the project test structure"
-        elif filename.endswith(".tsx") or filename.endswith(".ts"):
-            if "service" in filename.lower():
-                return "Move to 'features/[feature-name]/services/'"
-            elif filename.startswith("use"):
-                return "Move to appropriate hooks directory"
-            else:
-                return "Move to 'components/' for simple UI or 'features/' for complex components"
-        elif filename.endswith(".py"):
-            if pattern and "test" in pattern:
-                return "Move to 'test/' directory"
-            return "Move to appropriate module directory based on functionality"
+    @staticmethod
+    def _get_typescript_suggestion(filename: str) -> str:
+        """Get suggestion for TypeScript/React files."""
+        if "component" in filename.lower():
+            return "Move to frontend/components/ or src/components/"
+        elif "hook" in filename.lower():
+            return "Move to frontend/hooks/ or src/hooks/"
+        elif "util" in filename.lower() or "helper" in filename.lower():
+            return "Move to frontend/utils/ or src/utils/"
         else:
-            return "Review project layout rules in .ai/layout.yaml for proper placement"
+            return "Move to frontend/src/ or appropriate frontend directory"
+
+    @staticmethod
+    def _get_python_suggestion(pattern: str | None) -> str:
+        """Get suggestion for Python files."""
+        if pattern and "debug" in pattern:
+            return "Move to debug/ directory or remove debug code"
+        else:
+            return "Move to src/, lib/, or appropriate module directory"
+
+
+class FileOrganizationRule(ASTLintRule):
+    """Check file organization and placement."""
+
+    def __init__(self, config: dict[str, Any] | None = None):
+        """Initialize the rule with optional configuration."""
+        super().__init__()
+        self.config = config or {}
+        layout_file = self.config.get("layout_file", ".ai/layout.yaml")
+
+        # Load layout rules
+        loader = LayoutRulesLoader(layout_file)
+        layout_rules = loader.get_rules()
+
+        # Store the layout rules on the instance
+        self.layout_rules = layout_rules
+
+        # Create placement checker
+        self.placement_checker = FilePlacementChecker(layout_rules) if layout_rules else None
+
+    @property
+    def rule_id(self) -> str:
+        """Return the unique identifier for this rule."""
+        return "organization.file-placement"
+
+    @property
+    def rule_name(self) -> str:
+        """Return the human-readable name for this rule."""
+        return "File Organization and Placement"
+
+    @property
+    def description(self) -> str:
+        """Return the description of what this rule checks."""
+        return "Ensure files are placed in appropriate directories according to project structure"
+
+    @property
+    def severity(self) -> Severity:
+        """Return the severity level of violations from this rule."""
+        return Severity.INFO
+
+    @property
+    def categories(self) -> set[str]:
+        """Return the categories this rule belongs to."""
+        return {"organization", "structure"}
+
+    def should_check_node(self, node: Any, context: LintContext) -> bool:
+        """Only check Module nodes (file-level)."""
+        import ast
+
+        return isinstance(node, ast.Module)
+
+    def check_node(self, node: Any, context: LintContext) -> list[LintViolation]:
+        """Check if file is properly organized."""
+        if not self.placement_checker:
+            return []
+
+        file_path = Path(context.file_path) if hasattr(context, "file_path") else None
+        if not file_path:
+            return []
+
+        return self.placement_checker.check_file_placement(file_path, self.rule_id)

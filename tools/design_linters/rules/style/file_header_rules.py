@@ -22,620 +22,633 @@ import re
 from pathlib import Path
 from typing import Any
 
-from design_linters.framework.interfaces import ASTLintRule, LintContext, LintViolation, Severity
+from loguru import logger
 
-try:
-    from loguru import logger
-except ImportError:
-    import logging
+from tools.design_linters.framework.interfaces import (
+    ASTLintRule,
+    LintContext,
+    LintViolation,
+    Severity,
+)
 
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger(__name__)
+
+class HeaderFieldValidator:
+    """Handles validation of header field content and quality."""
+
+    # Constants for validation
+    DEFAULT_MIN_OVERVIEW_WORDS = 20
+    DEFAULT_MIN_OVERVIEW_CHARS = 100
+
+    PLACEHOLDER_PATTERNS = [
+        r"^TODO",
+        r"^TBD",
+        r"^FIXME",
+        r"^XXX",
+        r"^\.\.\.",
+        r"^<.*>$",
+        r"^\[.*\]$",
+        r"^your .* here",
+        r"^describe .*",
+        r"^brief .*",
+        r"^placeholder",
+        r"^undefined",
+        r"^unknown",
+        r"^n/a",
+        r"^not applicable",
+    ]
+
+    def validate_field_content(self, fields: dict[str, str]) -> list[dict[str, str]]:
+        """Validate that field content is not placeholder text."""
+        issues = []
+        for field_name, content in fields.items():
+            content_lower = content.lower().strip()
+            for pattern in self.PLACEHOLDER_PATTERNS:
+                if re.match(pattern, content_lower, re.IGNORECASE):
+                    issues.append(
+                        {
+                            "field": field_name.title(),
+                            "issue": f"contains placeholder text: '{content}'",
+                            "suggestion": f"Provide a meaningful {field_name.lower()} description",
+                        }
+                    )
+                    break
+        return issues
+
+    def validate_overview_content(
+        self, overview: str, min_words: int | None = None, min_chars: int | None = None
+    ) -> tuple[bool, str]:
+        """Validate overview field meets quality requirements."""
+        # Use defaults if not provided
+        if min_words is None:
+            min_words = self.DEFAULT_MIN_OVERVIEW_WORDS
+        if min_chars is None:
+            min_chars = self.DEFAULT_MIN_OVERVIEW_CHARS
+
+        words = overview.split()
+        word_count = len(words)
+        char_count = len(overview)
+
+        if word_count < min_words or char_count < min_chars:
+            return (
+                False,
+                f"Overview too brief ({word_count} words, {char_count} chars). "
+                f"Minimum: {min_words} words, {min_chars} chars. "
+                "Provide comprehensive file documentation.",
+            )
+        return (True, "")
+
+
+class TemporalLanguageChecker:
+    """Handles detection and validation of temporal language in headers."""
+
+    TEMPORAL_PATTERNS = {
+        "date_stamps": r"\b\d{4}[-/]\d{1,2}[-/]\d{1,2}\b|\b\d{1,2}[-/]\d{1,2}[-/]\d{4}\b",
+        "created_updated": r"\b(created|updated|modified|changed)\s*(on|at|:)?\s*\d",
+        "state_changes": r"\b(was|were|had been|has been|have been|will be|would be)\b",
+        "temporal_qualifiers": r"\b(recently|currently|now|today|yesterday|tomorrow|soon|later)\b",
+        "future_references": r"\b(will|shall|going to|plan to|intend to|expect to)\b",
+    }
+
+    def check_temporal_language_patterns(self, header_content: str) -> list[dict[str, str]]:
+        """Check header for temporal language patterns."""
+        temporal_issues = []
+        for pattern_type, pattern in self.TEMPORAL_PATTERNS.items():
+            matches = re.findall(pattern, header_content, re.IGNORECASE)
+            for match in matches:
+                temporal_issues.append({"type": pattern_type, "text": match})
+        return temporal_issues
+
+    def get_temporal_suggestion(self, pattern_type: str, matched_text: str) -> str:
+        """Get suggestion for fixing temporal language."""
+        suggestions = {
+            "date_stamps": (
+                f"Remove date '{matched_text}' from header. Dates belong in version control history, not documentation."
+            ),
+            "created_updated": (
+                f"Remove temporal metadata '{matched_text}'. Creation/modification info belongs in version control."
+            ),
+            "state_changes": (
+                f"Replace past/future tense '{matched_text}' with present tense. "
+                "Documentation should describe current state."
+            ),
+            "temporal_qualifiers": (
+                f"Remove temporal qualifier '{matched_text}'. "
+                "Documentation should be timeless and describe current behavior."
+            ),
+            "future_references": (
+                f"Remove future reference '{matched_text}'. "
+                "Document what IS, not what WILL BE. Future plans belong in issues/roadmap."
+            ),
+        }
+        return suggestions.get(pattern_type, f"Remove temporal language '{matched_text}' for timeless documentation.")
+
+
+class HeaderTemplateProvider:
+    """Provides header templates for different file types."""
+
+    TEMPLATES = {
+        ".py": '"""\nPurpose: [Single line describing why this file exists]\nScope: [What this file covers/handles]\nOverview: [Comprehensive 3-5 sentence description of what this file does,\n    how it fits into the larger system, and any important behaviors or patterns\n    it implements. This helps developers understand the file without reading code.]\nDependencies: [Key imports and external dependencies]\nExports: [Main classes/functions/constants exported]\nInterfaces: [Key interfaces this implements or provides]\nImplementation: [High-level approach or algorithm used]\n"""',
+        ".ts": "/**\n * Purpose: [Single line describing why this file exists]\n * Scope: [What this file covers/handles]\n * Overview: [Comprehensive 3-5 sentence description]\n * Dependencies: [Key imports and external dependencies]\n * Exports: [Main exports from this module]\n * Interfaces: [Key interfaces defined or implemented]\n * Implementation: [High-level approach]\n */",
+        ".tsx": "/**\n * Purpose: [React component purpose]\n * Scope: [Component responsibility/domain]\n * Overview: [Component behavior and usage]\n * Props: [Key props accepted]\n * State: [State management approach]\n * Dependencies: [Key imports]\n * Implementation: [Rendering approach]\n */",
+        ".js": "/**\n * Purpose: [Why this file exists]\n * Scope: [What this file handles]\n * Overview: [Detailed description]\n * Dependencies: [Key imports]\n * Exports: [Module exports]\n * Implementation: [Approach used]\n */",
+        ".jsx": "/**\n * Purpose: [React component purpose]\n * Scope: [Component domain]\n * Overview: [Component description]\n * Props: [Component props]\n * State: [State management]\n * Dependencies: [Key imports]\n */",
+        ".css": "/**\n * Purpose: [Styling purpose]\n * Scope: [What components/pages these styles apply to]\n * Overview: [Design system usage and patterns]\n * Dependencies: [CSS imports/variables used]\n */",
+        ".sh": "#!/usr/bin/env bash\n# Purpose: [Script purpose]\n# Scope: [What this script handles]\n# Overview: [Detailed description]\n# Dependencies: [Required tools/scripts]\n# Usage: [How to run this script]",
+        ".md": "<!-- Purpose: [Document purpose] -->\n<!-- Scope: [What this covers] -->\n<!-- Overview: [Detailed description] -->",
+        ".html": "<!-- Purpose: [Page/component purpose] -->\n<!-- Scope: [What this handles] -->\n<!-- Overview: [Detailed description] -->",
+        ".yaml": "# Purpose: [Config purpose]\n# Scope: [What this configures]\n# Overview: [Detailed description]",
+        ".yml": "# Purpose: [Config purpose]\n# Scope: [What this configures]\n# Overview: [Detailed description]",
+    }
+
+    def get_template(self, file_ext: str) -> str:
+        """Get the appropriate header template for a file type."""
+        return self.TEMPLATES.get(file_ext, self.TEMPLATES[".py"])
+
+
+class HeaderParser:
+    """Handles parsing of file headers from different file types."""
+
+    def __init__(self):
+        """Initialize the parser."""
+        self.fields = {}
+        self.current_field = None
+        self.current_content = []
+        self.field_pattern = None
+
+    def parse_header_fields(self, header_content: str, field_pattern: re.Pattern) -> dict[str, str]:
+        """Parse header content to extract field values."""
+        # Reset state for new parse
+        self.fields = {}
+        self.current_field = None
+        self.current_content = []
+        self.field_pattern = field_pattern
+
+        lines = header_content.split("\n")
+        for line in lines:
+            cleaned_line = self._clean_header_line(line)
+            if not cleaned_line:
+                continue
+
+            # Process the cleaned line
+            self._process_header_line(cleaned_line, line)
+
+        # Save last field if exists
+        if self.current_field:
+            self.fields[self.current_field] = " ".join(self.current_content).strip()
+
+        return self.fields
+
+    def _process_header_line(self, cleaned_line: str, original_line: str) -> None:
+        """Process a single header line and update internal state."""
+        is_continuation = self._is_continuation_line(original_line)
+
+        # If it's a continuation line for the current field, add to content
+        if self._should_add_to_field(cleaned_line, original_line, is_continuation):
+            if self.current_field:
+                self.current_content.append(cleaned_line)
+            return
+
+        # Try to match as a new field
+        match = self.field_pattern.match(cleaned_line)
+        if not match:
+            return
+
+        # Save previous field if it exists
+        if self.current_field:
+            self.fields[self.current_field] = " ".join(self.current_content).strip()
+
+        # Start new field
+        self.current_field = match.group(1).lower()
+        content = match.group(2).strip() if match.group(2) else ""
+        self.current_content = [content] if content else []
+
+    def _is_continuation_line(self, line: str) -> bool:
+        """Check if line is a continuation of previous field."""
+        return line.strip() and not line.lstrip().startswith(("*", "#", "//"))
+
+    def _clean_header_line(self, line: str) -> str:
+        """Remove comment markers from header line."""
+        line = line.strip()
+        for prefix in ["*", "#", "//"]:
+            if line.startswith(prefix):
+                line = line[len(prefix) :].strip()
+        return line
+
+    def _should_add_to_field(self, cleaned_line: str, original_line: str, is_continuation: bool) -> bool:
+        """Determine if line should be added to current field."""
+        return not (":" in original_line and not is_continuation)
+
+
+class FileSkipChecker:
+    """Handles logic for determining which files to skip."""
+
+    SKIP_PATTERNS = [
+        r"__pycache__",
+        r"\.git",
+        r"\.pytest_cache",
+        r"node_modules",
+        r"dist",
+        r"build",
+        r"coverage",
+        r"\.egg-info",
+        r"migrations",
+        r"\.min\.",
+        r"vendor",
+        r"third_party",
+    ]
+
+    def should_skip_file(self, file_path: Path) -> bool:
+        """Check if file should be skipped from header checking."""
+        path_str = str(file_path).replace("\\", "/")
+
+        # Skip __init__.py files
+        if file_path.name == "__init__.py":
+            return True
+
+        # Skip test files if configured
+        if self._is_test_file(path_str):
+            return False  # Actually check test files by default
+
+        # Check skip patterns
+        return self._matches_skip_patterns(path_str)
+
+    def _matches_skip_patterns(self, path_str: str) -> bool:
+        """Check if path matches any skip patterns."""
+        return any(self._matches_pattern(pattern, path_str) for pattern in self.SKIP_PATTERNS)
+
+    def _matches_pattern(self, pattern: str, path_str: str) -> bool:
+        """Check if a specific pattern matches the path."""
+        return bool(re.search(pattern, path_str))
+
+    def _is_test_file(self, path_str: str) -> bool:
+        """Check if file is a test file."""
+        test_patterns = [r"test_.*\.py$", r".*_test\.py$", r"tests?/", r"\.test\.", r"\.spec\."]
+        return any(re.search(pattern, path_str) for pattern in test_patterns)
+
+
+class HeaderConfigConstants:
+    """Constants for header configuration."""
+
+    REQUIRED_FIELDS = {"purpose", "scope"}
+    OVERVIEW_FIELD = "overview"
+    CODE_REQUIRED_FIELDS = {"dependencies", "exports"}
+    CODE_RECOMMENDED_FIELDS = {"interfaces", "implementation"}
+    CODE_EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".jsx", ".java", ".cpp", ".c", ".cs", ".go", ".rs"}
+    SUPPORTED_EXTENSIONS = CODE_EXTENSIONS | {".html", ".css", ".scss", ".yaml", ".yml", ".sh", ".md"}
+
+
+class HeaderExtractor:
+    """Extracts header content from files."""
+
+    HEADER_PATTERNS = {
+        ".py": (r'^"""', r'"""'),
+        ".ts": (r"^/\*\*", r"\*/"),
+        ".tsx": (r"^/\*\*", r"\*/"),
+        ".js": (r"^/\*\*", r"\*/"),
+        ".jsx": (r"^/\*\*", r"\*/"),
+        ".md": (r"^<!--", r"-->"),
+        ".html": (r"^<!--", r"-->"),
+        ".yaml": (r"^#", None),
+        ".yml": (r"^#", None),
+        ".sh": (r"^#", None),
+        ".css": (r"^/\*\*", r"\*/"),
+    }
+
+    def extract_header_content(self, file_content: str, file_ext: str) -> str | None:
+        """Extract header content from file."""
+        header_pattern = self.HEADER_PATTERNS.get(file_ext)
+        if not header_pattern:
+            return None
+
+        start_pattern, end_pattern = header_pattern
+        header_match = re.search(start_pattern, file_content, re.MULTILINE)
+        if not header_match:
+            return None
+
+        header_start = header_match.end()
+        if end_pattern:
+            end_match = re.search(end_pattern, file_content[header_start:], re.MULTILINE)
+            return file_content[header_start : header_start + end_match.start()] if end_match else ""
+        else:
+            # For single-line comment styles, extract until first non-comment line
+            lines = file_content[header_start:].split("\n")
+            header_lines = []
+            for line in lines:
+                if line.strip() and not line.strip().startswith("#"):
+                    break
+                header_lines.append(line)
+            return "\n".join(header_lines)
+
+
+class HeaderViolationChecker:
+    """Helper class that handles violation checking for file headers."""
+
+    def __init__(self, field_validator, temporal_checker, config, field_pattern):
+        """Initialize with dependencies."""
+        self.field_validator = field_validator
+        self.temporal_checker = temporal_checker
+        self.config = config
+        self.field_pattern = field_pattern
+
+    def check_required_fields(
+        self, context: LintContext, node: Any, fields: dict[str, str], rule_id: str, severity: Severity
+    ) -> list[LintViolation]:
+        """Check for missing required fields."""
+        violations = []
+        missing_fields = self.config.REQUIRED_FIELDS - fields.keys()
+        if self.config.OVERVIEW_FIELD not in fields:
+            missing_fields.add(self.config.OVERVIEW_FIELD)
+
+        if missing_fields:
+            violations.append(
+                LintViolation(
+                    rule_id=rule_id,
+                    message=f"Header missing required fields: {self._format_missing_fields(missing_fields)}",
+                    node=node,
+                    severity=severity,
+                    line_number=1,
+                    column_number=0,
+                    file_path=context.file_path,
+                    suggestion="Add missing fields to the header documentation",
+                )
+            )
+        return violations
+
+    def check_overview_field(
+        self, context: LintContext, node: Any, fields: dict[str, str], rule_id: str, min_words: int
+    ) -> list[LintViolation]:
+        """Check overview field quality."""
+        violations = []
+        if self.config.OVERVIEW_FIELD in fields:
+            overview = fields[self.config.OVERVIEW_FIELD]
+            is_valid, message = self.field_validator.validate_overview_content(overview, min_words)
+            if not is_valid:
+                violations.append(
+                    LintViolation(
+                        rule_id=rule_id,
+                        message=message,
+                        node=node,
+                        severity=Severity.WARNING,
+                        line_number=1,
+                        column_number=0,
+                        file_path=context.file_path,
+                        suggestion="Expand the Overview field with comprehensive documentation",
+                    )
+                )
+        return violations
+
+    def check_code_specific_fields(
+        self,
+        context: LintContext,
+        node: Any,
+        fields: dict[str, str],
+        file_ext: str,
+        rule_id: str,
+        severity: Severity,
+        strict_mode: bool,
+    ) -> list[LintViolation]:
+        """Check code-specific required and recommended fields."""
+        violations = []
+
+        # Check required code fields
+        missing_required = self.config.CODE_REQUIRED_FIELDS - fields.keys()
+        if missing_required:
+            violations.append(
+                LintViolation(
+                    rule_id=rule_id,
+                    message=f"Code file missing required fields: {self._format_missing_fields(missing_required)}",
+                    node=node,
+                    severity=severity,
+                    line_number=1,
+                    column_number=0,
+                    file_path=context.file_path,
+                    suggestion="Add missing code documentation fields",
+                )
+            )
+
+        # Check recommended fields (as warnings)
+        missing_recommended = self.config.CODE_RECOMMENDED_FIELDS - fields.keys()
+        if missing_recommended and strict_mode:
+            violations.append(
+                LintViolation(
+                    rule_id=rule_id,
+                    message=f"Code file missing recommended fields: {self._format_missing_fields(missing_recommended)}",
+                    node=node,
+                    severity=Severity.WARNING,
+                    line_number=1,
+                    column_number=0,
+                    file_path=context.file_path,
+                    suggestion="Consider adding recommended documentation fields",
+                )
+            )
+
+        return violations
+
+    def check_field_content_quality(
+        self, context: LintContext, node: Any, fields: dict[str, str], rule_id: str
+    ) -> list[LintViolation]:
+        """Check quality of field content."""
+        violations = []
+        issues = self.field_validator.validate_field_content(fields)
+
+        for issue in issues:
+            violations.append(
+                LintViolation(
+                    rule_id=rule_id,
+                    message=f"Header field '{issue['field']}' {issue['issue']}",
+                    node=node,
+                    severity=Severity.WARNING,
+                    line_number=1,
+                    column_number=0,
+                    file_path=context.file_path,
+                    suggestion=issue["suggestion"],
+                )
+            )
+
+        return violations
+
+    def check_temporal_language(
+        self, context: LintContext, node: Any, header_content: str, rule_id: str
+    ) -> list[LintViolation]:
+        """Check for temporal language in headers."""
+        violations = []
+        temporal_issues = self.temporal_checker.check_temporal_language_patterns(header_content)
+
+        for issue in temporal_issues:
+            suggestion = self.temporal_checker.get_temporal_suggestion(issue["type"], issue["text"])
+            violations.append(
+                LintViolation(
+                    rule_id=rule_id,
+                    message=f"Header contains temporal language: '{issue['text']}'",
+                    node=node,
+                    severity=Severity.WARNING,
+                    line_number=1,
+                    column_number=0,
+                    file_path=context.file_path,
+                    suggestion=suggestion,
+                )
+            )
+
+        return violations
+
+    def _format_missing_fields(self, fields: set[str]) -> str:
+        """Format missing fields for display."""
+        return ", ".join(sorted(f.title() for f in fields))
 
 
 class FileHeaderRule(ASTLintRule):
     """Validate file headers according to project standards."""
-
-    # Required fields for all files
-    REQUIRED_FIELDS = {"purpose", "scope"}
-
-    # Required comprehensive overview field
-    REQUIRED_OVERVIEW = {"overview"}
-
-    # Additional required fields for code files
-    CODE_REQUIRED_FIELDS = {"dependencies", "exports", "interfaces"}
-
-    # Recommended fields that generate warnings if missing
-    RECOMMENDED_FIELDS = {"implementation"}
-
-    # Temporal language patterns to avoid in headers
-    TEMPORAL_PATTERNS = [
-        # Explicit dates and timestamps
-        (r"\b\d{4}[-/]\d{1,2}[-/]\d{1,2}\b", "date stamp (YYYY-MM-DD or YYYY/MM/DD)"),
-        (r"\b\d{1,2}[-/]\d{1,2}[-/]\d{4}\b", "date stamp (MM-DD-YYYY or DD-MM-YYYY)"),
-        (
-            r"\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}\b",
-            "date with month name",
-        ),
-        (r"\b\d{1,2}\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}\b", "date with abbreviated month"),
-        # Creation/modification language
-        (r"\b[Cc]reated:\s*", "creation timestamp"),
-        (r"\b[Uu]pdated:\s*", "update timestamp"),
-        (r"\b[Mm]odified:\s*", "modification timestamp"),
-        (r"\b[Ll]ast\s+(modified|updated|changed):", "last modification reference"),
-        # State change language
-        (r"\b[Rr]eplaces\s+", "replacement reference"),
-        (r"\b[Rr]eplacing\s+", "replacement reference"),
-        (r"\b[Cc]hanged\s+from\b", "change from reference"),
-        (r"\b[Mm]igrated\s+from\b", "migration reference"),
-        (r"\b[Mm]oved\s+from\b", "movement reference"),
-        (r"\b[Ee]xtracted\s+from\b", "extraction reference"),
-        (r"\b[Rr]efactored\s+from\b", "refactoring reference"),
-        (r"\b[Ff]ormerly\b", "former state reference"),
-        (r"\b[Pp]reviously\b", "previous state reference"),
-        (r"\b[Oo]riginally\b", "original state reference"),
-        # Temporal qualifiers
-        (r"\b[Cc]urrently\s+", "current state qualifier"),
-        (r"\b[Nn]ow\s+(includes?|supports?|provides?|handles?)\b", "now qualifier"),
-        (r"\b[Rr]ecently\s+", "recent change qualifier"),
-        (r"\b[Tt]emporarily\b", "temporary state qualifier"),
-        (r"\b[Ff]or\s+now\b", "temporary implementation qualifier"),
-        (r"\b[Aa]s\s+of\s+", "temporal reference point"),
-        # Future references
-        (r"\b[Ww]ill\s+be\b", "future plan reference"),
-        (r"\b[Tt]o\s+be\s+(implemented|added|removed)\b", "future implementation reference"),
-        (r"\b[Pp]lanned\s+(for|to)\b", "planned feature reference"),
-        (r"\b[Uu]pcoming\b", "upcoming feature reference"),
-        (r"\b[Ff]uture\s+(use|improvements?|enhancements?)\b", "future reference"),
-        # New/old references
-        (r"\b[Nn]ew\s+(implementation|version|approach)\b", "new implementation reference"),
-        (r"\b[Oo]ld\s+(implementation|version|approach)\b", "old implementation reference"),
-        (r"\b[Ll]egacy\s+", "legacy code reference"),
-        (r"\b[Dd]eprecated\b", "deprecation reference"),
-        (r"\b[Oo]bsolete\b", "obsolete reference"),
-    ]
-
-    # File type configurations for header extraction
-    FILE_CONFIGS = {
-        ".py": {
-            "header_pattern": re.compile(r'^(#!/usr/bin/env python3\n)?"""[\s\S]*?"""', re.MULTILINE),
-            "field_pattern": re.compile(r"^(\w+(?:/\w+)?):?\s*(.+)$", re.MULTILINE),
-            "is_code": True,
-            "min_header_lines": 5,
-        },
-        ".ts": {
-            "header_pattern": re.compile(r"^/\*\*[\s\S]*?\*/", re.MULTILINE),
-            "field_pattern": re.compile(r"^\s*\*?\s*(\w+(?:/\w+)?):?\s*(.+)$", re.MULTILINE),
-            "is_code": True,
-            "min_header_lines": 5,
-        },
-        ".tsx": {
-            "header_pattern": re.compile(r"^/\*\*[\s\S]*?\*/", re.MULTILINE),
-            "field_pattern": re.compile(r"^\s*\*?\s*(\w+(?:/\w+)?):?\s*(.+)$", re.MULTILINE),
-            "is_code": True,
-            "min_header_lines": 5,
-        },
-        ".js": {
-            "header_pattern": re.compile(r"^/\*\*[\s\S]*?\*/", re.MULTILINE),
-            "field_pattern": re.compile(r"^\s*\*?\s*(\w+(?:/\w+)?):?\s*(.+)$", re.MULTILINE),
-            "is_code": True,
-            "min_header_lines": 5,
-        },
-        ".jsx": {
-            "header_pattern": re.compile(r"^/\*\*[\s\S]*?\*/", re.MULTILINE),
-            "field_pattern": re.compile(r"^\s*\*?\s*(\w+(?:/\w+)?):?\s*(.+)$", re.MULTILINE),
-            "is_code": True,
-            "min_header_lines": 5,
-        },
-        ".css": {
-            "header_pattern": re.compile(r"^/\*\*[\s\S]*?\*/", re.MULTILINE),
-            "field_pattern": re.compile(r"^\s*\*?\s*(\w+(?:/\w+)?):?\s*(.+)$", re.MULTILINE),
-            "is_code": True,
-            "min_header_lines": 5,
-        },
-        ".sh": {
-            "header_pattern": re.compile(
-                r"^(#!/bin/(bash|sh)\n)?# Purpose:[\s\S]*?(?=\n[^#]|\n\n|\Z)",
-                re.MULTILINE,
-            ),
-            "field_pattern": re.compile(r"^# (\w+):\s*(.+)$", re.MULTILINE),
-            "is_code": True,
-            "min_header_lines": 3,
-        },
-        ".md": {
-            "header_pattern": re.compile(r"^# .+?\n\n(\*\*\w+\*\*:.+?\n)+", re.MULTILINE),
-            "field_pattern": re.compile(r"^\*\*(\w+)\*\*:\s*(.+)$", re.MULTILINE),
-            "is_code": False,
-            "min_header_lines": 3,
-        },
-        ".html": {
-            "header_pattern": re.compile(r"^<!DOCTYPE html>\s*\n<!--[\s\S]*?-->", re.MULTILINE),
-            "field_pattern": re.compile(r"^(\w+):\s*(.+)$", re.MULTILINE),
-            "is_code": True,
-            "min_header_lines": 3,
-        },
-        ".yml": {
-            "header_pattern": re.compile(r"^# Purpose:[\s\S]*?(?=\n[^#]|\Z)", re.MULTILINE),
-            "field_pattern": re.compile(r"^# (\w+):\s*(.+)$", re.MULTILINE),
-            "is_code": False,
-            "min_header_lines": 2,
-        },
-        ".yaml": {
-            "header_pattern": re.compile(r"^# Purpose:[\s\S]*?(?=\n[^#]|\Z)", re.MULTILINE),
-            "field_pattern": re.compile(r"^# (\w+):\s*(.+)$", re.MULTILINE),
-            "is_code": False,
-            "min_header_lines": 2,
-        },
-    }
-
-    # Files/patterns to skip
-    SKIP_PATTERNS = [
-        "__pycache__",
-        ".git",
-        "node_modules",
-        ".pytest_cache",
-        "dist",
-        "build",
-        ".egg-info",
-        "migrations",
-        "__init__.py",  # Often empty or minimal
-        "conftest.py",  # Test configuration
-        "test_*.py",  # Test files have different standards
-        "*_test.py",  # Test files
-        "*.min.js",  # Minified files
-        "*.min.css",  # Minified files
-        "package-lock.json",
-        "poetry.lock",
-        "*.pyc",
-        ".env*",
-        "*.log",
-        "*.tmp",
-        "*.temp",
-        "*.cache",
-        "*.sqlite",
-        "*.db",
-    ]
 
     def __init__(self, config: dict[str, Any] | None = None):
         """Initialize the rule with configuration."""
         super().__init__()
         self.config = config or {}
         self.strict_mode = self.config.get("strict_mode", True)
-        self.min_overview_words = self.config.get("min_overview_words", 20)
+        self.min_overview_words = self.config.get(
+            "min_overview_words", HeaderFieldValidator.DEFAULT_MIN_OVERVIEW_WORDS
+        )
         self.check_all_files = self.config.get("check_all_files", True)
-        self.skip_test_files = self.config.get("skip_test_files", False)  # Don't skip test files by default
+        self.skip_test_files = self.config.get("skip_test_files", False)
+        self.check_temporal = self.config.get("check_temporal_language", True)
+
+        # Pre-compile regex pattern
+        self._field_pattern = re.compile(r"^(\w+):\s*(.*)$")
+
+        # Initialize helper classes
+        self._field_validator = HeaderFieldValidator()
+        self._temporal_checker = TemporalLanguageChecker()
+        self._template_provider = HeaderTemplateProvider()
+        self._header_parser = HeaderParser()
+        self._skip_checker = FileSkipChecker()
+        self._header_extractor = HeaderExtractor()
+        self._config = HeaderConfigConstants()
+        self._violation_checker = HeaderViolationChecker(
+            self._field_validator, self._temporal_checker, self._config, self._field_pattern
+        )
 
     @property
     def rule_id(self) -> str:
+        """Return the unique identifier for this rule."""
         return "style.file-header"
 
     @property
     def rule_name(self) -> str:
-        return "File Header Validation"
+        """Return the human-readable name for this rule."""
+        return "File Header Documentation"
 
     @property
     def description(self) -> str:
-        return "Ensures all files have proper headers with required fields according to FILE_HEADER_STANDARDS.md"
+        """Return the description of what this rule checks."""
+        return "Ensure all files have comprehensive documentation headers"
 
     @property
     def severity(self) -> Severity:
-        return Severity.WARNING
+        """Return the severity level of violations from this rule."""
+        return Severity.ERROR if self.strict_mode else Severity.WARNING
 
     @property
     def categories(self) -> set[str]:
-        return {"style", "documentation", "standards"}
+        """Return the categories this rule belongs to."""
+        return {"style", "documentation"}
 
     def should_check_node(self, node: Any, context: LintContext) -> bool:
-        """Check the module node for header validation."""
-        # We only check the module node once per file
-        return hasattr(node, "__class__") and node.__class__.__name__ == "Module"
+        """Check if node should be validated (Module nodes only)."""
+        import ast
+
+        return isinstance(node, ast.Module)
 
     def check_node(self, node: Any, context: LintContext) -> list[LintViolation]:
-        """Check if the file has a proper header."""
+        """Check if file has proper header documentation."""
+        file_path = Path(context.file_path)
+
+        # Skip files that should not be checked
+        if self._skip_checker.should_skip_file(file_path):
+            return []
+
+        # Check if file type is supported
+        file_ext = file_path.suffix.lower()
+        if not self._is_supported_file_type(file_ext):
+            return []
+
+        # Get and validate header content
+        header_content, file_content = self._extract_and_validate_header(file_path, context, file_ext)
+        if header_content is None:
+            return [self._create_missing_header_violation(context, node, file_ext)]
+
+        # Parse header fields and check violations
+        fields = self._header_parser.parse_header_fields(header_content, self._field_pattern)
+        return self._collect_header_violations(context, node, fields, file_ext, header_content)
+
+    def _extract_and_validate_header(
+        self, file_path: Path, context: LintContext, file_ext: str
+    ) -> tuple[str | None, str | None]:
+        """Extract header content from file."""
+        file_content = self._get_file_content(file_path, context)
+        if file_content is None:
+            return None, None
+
+        header_content = self._header_extractor.extract_header_content(file_content, file_ext)
+        return header_content, file_content
+
+    def _collect_header_violations(
+        self, context: LintContext, node: Any, fields: dict[str, str], file_ext: str, header_content: str
+    ) -> list[LintViolation]:
+        """Collect all header-related violations."""
         violations = []
 
-        # Get file path and check if we should skip it
-        file_path = Path(context.file_path)
-        if self._should_skip_file(file_path):
-            return violations
+        # Check required fields
+        violations.extend(
+            self._violation_checker.check_required_fields(context, node, fields, self.rule_id, self.severity)
+        )
 
-        # Get file extension and check if supported
-        file_ext = file_path.suffix
-        if file_ext not in self.FILE_CONFIGS:
-            # If check_all_files is enabled, report unsupported files
-            if self.check_all_files and file_ext not in [
-                ".json",
-                ".txt",
-                ".csv",
-                ".xml",
-            ]:
-                logger.debug(f"Unsupported file type for header check: {file_ext}")
-            return violations
+        # Check overview field
+        violations.extend(
+            self._violation_checker.check_overview_field(context, node, fields, self.rule_id, self.min_overview_words)
+        )
 
-        config = self.FILE_CONFIGS[file_ext]
-
-        # Get file content from context or read from disk
-        if context.file_content is not None:
-            content = context.file_content
-        else:
-            try:
-                content = file_path.read_text(encoding="utf-8")
-            except Exception as e:
-                logger.error(f"Could not read file {file_path}: {e}")
-                return violations
-
-        # Extract header
-        header_match = config["header_pattern"].search(content[:2000])  # Check first 2000 chars
-        if not header_match:
-            violations.append(
-                self.create_violation_from_node(
-                    context=context,
-                    node=node,
-                    message=f"Missing file header in {file_path.name}",
-                    description="File must have a properly formatted header with required fields",
-                    suggestion=self._get_header_template(file_ext),
-                )
-            )
-            return violations
-
-        # Parse header fields
-        header_content = header_match.group(0)
-        fields = self._parse_header_fields(header_content, config["field_pattern"])
-
-        # Validate required fields
-        missing_required = self.REQUIRED_FIELDS - set(fields.keys())
-        if missing_required:
-            violations.append(
-                self.create_violation_from_node(
-                    context=context,
-                    node=node,
-                    message=f"Missing required header fields: {', '.join(sorted(missing_required))}",
-                    description="All files must have Purpose and Scope fields in their headers",
-                    suggestion=f"Add the missing fields to the file header:\n{self._format_missing_fields(missing_required)}",
+        # Check code-specific fields
+        if file_ext in self._config.CODE_EXTENSIONS:
+            violations.extend(
+                self._violation_checker.check_code_specific_fields(
+                    context, node, fields, file_ext, self.rule_id, self.severity, self.strict_mode
                 )
             )
 
-        # Check for Overview field (required but checked separately for better messaging)
-        if "overview" not in fields:
-            violations.append(
-                self.create_violation_from_node(
-                    context=context,
-                    node=node,
-                    message="Missing required Overview field in header",
-                    description="Overview field must provide comprehensive summary of the file's role",
-                    suggestion="Add an Overview field with detailed explanation of what this file does and how it fits into the system",
-                )
+        # Check field content quality
+        violations.extend(self._violation_checker.check_field_content_quality(context, node, fields, self.rule_id))
+
+        # Check for temporal language if enabled
+        if self.check_temporal:
+            violations.extend(
+                self._violation_checker.check_temporal_language(context, node, header_content, self.rule_id)
             )
-        elif self.strict_mode:
-            # Validate Overview content quality
-            overview_content = fields.get("overview", "")
-            word_count = len(overview_content.split())
-            if word_count < self.min_overview_words:
-                violations.append(
-                    self.create_violation_from_node(
-                        context=context,
-                        node=node,
-                        message=f"Overview field too brief ({word_count} words, minimum {self.min_overview_words})",
-                        description="Overview should be comprehensive enough to understand the file without reading code",
-                        suggestion="Expand the Overview field to include: responsibilities, workflows, architectural role, and key behaviors",
-                    )
-                )
-
-        # Check code-specific required fields
-        if config.get("is_code", False):
-            missing_code_fields = self.CODE_REQUIRED_FIELDS - set(fields.keys())
-            if missing_code_fields:
-                violations.append(
-                    self.create_violation_from_node(
-                        context=context,
-                        node=node,
-                        message=f"Missing required code header fields: {', '.join(sorted(missing_code_fields))}",
-                        description="Code files must have Dependencies, Exports, and Interfaces fields",
-                        suggestion=f"Add the missing fields:\n{self._format_missing_fields(missing_code_fields)}",
-                    )
-                )
-
-            # Check recommended fields (warnings only)
-            if self.strict_mode:
-                missing_recommended = self.RECOMMENDED_FIELDS - set(fields.keys())
-                if missing_recommended:
-                    violations.append(
-                        self.create_violation_from_node(
-                            context=context,
-                            node=node,
-                            message="Missing recommended header field: Implementation",
-                            description="Implementation field helps document architectural decisions and patterns",
-                            suggestion="Add Implementation field describing notable algorithms, patterns, or architectural decisions",
-                        )
-                    )
-
-        # Validate field content quality
-        if self.strict_mode:
-            content_issues = self._validate_field_content(fields)
-            for issue in content_issues:
-                violations.append(
-                    self.create_violation_from_node(
-                        context=context,
-                        node=node,
-                        message=issue["message"],
-                        description=issue["description"],
-                        suggestion=issue["suggestion"],
-                    )
-                )
-
-        # Check for temporal language in header
-        if self.config.get("check_temporal_language", True):
-            temporal_issues = self._check_temporal_language(header_content)
-            for issue in temporal_issues:
-                violations.append(
-                    self.create_violation_from_node(
-                        context=context,
-                        node=node,
-                        message=f"Temporal language found in header: {issue['type']}",
-                        description=f"Headers should be atemporal. Found: '{issue['match']}'",
-                        suggestion=issue["suggestion"],
-                    )
-                )
 
         return violations
 
-    def _should_skip_file(self, file_path: Path) -> bool:
-        """Check if file should be skipped."""
-        path_str = str(file_path)
+    def _is_supported_file_type(self, file_ext: str) -> bool:
+        """Check if file extension is supported."""
+        return file_ext in self._config.SUPPORTED_EXTENSIONS
 
-        for pattern in self.SKIP_PATTERNS:
-            if pattern.startswith("*"):
-                if path_str.endswith(pattern[1:]):
-                    return True
-            elif pattern.endswith("*"):
-                if Path(path_str).name.startswith(pattern[:-1]):
-                    return True
-            elif pattern in path_str:
-                return True
+    def _get_file_content(self, file_path: Path, context: LintContext) -> str | None:
+        """Get file content from context or read from disk."""
+        if hasattr(context, "source") and context.source:
+            return context.source
+        try:
+            return file_path.read_text(encoding="utf-8")
+        except Exception as e:
+            logger.debug(f"Could not read file {file_path}: {e}")
+            return None
 
-        # Skip test files only if explicitly configured to skip them
-        return self.skip_test_files and ("test" in path_str.lower() or "spec" in path_str.lower())
-
-    def _parse_header_fields(self, header_content: str, field_pattern: re.Pattern) -> dict[str, str]:
-        """Parse header fields from content."""
-        fields = {}
-
-        # Split into lines and process
-        lines = header_content.split("\n")
-        current_field = None
-        current_value = []
-
-        for line in lines:
-            # Check if this line starts with significant indentation (continuation line)
-            is_continuation = line.startswith("    ") or (line.startswith(" *") and ":" not in line)
-
-            # Try to match a field only if not a continuation line
-            if not is_continuation:
-                match = field_pattern.match(line.strip())
-                if match and ":" in line:  # Ensure it has a colon to be a field
-                    # Save previous field if exists
-                    if current_field:
-                        fields[current_field.lower()] = " ".join(current_value).strip()
-                    # Start new field
-                    current_field = match.group(1)
-                    current_value = [match.group(2)] if len(match.groups()) > 1 else []
-                    continue
-
-            # Handle continuation lines
-            if current_field and line.strip():
-                cleaned_line = line.strip()
-                # Remove comment markers
-                cleaned_line = re.sub(r"^\*\s*", "", cleaned_line)
-                cleaned_line = re.sub(r"^#\s*", "", cleaned_line)
-                # Skip docstring delimiters
-                if (
-                    cleaned_line
-                    and not cleaned_line.startswith('"""')
-                    and not cleaned_line.startswith("*/")
-                    and not (match and ":" in line and not is_continuation)
-                ):
-                    current_value.append(cleaned_line)
-
-        # Save last field
-        if current_field:
-            fields[current_field.lower()] = " ".join(current_value).strip()
-
-        return fields
-
-    def _validate_field_content(self, fields: dict[str, str]) -> list[dict[str, str]]:
-        """Validate the quality of field content."""
-        issues = []
-
-        # Check Purpose field
-        if "purpose" in fields:
-            purpose = fields["purpose"]
-            if len(purpose.split()) < 3:
-                issues.append(
-                    {
-                        "message": "Purpose field too brief",
-                        "description": "Purpose should be a clear, descriptive sentence",
-                        "suggestion": "Expand Purpose to clearly describe what this file does (1-2 sentences)",
-                    }
-                )
-            if purpose.lower().startswith("todo") or purpose.lower() == "tbd":
-                issues.append(
-                    {
-                        "message": "Purpose field contains placeholder text",
-                        "description": "Purpose must be properly documented, not a placeholder",
-                        "suggestion": "Replace placeholder with actual purpose description",
-                    }
-                )
-
-        # Check Scope field
-        if "scope" in fields:
-            scope = fields["scope"]
-            if len(scope.split()) < 3:
-                issues.append(
-                    {
-                        "message": "Scope field too brief",
-                        "description": "Scope should describe what areas/components this file covers",
-                        "suggestion": "Expand Scope to describe what this file handles or affects",
-                    }
-                )
-
-        return issues
-
-    def _check_temporal_language(self, header_content: str) -> list[dict[str, str]]:
-        """Check for temporal language patterns in header."""
-        issues = []
-
-        for pattern, pattern_type in self.TEMPORAL_PATTERNS:
-            matches = re.finditer(pattern, header_content, re.IGNORECASE)
-            for match in matches:
-                matched_text = match.group(0).strip()
-                issues.append(
-                    {
-                        "type": pattern_type,
-                        "match": matched_text,
-                        "suggestion": self._get_temporal_suggestion(pattern_type, matched_text),
-                    }
-                )
-
-        return issues
-
-    def _get_temporal_suggestion(self, pattern_type: str, matched_text: str) -> str:
-        """Get suggestion for fixing temporal language."""
-        suggestions = {
-            "date stamp": "Remove date stamps. Git tracks file history automatically",
-            "date with month name": "Remove dates. Version control maintains history",
-            "date with abbreviated month": "Remove dates. Use git for historical tracking",
-            "creation timestamp": "Remove 'Created:' field. Git tracks creation time",
-            "update timestamp": "Remove 'Updated:' field. Git tracks modifications",
-            "modification timestamp": "Remove modification timestamps. Use git log",
-            "last modification reference": "Remove last modified references. Check git history instead",
-            "replacement reference": "Describe what this does, not what it replaces",
-            "change from reference": "Describe current functionality without referencing changes",
-            "migration reference": "Describe current state without migration history",
-            "movement reference": "Describe current location and purpose",
-            "extraction reference": "Describe what this provides, not where it came from",
-            "refactoring reference": "Describe current implementation directly",
-            "former state reference": "Remove 'formerly' and describe current state",
-            "previous state reference": "Remove 'previously' and describe current functionality",
-            "original state reference": "Remove 'originally' and describe current purpose",
-            "current state qualifier": "Remove 'currently' - describe what it does",
-            "now qualifier": "Remove 'now' - state capabilities directly",
-            "recent change qualifier": "Remove 'recently' - describe features directly",
-            "temporary state qualifier": "Remove 'temporarily' or document in issue tracker",
-            "temporary implementation qualifier": "Remove 'for now' or track in issues if truly temporary",
-            "temporal reference point": "Remove 'as of' - describe current state",
-            "future plan reference": "Remove future plans - track in issues/roadmap",
-            "future implementation reference": "Remove 'to be implemented' - track in project management",
-            "planned feature reference": "Remove planned features - document in roadmap",
-            "upcoming feature reference": "Remove 'upcoming' - track features in issues",
-            "future reference": "Remove future references - use issue tracking",
-            "new implementation reference": "Remove 'new' - describe what it is",
-            "old implementation reference": "Remove 'old' references - describe current state",
-            "legacy code reference": "Remove 'legacy' label - describe current purpose",
-            "deprecation reference": "Move deprecation notices to separate documentation",
-            "obsolete reference": "Remove 'obsolete' - if truly obsolete, consider removal",
-        }
-
-        return suggestions.get(pattern_type, f"Remove temporal language: '{matched_text}'")
-
-    def _get_header_template(self, file_ext: str) -> str:
-        """Get header template for file type."""
-        templates = {
-            ".py": '''Add this header at the beginning of the file:
-"""
-Purpose: Brief description of module functionality (1-2 lines)
-Scope: What this module handles (e.g., API endpoints, data models, etc.)
-Overview: Comprehensive summary of what this module does and its role in the system.
-Dependencies: Key external dependencies or internal modules required
-Exports: Main classes, functions, or constants this module provides
-Interfaces: Key APIs, endpoints, or methods this module exposes
-Implementation: Notable algorithms, patterns, or architectural decisions
-"""''',
-            ".ts": """Add this header at the beginning of the file:
-/**
- * Purpose: Brief description of component/module functionality (1-2 lines)
- * Scope: What this file handles (e.g., React component, API service, etc.)
- * Overview: Comprehensive summary of what this component/module does and its role.
- * Dependencies: Key libraries, components, or services this file depends on
- * Exports: Main components, functions, types, or constants this file provides
- * Props/Interfaces: Key interfaces this component accepts or module provides
- * State/Behavior: Important state management or behavioral patterns used
- */""",
-            ".tsx": """Add this header at the beginning of the file:
-/**
- * Purpose: Brief description of component functionality (1-2 lines)
- * Scope: What this component handles in the UI
- * Overview: Comprehensive summary of component's role and user interactions.
- * Dependencies: Key libraries, components, or services this file depends on
- * Exports: Main components and types this file provides
- * Props/Interfaces: Component props and their purpose
- * State/Behavior: State management and key behaviors
- */""",
-            ".js": """Add this header at the beginning of the file:
-/**
- * Purpose: Brief description of script/module functionality (1-2 lines)
- * Scope: What this file handles (e.g., utilities, scripts, etc.)
- * Overview: Comprehensive summary of what this script does and its role.
- * Dependencies: Key libraries or modules this file depends on
- * Exports: Main functions or constants this file provides
- * Interfaces: Key functions or APIs this file exposes
- * Implementation: Notable patterns or techniques used
- */""",
-            ".jsx": """Add this header at the beginning of the file:
-/**
- * Purpose: Brief description of component functionality (1-2 lines)
- * Scope: What this component handles in the UI
- * Overview: Comprehensive summary of component's role and user interactions.
- * Dependencies: Key libraries, components, or services this file depends on
- * Exports: Main components this file provides
- * Props/Interfaces: Component props and their purpose
- * State/Behavior: State management and key behaviors
- */""",
-            ".css": """Add this header at the beginning of the file:
-/**
- * Purpose: Brief description of stylesheet functionality (1-2 lines)
- * Scope: What UI components or areas this stylesheet covers
- * Overview: Comprehensive summary of styling approach and organization.
- * Dependencies: Related stylesheets or CSS frameworks used
- * Exports: Main CSS classes, variables, or utilities provided
- * Interfaces: Key CSS classes and their usage
- * Implementation: Notable styling patterns or techniques used
- */""",
-            ".sh": """Add this header after the shebang line:
-# Purpose: Brief description of script functionality (1-2 lines)
-# Scope: What this script handles or automates
-# Overview: Comprehensive summary of what this script does and how it operates.
-# Dependencies: Required tools, environment variables, or system requirements
-# Usage: How to run this script and any parameters it accepts
-# Interfaces: Key functions or command-line options
-# Implementation: Notable techniques or patterns used""",
-            ".md": """Add this header after the main title:
-# Document Title
-
-**Purpose**: Brief description of what this document covers
-**Scope**: What areas/components this document applies to
-
----""",
-            ".html": """Add this header after <!DOCTYPE html>:
-<!--
-Purpose: Brief description of this HTML file's purpose
-Scope: What this file is used for
-Dependencies: Key libraries or frameworks used
--->""",
-            ".yml": """Add this header at the top:
-# Purpose: Brief description of configuration purpose
-# Scope: What this configuration applies to
-# Dependencies: Services or tools that use this configuration""",
-            ".yaml": """Add this header at the top:
-# Purpose: Brief description of configuration purpose
-# Scope: What this configuration applies to
-# Dependencies: Services or tools that use this configuration""",
-        }
-
-        return templates.get(file_ext, templates.get(".js", "Add appropriate header for this file type"))
-
-    def _format_missing_fields(self, fields: set[str]) -> str:
-        """Format missing fields for suggestion."""
-        formatted = []
-        for field in sorted(fields):
-            formatted.append(f"{field.capitalize()}: [Add description here]")
-        return "\n".join(formatted)
+    def _create_missing_header_violation(self, context: LintContext, node: Any, file_ext: str) -> LintViolation:
+        """Create violation for missing header."""
+        template = self._template_provider.get_template(file_ext)
+        return LintViolation(
+            rule_id=self.rule_id,
+            message="File missing documentation header",
+            node=node,
+            severity=self.severity,
+            line_number=1,
+            column_number=0,
+            file_path=context.file_path,
+            suggestion=f"Add header at the beginning of the file:\n{template}",
+        )
