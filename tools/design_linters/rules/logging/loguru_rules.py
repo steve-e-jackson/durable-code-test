@@ -20,7 +20,7 @@ Implementation: Rule-based architecture with loguru pattern detection
 
 import ast
 
-from design_linters.framework.interfaces import ASTLintRule, LintContext, LintViolation, Severity
+from tools.design_linters.framework.interfaces import ASTLintRule, LintContext, LintViolation, Severity
 
 # Configuration constants
 COMPLEX_MESSAGE_MAX_LENGTH = 50

@@ -27,12 +27,14 @@ from typing import Any, AsyncGenerator
 
 import pytest
 import pytest_asyncio
+from loguru import logger
 
 # Conditional import to prevent import errors when playwright is not available
 try:
     from playwright.async_api import Page, WebSocket, async_playwright  # type: ignore[import-not-found,import-untyped,unused-ignore]
     PLAYWRIGHT_AVAILABLE = True
-except ImportError:
+except ImportError as e:
+    logger.debug("Playwright not available", error=str(e))
     PLAYWRIGHT_AVAILABLE = False
     # When playwright is not available, create placeholders to prevent NameError
     Page = Any  # type: ignore[misc,assignment,unused-ignore]
@@ -123,8 +125,8 @@ class TestOscilloscopeIntegration:
                 try:
                     data = json.loads(message)
                     ws_messages.append(data)
-                except json.JSONDecodeError:
-                    pass
+                except json.JSONDecodeError as e:
+                    logger.error("Failed to parse WebSocket message as JSON", error=str(e), exc_info=True)
 
             ws.on("framereceived", lambda payload: on_message(payload if isinstance(payload, str) else ""))
 
@@ -158,8 +160,9 @@ class TestOscilloscopeIntegration:
         try:
             await page.wait_for_selector('button:has-text("Connect")', timeout=2000)
             connect_button = await page.query_selector('button:has-text("Connect")')
-        except:
+        except Exception as e:
             # If no Connect button, app might auto-connect
+            logger.debug("Connect button not found, app might auto-connect", error=str(e))
             connect_button = None
             await page.wait_for_selector('canvas', timeout=3000)
 

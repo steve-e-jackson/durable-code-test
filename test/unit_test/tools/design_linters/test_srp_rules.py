@@ -19,8 +19,8 @@ from typing import Any, Dict, List
 
 sys.path.insert(0, "/home/stevejackson/Projects/durable-code-test/tools")
 
-from design_linters.framework.interfaces import LintContext, LintViolation, Severity
-from design_linters.rules.solid.srp_rules import (
+from tools.design_linters.framework.interfaces import LintContext, LintViolation, Severity
+from tools.design_linters.rules.solid.srp_rules import (
     ClassTooBigRule,
     LowCohesionRule,
     TooManyDependenciesRule,

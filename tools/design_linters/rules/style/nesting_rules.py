@@ -20,7 +20,7 @@ Implementation: Rule-based architecture with depth tracking
 
 import ast
 
-from design_linters.framework.interfaces import ASTLintRule, LintContext, LintViolation, Severity
+from tools.design_linters.framework.interfaces import ASTLintRule, LintContext, LintViolation, Severity
 
 # Default configuration constants
 DEFAULT_MAX_NESTING_DEPTH = 4

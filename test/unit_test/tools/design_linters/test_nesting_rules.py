@@ -16,11 +16,12 @@ import sys
 import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
+from loguru import logger
 
 sys.path.insert(0, "/home/stevejackson/Projects/durable-code-test/tools")
 
-from design_linters.framework.interfaces import LintContext, Severity
-from design_linters.rules.style.nesting_rules import DeepFunctionRule, ExcessiveNestingRule
+from tools.design_linters.framework.interfaces import LintContext, Severity
+from tools.design_linters.rules.style.nesting_rules import DeepFunctionRule, ExcessiveNestingRule
 
 
 class TestExcessiveNestingRule(unittest.TestCase):  # design-lint: ignore[solid.srp.class-too-big,solid.srp.too-many-methods]
@@ -232,8 +233,9 @@ def match_function(value):
 
             depth = self.rule._calculate_max_nesting_depth(func_node)
             self.assertEqual(depth, 4)  # function(1) + match(2) + case(3) + if(4)
-        except SyntaxError:
+        except SyntaxError as e:
             # Skip test if running on Python < 3.10
+            logger.debug("Skipping match statement test on older Python version", error=str(e))
             self.skipTest("Match statements require Python 3.10+")
 
     def test_calculate_max_nesting_depth_invalid_node(self):

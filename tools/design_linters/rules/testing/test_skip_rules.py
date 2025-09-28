@@ -19,6 +19,8 @@ Implementation: AST-based detection of skip patterns with configurable strictnes
 import ast
 from typing import Any
 
+from loguru import logger
+
 from tools.design_linters.framework.interfaces import (
     ASTLintRule,
     LintContext,
@@ -32,10 +34,7 @@ class SkipPatternDetector:
 
     def has_skip_decorator(self, node: ast.FunctionDef | ast.ClassDef) -> bool:
         """Check if a function or class has a skip decorator."""
-        for decorator in node.decorator_list:
-            if self._is_skip_decorator(decorator):
-                return True
-        return False
+        return any(self._is_skip_decorator(decorator) for decorator in node.decorator_list)
 
     def is_skip_call(self, node: ast.Call) -> bool:
         """Check if a call is a skip-related function."""
@@ -44,9 +43,8 @@ class SkipPatternDetector:
             if node.func.attr in ["skip", "skipTest", "skipIf", "skipUnless", "xfail"]:
                 return True
         # Check for standalone skip() calls
-        elif isinstance(node.func, ast.Name):
-            if node.func.id in ["skip", "skipTest"]:
-                return True
+        elif isinstance(node.func, ast.Name) and node.func.id in ["skip", "skipTest"]:
+            return True
         return False
 
     def _is_skip_decorator(self, decorator: ast.AST) -> bool:
@@ -72,13 +70,19 @@ class SkipPatternDetector:
             if call.func.attr in ["skip", "skipif", "xfail"]:
                 return True
             # Check for unittest.skip variations
-            if isinstance(call.func.value, ast.Name):
-                if call.func.value.id == "unittest" and call.func.attr in ["skip", "skipIf", "skipUnless"]:
-                    return True
+            if (
+                isinstance(call.func.value, ast.Name)
+                and call.func.value.id == "unittest"
+                and call.func.attr in ["skip", "skipIf", "skipUnless"]
+            ):
+                return True
             # Check for mark.skip pattern
-            if isinstance(call.func.value, ast.Attribute):
-                if call.func.value.attr == "mark" and call.func.attr in ["skip", "skipif", "xfail"]:
-                    return True
+            if (
+                isinstance(call.func.value, ast.Attribute)
+                and call.func.value.attr == "mark"
+                and call.func.attr in ["skip", "skipif", "xfail"]
+            ):
+                return True
         elif isinstance(call.func, ast.Name):
             return call.func.id in ["skip", "skipIf", "skipUnless", "xfail"]
         return False
@@ -104,13 +108,13 @@ class DisableCommentChecker:
                 return False
 
             # Check decorators for functions/classes
-            if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
-                if self._has_decorator_disable_comment(node, lines):
-                    return True
+            if isinstance(node, (ast.FunctionDef, ast.ClassDef)) and self._has_decorator_disable_comment(node, lines):
+                return True
 
             # Check the node's own line
             return self._has_node_disable_comment(node, lines)
-        except Exception:
+        except Exception as e:
+            logger.error("Error checking disable comment", error=str(e), exc_info=True)
             return False
 
     def _has_decorator_disable_comment(self, node: ast.AST, lines: list[str]) -> bool:
@@ -119,9 +123,8 @@ class DisableCommentChecker:
             return False
 
         for decorator in node.decorator_list:
-            if hasattr(decorator, "lineno"):
-                if self._check_line_for_disable_comment(decorator.lineno - 1, lines):
-                    return True
+            if hasattr(decorator, "lineno") and self._check_line_for_disable_comment(decorator.lineno - 1, lines):
+                return True
         return False
 
     def _has_node_disable_comment(self, node: ast.AST, lines: list[str]) -> bool:
@@ -183,10 +186,10 @@ class ViolationFactory:
         return LintViolation(
             rule_id=rule_id,
             message=message,
-            node=node,
+            description="Test is skipped and may indicate test quality issues",
             severity=severity,
-            line_number=node.lineno if hasattr(node, "lineno") else 0,
-            column_number=node.col_offset if hasattr(node, "col_offset") else 0,
+            line=node.lineno if hasattr(node, "lineno") else 0,
+            column=node.col_offset if hasattr(node, "col_offset") else 0,
             file_path=context.file_path if hasattr(context, "file_path") else "",
             suggestion=suggestion,
         )
@@ -242,10 +245,7 @@ class NoSkippedTestsRule(ASTLintRule):
             return True
 
         # Check function calls that might be skip-related
-        if isinstance(node, ast.Call):
-            return True
-
-        return False
+        return bool(isinstance(node, ast.Call))
 
     def get_configuration(self, metadata: dict[str, Any]) -> dict[str, Any]:
         """Get configuration for this specific check."""
@@ -267,9 +267,8 @@ class NoSkippedTestsRule(ASTLintRule):
             violations.extend(self._check_decorators(node, context, config))
 
         # Check for skip calls within code
-        elif isinstance(node, ast.Call):
-            if self._skip_detector.is_skip_call(node):
-                violations.extend(self._check_skip_call(node, context, config))
+        elif isinstance(node, ast.Call) and self._skip_detector.is_skip_call(node):
+            violations.extend(self._check_skip_call(node, context, config))
 
         return violations
 
@@ -301,7 +300,6 @@ class NoSkippedTestsRule(ASTLintRule):
 
                 violations.append(
                     self._violation_factory.create_violation(
-                        node=node,
                         context=context,
                         rule_id=self.rule_id,
                         message=message,
@@ -328,7 +326,6 @@ class NoSkippedTestsRule(ASTLintRule):
 
             violations.append(
                 self._violation_factory.create_violation(
-                    node=node,
                     context=context,
                     rule_id=self.rule_id,
                     message=message,
@@ -343,11 +340,7 @@ class NoSkippedTestsRule(ASTLintRule):
         """Check if skip decorator has a valid reason."""
         min_length = config.get("min_reason_length", 10)
 
-        for decorator in node.decorator_list:
-            if self._is_skip_decorator_with_reason(decorator, min_length):
-                return True
-
-        return False
+        return any(self._is_skip_decorator_with_reason(decorator, min_length) for decorator in node.decorator_list)
 
     def _is_skip_decorator_with_reason(self, decorator: ast.AST, min_length: int) -> bool:
         """Check if decorator is a skip with a reason."""

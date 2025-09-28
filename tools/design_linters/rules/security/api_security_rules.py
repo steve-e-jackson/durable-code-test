@@ -20,7 +20,7 @@ Implementation: Rule-based architecture with focus on API security patterns
 
 import ast
 
-from design_linters.framework.interfaces import ASTLintRule, LintContext, LintViolation, Severity
+from tools.design_linters.framework.interfaces import ASTLintRule, LintContext, LintViolation, Severity
 
 
 class MissingRateLimitingRule(ASTLintRule):
@@ -418,7 +418,6 @@ class MissingSecurityHeadersRule(ASTLintRule):
             violations.append(
                 self.create_violation_from_node(
                     context=context,
-                    node=node,
                     message="Ensure FastAPI application includes security headers middleware",
                     description=self.description,
                     suggestion="Add SecurityMiddleware to set proper security headers",

@@ -21,8 +21,8 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from design_linters.framework.interfaces import LintContext, Severity
-from design_linters.rules.style.file_header_rules import FileHeaderRule
+from tools.design_linters.framework.interfaces import LintContext, Severity
+from tools.design_linters.rules.style.file_header_rules import FileHeaderRule
 
 
 class TestFileHeaderRule:  # design-lint: ignore[solid.srp.class-too-big,solid.srp.too-many-methods]

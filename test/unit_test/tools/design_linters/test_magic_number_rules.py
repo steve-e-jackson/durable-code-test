@@ -20,8 +20,8 @@ from typing import Any, Dict, List
 
 sys.path.insert(0, "/home/stevejackson/Projects/durable-code-test/tools")
 
-from design_linters.framework.interfaces import LintContext, LintViolation, Severity
-from design_linters.rules.literals.magic_number_rules import MagicComplexRule, MagicNumberRule
+from tools.design_linters.framework.interfaces import LintContext, LintViolation, Severity
+from tools.design_linters.rules.literals.magic_number_rules import MagicComplexRule, MagicNumberRule
 
 
 class TestMagicNumberRule(unittest.TestCase):  # design-lint: ignore[solid.srp.class-too-big,solid.srp.too-many-methods]

@@ -23,6 +23,7 @@ import os
 import sys
 import unittest
 from pathlib import Path
+from loguru import logger
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../../../tools"))
 
@@ -33,22 +34,24 @@ class TestBasicImports(unittest.TestCase):  # design-lint: ignore[solid.srp.clas
     def test_framework_imports(self):
         """Test framework module imports."""
         try:
-            from design_linters.framework import analyzer, interfaces, reporters, rule_registry
+            from tools.design_linters.framework import analyzer, interfaces, reporters, rule_registry
 
             self.assertTrue(True)  # If we get here, imports worked
         except ImportError as e:
+            logger.error("Framework import failed", error=str(e), exc_info=True)
             self.fail(f"Framework import failed: {e}")
 
     def test_rules_imports(self):
         """Test rules module imports."""
         try:
-            from design_linters.rules.literals import magic_number_rules
-            from design_linters.rules.logging import general_logging_rules, loguru_rules
-            from design_linters.rules.solid import srp_rules
-            from design_linters.rules.style import nesting_rules, print_statement_rules
+            from tools.design_linters.rules.literals import magic_number_rules
+            from tools.design_linters.rules.logging import general_logging_rules, loguru_rules
+            from tools.design_linters.rules.solid import srp_rules
+            from tools.design_linters.rules.style import nesting_rules, print_statement_rules
 
             self.assertTrue(True)  # If we get here, imports worked
         except ImportError as e:
+            logger.error("Rules import failed", error=str(e), exc_info=True)
             self.fail(f"Rules import failed: {e}")
 
     def test_cli_import(self):
@@ -58,6 +61,7 @@ class TestBasicImports(unittest.TestCase):  # design-lint: ignore[solid.srp.clas
 
             self.assertTrue(True)
         except ImportError as e:
+            logger.error("CLI import failed", error=str(e), exc_info=True)
             self.fail(f"CLI import failed: {e}")
 
 
@@ -66,7 +70,7 @@ class TestBasicFunctionality(unittest.TestCase):  # design-lint: ignore[solid.sr
 
     def test_severity_enum(self):
         """Test Severity enum exists and has expected values."""
-        from design_linters.framework.interfaces import Severity
+        from tools.design_linters.framework.interfaces import Severity
 
         self.assertEqual(Severity.ERROR.value, "error")
         self.assertEqual(Severity.WARNING.value, "warning")
@@ -74,7 +78,7 @@ class TestBasicFunctionality(unittest.TestCase):  # design-lint: ignore[solid.sr
 
     def test_lint_violation_creation(self):
         """Test basic LintViolation creation."""
-        from design_linters.framework.interfaces import LintViolation, Severity
+        from tools.design_linters.framework.interfaces import LintViolation, Severity
 
         violation = LintViolation(
             rule_id="test.rule",
@@ -92,36 +96,36 @@ class TestBasicFunctionality(unittest.TestCase):  # design-lint: ignore[solid.sr
 
     def test_lint_context_creation(self):
         """Test basic LintContext creation."""
-        from design_linters.framework.interfaces import LintContext
+        from tools.design_linters.framework.interfaces import LintContext
 
         context = LintContext(file_path=Path("/test.py"))
         self.assertEqual(context.file_path, Path("/test.py"))
 
     def test_text_reporter_exists(self):
         """Test TextReporter can be created."""
-        from design_linters.framework.reporters import TextReporter
+        from tools.design_linters.framework.reporters import TextReporter
 
         reporter = TextReporter()
         self.assertIsNotNone(reporter)
 
     def test_json_reporter_exists(self):
         """Test JSONReporter can be created."""
-        from design_linters.framework.reporters import JSONReporter
+        from tools.design_linters.framework.reporters import JSONReporter
 
         reporter = JSONReporter()
         self.assertIsNotNone(reporter)
 
     def test_rule_registry_exists(self):
         """Test DefaultRuleRegistry can be created."""
-        from design_linters.framework.rule_registry import DefaultRuleRegistry
+        from tools.design_linters.framework.rule_registry import DefaultRuleRegistry
 
         registry = DefaultRuleRegistry()
         self.assertIsNotNone(registry)
 
     def test_orchestrator_exists(self):
         """Test DefaultLintOrchestrator can be created."""
-        from design_linters.framework.analyzer import DefaultLintOrchestrator
-        from design_linters.framework.rule_registry import DefaultRuleRegistry
+        from tools.design_linters.framework.analyzer import DefaultLintOrchestrator
+        from tools.design_linters.framework.rule_registry import DefaultRuleRegistry
 
         registry = DefaultRuleRegistry()
         orchestrator = DefaultLintOrchestrator(registry)
@@ -129,21 +133,21 @@ class TestBasicFunctionality(unittest.TestCase):  # design-lint: ignore[solid.sr
 
     def test_cli_exists(self):
         """Test DesignLinterCLI can be created."""
-        from design_linters.cli import DesignLinterCLI
+        from tools.design_linters.cli import DesignLinterCLI
 
         cli = DesignLinterCLI()
         self.assertIsNotNone(cli)
 
     def test_magic_number_rule_exists(self):
         """Test MagicNumberRule can be created."""
-        from design_linters.rules.literals.magic_number_rules import MagicNumberRule
+        from tools.design_linters.rules.literals.magic_number_rules import MagicNumberRule
 
         rule = MagicNumberRule()
         self.assertEqual(rule.rule_id, "literals.magic-number")
 
     def test_print_statement_rule_exists(self):
         """Test PrintStatementRule can be created."""
-        from design_linters.rules.style.print_statement_rules import PrintStatementRule
+        from tools.design_linters.rules.style.print_statement_rules import PrintStatementRule
 
         rule = PrintStatementRule()
         self.assertEqual(rule.rule_id, "style.print-statement")
@@ -154,11 +158,11 @@ class TestCategoriesFilter(unittest.TestCase):  # design-lint: ignore[solid.srp.
 
     def setUp(self):
         """Set up test fixtures."""
-        from design_linters.cli import ConfigurationManager, DesignLinterCLI
-        from design_linters.framework.rule_registry import DefaultRuleRegistry
-        from design_linters.rules.literals.magic_number_rules import MagicNumberRule
-        from design_linters.rules.solid.srp_rules import ClassTooBigRule
-        from design_linters.rules.style.print_statement_rules import PrintStatementRule
+        from tools.design_linters.cli import ConfigurationManager, DesignLinterCLI
+        from tools.design_linters.framework.rule_registry import DefaultRuleRegistry
+        from tools.design_linters.rules.literals.magic_number_rules import MagicNumberRule
+        from tools.design_linters.rules.solid.srp_rules import ClassTooBigRule
+        from tools.design_linters.rules.style.print_statement_rules import PrintStatementRule
 
         self.config_manager = ConfigurationManager()
         self.cli = DesignLinterCLI()
@@ -273,9 +277,9 @@ class TestIgnoreFunctionality(unittest.TestCase):  # design-lint: ignore[solid.s
 
     def setUp(self):
         """Set up test fixtures."""
-        from design_linters.framework.analyzer import DefaultLintOrchestrator, PythonAnalyzer
-        from design_linters.framework.rule_registry import DefaultRuleRegistry
-        from design_linters.rules.literals.magic_number_rules import MagicComplexRule, MagicNumberRule
+        from tools.design_linters.framework.analyzer import DefaultLintOrchestrator, PythonAnalyzer
+        from tools.design_linters.framework.rule_registry import DefaultRuleRegistry
+        from tools.design_linters.rules.literals.magic_number_rules import MagicComplexRule, MagicNumberRule
 
         self.registry = DefaultRuleRegistry()
         self.analyzer = PythonAnalyzer()
@@ -485,8 +489,8 @@ def calculate():
         import tempfile
         from pathlib import Path
 
-        from design_linters.rules.logging.general_logging_rules import NoPlainPrintRule
-        from design_linters.rules.style.print_statement_rules import PrintStatementRule
+        from tools.design_linters.rules.logging.general_logging_rules import NoPlainPrintRule
+        from tools.design_linters.rules.style.print_statement_rules import PrintStatementRule
 
         # Register the print statement rules
         self.registry.register_rule(NoPlainPrintRule())
@@ -530,7 +534,7 @@ def test_function():
         import tempfile
         from pathlib import Path
 
-        from design_linters.framework.ignore_utils import has_file_level_ignore
+        from tools.design_linters.framework.ignore_utils import has_file_level_ignore
 
         # Test that the pattern matching works for both styles
         test_code1 = """#!/usr/bin/env python3
@@ -545,8 +549,8 @@ def test():
         self.assertFalse(has_file_level_ignore(test_code1, "other.rule"))
 
         # Now test with actual linting
-        from design_linters.rules.logging.general_logging_rules import NoPlainPrintRule
-        from design_linters.rules.style.print_statement_rules import PrintStatementRule
+        from tools.design_linters.rules.logging.general_logging_rules import NoPlainPrintRule
+        from tools.design_linters.rules.style.print_statement_rules import PrintStatementRule
 
         # Register the print statement rules
         self.registry.register_rule(NoPlainPrintRule())
