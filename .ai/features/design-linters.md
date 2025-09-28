@@ -122,7 +122,7 @@ Comprehensive test suites for each rule category:
 
 ### Docker Integration
 
-**Location**: `docker-compose.yml`, `docker-compose.dev.yml`
+**Location**: `.docker/compose/prod.yml`, `.docker/compose/dev.yml`
 
 - Containerized linting environment
 - Isolated rule execution

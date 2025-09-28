@@ -243,7 +243,7 @@ Interactive oscilloscope demonstration showcasing real-time data streaming capab
 
 #### Docker Configuration
 
-**Location**: `docker-compose.yml`, `docker-compose.dev.yml`
+**Location**: `.docker/compose/prod.yml`, `.docker/compose/dev.yml`
 
 - **Production Configuration**: Optimized for deployment
 - **Development Configuration**: Hot reloading and debugging
