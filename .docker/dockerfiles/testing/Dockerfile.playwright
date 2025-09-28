@@ -1,0 +1,34 @@
+# Purpose: Docker container configuration for Playwright-based integration testing
+# Scope: Containerized testing environment for browser automation and end-to-end validation
+# Overview: Defines a Docker container based on Microsoft's official Playwright Python image
+#     for running comprehensive integration tests in an isolated environment. The container
+#     includes pre-installed browsers, Python dependencies, and testing infrastructure needed
+#     for automated browser testing, WebSocket validation, and full-stack application testing.
+#     It provides a consistent testing environment across development, CI/CD, and production.
+# Dependencies: Microsoft Playwright Python base image, pip package manager, Chromium browser
+# Exports: Docker container image for integration testing execution
+# Interfaces: Docker container interface with pytest command execution and volume mounting
+# Environment: CI/CD pipelines, development testing, automated browser testing scenarios
+# Related: requirements.txt for Python dependencies and run_tests_docker.sh for execution
+# Implementation: Multi-stage Docker build with browser installation and test execution setup
+
+# Dockerfile for running Playwright integration tests
+FROM mcr.microsoft.com/playwright/python:v1.40.0-jammy
+
+WORKDIR /tests
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Install Playwright browsers
+RUN playwright install chromium
+
+# Copy test files
+COPY . .
+
+# Set environment variables for headless testing
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+
+# Default command to run tests
+CMD ["pytest", "-v", "--asyncio-mode=auto", "test_oscilloscope_playwright.py"]
