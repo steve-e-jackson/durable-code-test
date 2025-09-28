@@ -59,7 +59,7 @@ test-frontend-coverage: dev-start ## Run frontend tests with coverage
 # Playwright integration tests - REQUIRED BY GITHUB ACTIONS
 test-playwright-build: ## Build Playwright test container
 	@echo "$(CYAN)Building Playwright test container...$(NC)"
-	@docker build -f test/integration_test/Dockerfile.playwright -t playwright-tests test/integration_test/
+	@docker build -f .docker/dockerfiles/testing/Dockerfile.playwright -t playwright-tests test/integration_test/
 	@echo "$(GREEN)✓ Playwright container built$(NC)"
 
 test-playwright: dev-start test-playwright-build ## Run Playwright integration tests
