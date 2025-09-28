@@ -22,7 +22,7 @@ import ast
 from collections import defaultdict
 from typing import cast
 
-from design_linters.framework.interfaces import ASTLintRule, LintContext, LintViolation, Severity
+from tools.design_linters.framework.interfaces import ASTLintRule, LintContext, LintViolation, Severity
 
 # Configuration constants
 MIN_METHODS_FOR_COHESION_CHECK = 5
@@ -69,7 +69,6 @@ class TooManyMethodsRule(ASTLintRule):
             return [
                 self.create_violation_from_node(
                     context=context,
-                    node=node,
                     message=f"Class '{node.name}' has {method_count} methods (max: {max_methods})",
                     description="Classes with many methods often violate SRP by handling multiple responsibilities",
                     suggestion=f"Consider splitting '{node.name}' into smaller, focused classes",
@@ -162,7 +161,6 @@ class TooManyResponsibilitiesRule(ASTLintRule):
         return [
             self.create_violation_from_node(
                 context=context,
-                node=node,
                 message=f"Class '{node.name}' has {len(responsibility_groups)} responsibility groups",
                 description=f"Multiple responsibility groups detected: {groups_list}",
                 suggestion=f"Split '{node.name}' by responsibility: {groups_list}",
@@ -419,7 +417,7 @@ class ClassTooBigRule(ASTLintRule):
         super().__init__()
         from loguru import logger
 
-        logger.debug(f"ClassTooBigRule initialized with max_lines={self.DEFAULT_MAX_LINES}")
+        logger.info("ClassTooBigRule initialized", max_lines=self.DEFAULT_MAX_LINES)
 
     @property
     def rule_id(self) -> str:
@@ -446,7 +444,7 @@ class ClassTooBigRule(ASTLintRule):
         if result:
             from loguru import logger
 
-            logger.debug(f"ClassTooBigRule.should_check_node: Will check class '{node.name}'")
+            logger.debug("ClassTooBigRule.should_check_node: Will check class", class_name=node.name)
         return result
 
     def check_node(self, node: ast.AST, context: LintContext) -> list[LintViolation]:
@@ -457,11 +455,11 @@ class ClassTooBigRule(ASTLintRule):
 
         from loguru import logger
 
-        logger.debug(f"ClassTooBigRule checking class '{node.name}' in {context.file_path}")
+        logger.debug("ClassTooBigRule checking class", class_name=node.name, file_path=str(context.file_path))
 
         if node.end_lineno and node.lineno:
             line_count = node.end_lineno - node.lineno
-            logger.debug(f"  Class '{node.name}': {line_count} lines (max: {max_lines})")
+            logger.debug("Class line count analysis", class_name=node.name, line_count=line_count, max_lines=max_lines)
 
             if line_count > max_lines:
                 return [

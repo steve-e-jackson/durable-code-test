@@ -21,7 +21,7 @@ Implementation: Rule-based architecture with language-specific detection
 import ast
 from typing import Any
 
-from design_linters.framework.interfaces import ASTLintRule, LintContext, LintViolation, Severity
+from tools.design_linters.framework.interfaces import ASTLintRule, LintContext, LintViolation, Severity
 
 
 class PrintStatementRule(ASTLintRule):  # design-lint: ignore[solid.srp.too-many-methods]
@@ -72,7 +72,6 @@ class PrintStatementRule(ASTLintRule):  # design-lint: ignore[solid.srp.too-many
         return [
             self.create_violation_from_node(
                 context=context,
-                node=node,
                 message="Print statement found - use logging instead",
                 description=(
                     "Print statements should be replaced with proper logging "

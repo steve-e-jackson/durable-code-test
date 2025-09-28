@@ -364,10 +364,9 @@ class HeaderViolationChecker:
                 LintViolation(
                     rule_id=rule_id,
                     message=f"Header missing required fields: {self._format_missing_fields(missing_fields)}",
-                    node=node,
                     severity=severity,
-                    line_number=1,
-                    column_number=0,
+                    line=1,
+                    column=0,
                     file_path=context.file_path,
                     suggestion="Add missing fields to the header documentation",
                 )
@@ -387,10 +386,9 @@ class HeaderViolationChecker:
                     LintViolation(
                         rule_id=rule_id,
                         message=message,
-                        node=node,
                         severity=Severity.WARNING,
-                        line_number=1,
-                        column_number=0,
+                        line=1,
+                        column=0,
                         file_path=context.file_path,
                         suggestion="Expand the Overview field with comprehensive documentation",
                     )
@@ -417,10 +415,9 @@ class HeaderViolationChecker:
                 LintViolation(
                     rule_id=rule_id,
                     message=f"Code file missing required fields: {self._format_missing_fields(missing_required)}",
-                    node=node,
                     severity=severity,
-                    line_number=1,
-                    column_number=0,
+                    line=1,
+                    column=0,
                     file_path=context.file_path,
                     suggestion="Add missing code documentation fields",
                 )
@@ -433,10 +430,9 @@ class HeaderViolationChecker:
                 LintViolation(
                     rule_id=rule_id,
                     message=f"Code file missing recommended fields: {self._format_missing_fields(missing_recommended)}",
-                    node=node,
                     severity=Severity.WARNING,
-                    line_number=1,
-                    column_number=0,
+                    line=1,
+                    column=0,
                     file_path=context.file_path,
                     suggestion="Consider adding recommended documentation fields",
                 )
@@ -456,10 +452,9 @@ class HeaderViolationChecker:
                 LintViolation(
                     rule_id=rule_id,
                     message=f"Header field '{issue['field']}' {issue['issue']}",
-                    node=node,
                     severity=Severity.WARNING,
-                    line_number=1,
-                    column_number=0,
+                    line=1,
+                    column=0,
                     file_path=context.file_path,
                     suggestion=issue["suggestion"],
                 )
@@ -480,10 +475,10 @@ class HeaderViolationChecker:
                 LintViolation(
                     rule_id=rule_id,
                     message=f"Header contains temporal language: '{issue['text']}'",
-                    node=node,
+                    description="Temporal language makes documentation time-dependent",
                     severity=Severity.WARNING,
-                    line_number=1,
-                    column_number=0,
+                    line=1,
+                    column=0,
                     file_path=context.file_path,
                     suggestion=suggestion,
                 )
@@ -634,7 +629,7 @@ class FileHeaderRule(ASTLintRule):
         try:
             return file_path.read_text(encoding="utf-8")
         except Exception as e:
-            logger.debug(f"Could not read file {file_path}: {e}")
+            logger.debug("Could not read file", file_path=str(file_path), error=str(e))
             return None
 
     def _create_missing_header_violation(self, context: LintContext, node: Any, file_ext: str) -> LintViolation:
@@ -643,10 +638,9 @@ class FileHeaderRule(ASTLintRule):
         return LintViolation(
             rule_id=self.rule_id,
             message="File missing documentation header",
-            node=node,
             severity=self.severity,
-            line_number=1,
-            column_number=0,
+            line=1,
+            column=0,
             file_path=context.file_path,
             suggestion=f"Add header at the beginning of the file:\n{template}",
         )

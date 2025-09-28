@@ -21,7 +21,7 @@ Implementation: Rule-based architecture with numeric pattern detection
 import ast
 from typing import Any
 
-from design_linters.framework.interfaces import ASTLintRule, LintContext, LintViolation, Severity
+from tools.design_linters.framework.interfaces import ASTLintRule, LintContext, LintViolation, Severity
 
 
 class MagicNumberContextAnalyzer:
@@ -333,7 +333,6 @@ class MagicNumberRule(ASTLintRule):
         return [
             self.create_violation_from_node(
                 context=context,
-                node=node,
                 message=f"Magic number {node.value} found",
                 description=f"Replace magic number {node.value} with a named constant for better maintainability",
                 suggestion=suggestion,
@@ -434,7 +433,6 @@ class MagicComplexRule(ASTLintRule):
         return [
             self.create_violation_from_node(
                 context=context,
-                node=node,
                 message=message,
                 description=f"Replace complex number {node.value} with a named constant for better readability",
                 suggestion=suggestion,

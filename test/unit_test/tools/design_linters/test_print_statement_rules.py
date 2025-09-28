@@ -19,8 +19,8 @@ from typing import Any, Dict
 
 sys.path.insert(0, "/home/stevejackson/Projects/durable-code-test/tools")
 
-from design_linters.framework.interfaces import LintContext, LintViolation, Severity
-from design_linters.rules.style.print_statement_rules import ConsoleOutputRule, PrintStatementRule
+from tools.design_linters.framework.interfaces import LintContext, LintViolation, Severity
+from tools.design_linters.rules.style.print_statement_rules import ConsoleOutputRule, PrintStatementRule
 
 
 class TestPrintStatementRule(unittest.TestCase):  # design-lint: ignore[solid.srp.class-too-big,solid.srp.too-many-methods]
@@ -621,7 +621,7 @@ class TestRuleIntegration(unittest.TestCase):  # design-lint: ignore[solid.srp.c
 
     def test_both_rules_implement_astlintrule(self):
         """Test that both rules properly implement ASTLintRule interface."""
-        from design_linters.framework.interfaces import ASTLintRule
+        from tools.design_linters.framework.interfaces import ASTLintRule
 
         print_rule = PrintStatementRule()
         console_rule = ConsoleOutputRule()
@@ -645,7 +645,7 @@ class TestRuleIntegration(unittest.TestCase):  # design-lint: ignore[solid.srp.c
         tree = ast.parse(code)
         call_node = tree.body[0].value
 
-        violation = rule.create_violation(
+        violation = rule.create_violation_from_node(
             context=context,
             node=call_node,
             message="Test message",
