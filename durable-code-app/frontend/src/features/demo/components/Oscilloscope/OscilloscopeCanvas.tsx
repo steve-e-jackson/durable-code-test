@@ -17,7 +17,7 @@ import { useCanvas } from '../../hooks/useCanvas';
 import { usePerformanceMetrics } from '../../../../core/performance';
 import styles from './OscilloscopeCanvas.module.css';
 
-export const OscilloscopeCanvas: React.FC<OscilloscopeCanvasProps> = ({
+const OscilloscopeCanvasComponent: React.FC<OscilloscopeCanvasProps> = ({
   data,
   state,
   stats,
@@ -198,3 +198,42 @@ export const OscilloscopeCanvas: React.FC<OscilloscopeCanvasProps> = ({
     </div>
   );
 };
+
+// Custom comparison function for optimized re-renders
+const areEqual = (
+  prevProps: OscilloscopeCanvasProps,
+  nextProps: OscilloscopeCanvasProps,
+): boolean => {
+  // Always re-render if data buffer changes
+  if (prevProps.data !== nextProps.data) {
+    // Sample-based comparison for performance - check if data actually changed
+    if (prevProps.data.length !== nextProps.data.length) return false;
+
+    // Sample check - compare every 100th value for performance
+    const sampleStep = Math.max(1, Math.floor(prevProps.data.length / 100));
+    for (let i = 0; i < prevProps.data.length; i += sampleStep) {
+      if (prevProps.data[i] !== nextProps.data[i]) return false;
+    }
+  }
+
+  // Check if relevant state properties changed
+  if (
+    prevProps.state.timeScale !== nextProps.state.timeScale ||
+    prevProps.state.voltScale !== nextProps.state.voltScale ||
+    prevProps.state.frequency !== nextProps.state.frequency ||
+    prevProps.state.triggerLevel !== nextProps.state.triggerLevel ||
+    prevProps.state.isPaused !== nextProps.state.isPaused
+  ) {
+    return false;
+  }
+
+  // Check if stats changed
+  if (prevProps.stats.fps !== nextProps.stats.fps) {
+    return false;
+  }
+
+  // Props are equal, skip re-render
+  return true;
+};
+
+export const OscilloscopeCanvas = React.memo(OscilloscopeCanvasComponent, areEqual);

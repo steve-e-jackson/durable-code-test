@@ -10,7 +10,7 @@
  * Implementation: Feature-based architecture with modular components and hooks
  */
 
-import { useCallback } from 'react';
+import React, { useCallback } from 'react';
 import type { ReactElement } from 'react';
 import { useOscilloscope } from '../../hooks/useOscilloscope';
 import { OscilloscopeCanvas } from '../Oscilloscope';
@@ -19,7 +19,7 @@ import { StatusPanel } from '../StatusPanel';
 import { DetailsCard } from '../../../../components/common';
 import styles from './DemoTab.module.css';
 
-export function DemoTab(): ReactElement {
+function DemoTabComponent(): ReactElement {
   const {
     state,
     stats,
@@ -144,3 +144,5 @@ export function DemoTab(): ReactElement {
     </div>
   );
 }
+
+export const DemoTab = React.memo(DemoTabComponent);

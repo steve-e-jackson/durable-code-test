@@ -10,14 +10,14 @@
  * Implementation: Composite component organizing all control sub-components
  */
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Button } from '../../../../components/common/Button';
 import { WaveformSelector } from './WaveformSelector';
 import { ParameterControls } from './ParameterControls';
 import type { ControlPanelProps } from '../../types/oscilloscope.types';
 import styles from './ControlPanel.module.css';
 
-export const ControlPanel: React.FC<ControlPanelProps> = ({
+const ControlPanelComponent: React.FC<ControlPanelProps> = ({
   state,
   onStateChange,
   onStartStreaming,
@@ -29,21 +29,30 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   onOffsetChange,
   onReset,
 }) => {
-  const handlePauseToggle = () => {
+  const handlePauseToggle = useCallback(() => {
     onStateChange({ isPaused: !state.isPaused });
-  };
+  }, [onStateChange, state.isPaused]);
 
-  const handleTimeScaleChange = (timeScale: number) => {
-    onStateChange({ timeScale });
-  };
+  const handleTimeScaleChange = useCallback(
+    (timeScale: number) => {
+      onStateChange({ timeScale });
+    },
+    [onStateChange],
+  );
 
-  const handleVoltScaleChange = (voltScale: number) => {
-    onStateChange({ voltScale });
-  };
+  const handleVoltScaleChange = useCallback(
+    (voltScale: number) => {
+      onStateChange({ voltScale });
+    },
+    [onStateChange],
+  );
 
-  const handleTriggerLevelChange = (triggerLevel: number) => {
-    onStateChange({ triggerLevel });
-  };
+  const handleTriggerLevelChange = useCallback(
+    (triggerLevel: number) => {
+      onStateChange({ triggerLevel });
+    },
+    [onStateChange],
+  );
 
   return (
     <div className={styles.container}>
@@ -103,3 +112,5 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
     </div>
   );
 };
+
+export const ControlPanel = React.memo(ControlPanelComponent);
