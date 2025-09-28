@@ -60,6 +60,21 @@ ai_guidance:
         terraform_state: "→ infra/terraform/.terraform/ (auto-managed)"
         aws_credentials: "→ Never commit! Use environment variables"
 
+    docker_file_placement:
+      question: "Where should this Docker file go?"
+      criteria:
+        backend_dockerfile_dev: "→ .docker/dockerfiles/backend/Dockerfile.dev"
+        backend_dockerfile_prod: "→ .docker/dockerfiles/backend/Dockerfile.prod"
+        frontend_dockerfile_dev: "→ .docker/dockerfiles/frontend/Dockerfile.dev"
+        frontend_dockerfile_prod: "→ .docker/dockerfiles/frontend/Dockerfile.prod"
+        linting_dockerfile: "→ .docker/dockerfiles/linting/Dockerfile.[language]-lint"
+        testing_dockerfile: "→ .docker/dockerfiles/testing/Dockerfile.[framework]"
+        deployment_dockerfile: "→ .docker/dockerfiles/deployment/Dockerfile.[purpose]"
+        compose_dev: "→ .docker/compose/dev.yml"
+        compose_prod: "→ .docker/compose/prod.yml"
+        compose_lint: "→ .docker/compose/lint.yml"
+        compose_test: "→ .docker/compose/test.yml"
+
   common_mistakes:
     test_in_source: "Never put test files in source directories"
     debug_in_root: "Don't leave debug files in project root"
@@ -70,6 +85,8 @@ ai_guidance:
     env_vars_in_terraform: "Don't hardcode environment-specific values in .tf files - use .tfvars"
     credentials_in_code: "Never commit AWS credentials or secrets - use environment variables"
     state_files_committed: "Don't commit terraform.tfstate files - use remote backend"
+    docker_files_scattered: "Don't scatter Docker files - use .docker/ directory structure"
+    compose_in_root: "Don't leave docker-compose files in root - use .docker/compose/"
 
 linter_rules:
   description: "Machine-readable rules for file placement validation"
@@ -394,6 +411,48 @@ linter_rules:
         - '\\.js$'
         - '\\.ts$'
         - '\\.tsx$'
+
+    .docker/:
+      description: "Centralized Docker configuration directory"
+      allow:
+        - '^\\.docker/dockerfiles/backend/Dockerfile\\.(dev|prod)$'
+        - '^\\.docker/dockerfiles/frontend/Dockerfile\\.(dev|prod)$'
+        - '^\\.docker/dockerfiles/linting/Dockerfile\\..*-lint$'
+        - '^\\.docker/dockerfiles/testing/Dockerfile\\..*$'
+        - '^\\.docker/dockerfiles/deployment/Dockerfile\\..*$'
+        - '^\\.docker/compose/(dev|prod|lint|test)\\.yml$'
+        - '^\\.docker/.*\\.md$'
+      deny:
+        - '\\.py$'
+        - '\\.js$'
+        - '\\.ts$'
+        - '\\.tsx$'
+        - '\\.sh$'
+
+    .docker/dockerfiles/:
+      allow:
+        - '/dockerfiles/backend/Dockerfile\\.(dev|prod)$'
+        - '/dockerfiles/frontend/Dockerfile\\.(dev|prod)$'
+        - '/dockerfiles/linting/Dockerfile\\..*-lint$'
+        - '/dockerfiles/testing/Dockerfile\\..*$'
+        - '/dockerfiles/deployment/Dockerfile\\..*$'
+      deny:
+        - '\\.yml$'
+        - '\\.yaml$'
+        - '\\.py$'
+        - '\\.js$'
+        - '\\.ts$'
+
+    .docker/compose/:
+      allow:
+        - '/compose/(dev|prod|lint|test)\\.yml$'
+        - '/compose/.*\\.override\\.yml$'
+      deny:
+        - 'Dockerfile'
+        - '\\.py$'
+        - '\\.js$'
+        - '\\.ts$'
+        - '\\.sh$'
 
     .:
       description: "Root directory rules"
