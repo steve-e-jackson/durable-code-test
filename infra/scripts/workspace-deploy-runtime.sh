@@ -148,7 +148,7 @@ print_message "$CYAN" "Running terraform plan..."
 terraform plan -out=runtime.tfplan "$@"
 
 # Ask for confirmation if not auto-approved
-if [[ ! " $@ " =~ " -auto-approve " ]]; then
+if [[ ! " $* " =~ " -auto-approve " ]]; then
     echo ""
     read -p "Do you want to apply this plan? (yes/no): " -n 3 -r
     echo ""
