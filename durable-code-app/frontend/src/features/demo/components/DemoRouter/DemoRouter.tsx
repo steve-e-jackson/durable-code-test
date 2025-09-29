@@ -21,9 +21,10 @@ export function DemoRouter(): ReactElement {
   useEffect(() => {
     if (!activeSubTab) {
       // Parse hash to check if there's a sub-tab in the URL
-      const hash = typeof window !== 'undefined' && window.location?.hash
-        ? window.location.hash.slice(1)
-        : '';
+      const hash =
+        typeof window !== 'undefined' && window.location?.hash
+          ? window.location.hash.slice(1)
+          : '';
       const parts = hash.split('/');
       if (parts.length > 1 && parts[0] === 'Demo') {
         setActiveSubTab(parts[1]);
