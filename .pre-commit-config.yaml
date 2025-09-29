@@ -50,7 +50,7 @@ repos:
 
       - id: python-mypy
         name: MyPy (Python type checking)
-        entry: bash -c 'files=$(git diff --cached --name-only --diff-filter=ACM | grep -E "\.py$" || true); if [ -n "$files" ]; then make lint-ensure-containers >/dev/null 2>&1; docker exec durable-code-python-linter-$(git rev-parse --abbrev-ref HEAD | tr "/" "-" | tr "[:upper:]" "[:lower:]") bash -c "cd /workspace/backend && MYPY_CACHE_DIR=/tmp/mypy_cache mypy $files"; fi'
+        entry: bash -c 'files=$(git diff --cached --name-only --diff-filter=ACM | grep -E "^durable-code-app/backend/.*\.py$" | sed "s|^durable-code-app/backend/||" || true); if [ -n "$files" ]; then make lint-ensure-containers >/dev/null 2>&1; docker exec durable-code-python-linter-$(git rev-parse --abbrev-ref HEAD | tr "/" "-" | tr "[:upper:]" "[:lower:]") bash -c "cd /workspace/backend && MYPY_CACHE_DIR=/tmp/mypy_cache mypy $files"; fi'
         language: system
         files: \.(py)$
         pass_filenames: false

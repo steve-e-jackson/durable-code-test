@@ -157,59 +157,29 @@ export function useRacingGame(): UseRacingGameReturn {
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      // Clear canvas
-      ctx.fillStyle = '#90EE90'; // Light green background
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Import dynamically to avoid issues during testing
+      import('../rendering/trackRenderer')
+        .then(({ renderBackground, renderTrack, renderCar, renderDebugInfo }) => {
+          // Clear and draw background
+          renderBackground(ctx, canvas.width, canvas.height);
 
-      // Draw track boundaries
-      ctx.strokeStyle = '#333333';
-      ctx.lineWidth = 3;
+          // Draw track
+          renderTrack(ctx, trackData);
 
-      // Draw outer boundary
-      ctx.beginPath();
-      trackData.boundaries.outer.forEach((point, index) => {
-        if (index === 0) {
-          ctx.moveTo(point.x, point.y);
-        } else {
-          ctx.lineTo(point.x, point.y);
-        }
-      });
-      ctx.closePath();
-      ctx.stroke();
+          // Draw car
+          const { car } = world;
+          renderCar(ctx, car.position.x, car.position.y, car.angle);
 
-      // Draw inner boundary
-      ctx.beginPath();
-      trackData.boundaries.inner.forEach((point, index) => {
-        if (index === 0) {
-          ctx.moveTo(point.x, point.y);
-        } else {
-          ctx.lineTo(point.x, point.y);
-        }
-      });
-      ctx.closePath();
-      ctx.stroke();
-
-      // Draw car
-      const { car } = world;
-      ctx.save();
-      ctx.translate(car.position.x, car.position.y);
-      ctx.rotate(car.angle);
-      ctx.fillStyle = '#ff0000';
-      ctx.fillRect(-15, -10, 30, 20); // Car rectangle
-      ctx.restore();
-
-      // Draw car direction indicator (small triangle)
-      ctx.save();
-      ctx.translate(car.position.x, car.position.y);
-      ctx.rotate(car.angle);
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.moveTo(15, 0);
-      ctx.lineTo(5, -5);
-      ctx.lineTo(5, 5);
-      ctx.closePath();
-      ctx.fill();
-      ctx.restore();
+          // Draw debug info (optional)
+          const speed = Math.sqrt(car.velocity.x ** 2 + car.velocity.y ** 2);
+          renderDebugInfo(ctx, speed, { x: car.position.x, y: car.position.y });
+        })
+        .catch((error) => {
+          console.error('Failed to load track renderer:', error);
+          // Fallback to simple rendering if import fails
+          ctx.fillStyle = '#2d5016';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        });
     },
     [],
   );
