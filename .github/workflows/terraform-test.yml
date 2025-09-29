@@ -182,7 +182,6 @@ jobs:
 
           # Test that infra targets exist and have proper syntax
           targets=(
-            "infra-help"
             "infra-status"
             "infra-plan"
             "infra-up"

@@ -5,6 +5,7 @@ environment     = "dev"
 aws_region      = "us-west-2"
 product_domain  = "durableai"
 project_name    = "durable-code"
+domain_name     = "durableaicoding.net"  # Optional: Set if you have a domain
 
 # Container Images
 backend_image_tag  = "latest"

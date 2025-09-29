@@ -274,11 +274,11 @@ describe('useWebSocket Memory Management', () => {
 
     // Simulate data reception
     act(() => {
-      mockService.emit('data', { timestamp: Date.now(), values: [1, 2, 3] });
+      mockService.emit('data', { timestamp: Date.now(), samples: [1, 2, 3] });
     });
 
     expect(result2.current.lastData).toBeTruthy();
-    expect(result2.current.lastData?.values).toEqual([1, 2, 3]);
+    expect(result2.current.lastData?.samples).toEqual([1, 2, 3]);
   });
 
   it('should handle connection errors without leaking listeners', () => {

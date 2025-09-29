@@ -78,41 +78,7 @@ resource "aws_subnet" "private" {
   )
 }
 
-# Elastic IPs for NAT Gateways
-resource "aws_eip" "nat" {
-  count = var.enable_nat_gateway ? var.az_count : 0
-
-  domain     = "vpc"
-  depends_on = [aws_internet_gateway.main]
-
-  tags = merge(
-    local.common_tags,
-    var.additional_tags,
-    {
-      Name = "${var.project_name}-${local.environment}-nat-eip-${count.index + 1}"
-      Type = "nat-gateway"
-    }
-  )
-}
-
-# NAT Gateways (optional for cost optimization)
-resource "aws_nat_gateway" "main" {
-  count = var.enable_nat_gateway ? var.az_count : 0
-
-  allocation_id = aws_eip.nat[count.index].id
-  subnet_id     = aws_subnet.public[count.index].id
-
-  tags = merge(
-    local.common_tags,
-    var.additional_tags,
-    {
-      Name = "${var.project_name}-${local.environment}-nat-${count.index + 1}"
-      Type = "nat-gateway"
-    }
-  )
-
-  depends_on = [aws_internet_gateway.main]
-}
+# NAT Gateways moved to runtime workspace for cost optimization
 
 # Route Tables - Public
 resource "aws_route_table" "public" {
@@ -133,30 +99,7 @@ resource "aws_route_table" "public" {
   )
 }
 
-# Route Tables - Private
-resource "aws_route_table" "private" {
-  count = var.az_count
-
-  vpc_id = aws_vpc.main.id
-
-  # Only add NAT Gateway route if NAT Gateway is enabled
-  dynamic "route" {
-    for_each = var.enable_nat_gateway ? [1] : []
-    content {
-      cidr_block     = "0.0.0.0/0"
-      nat_gateway_id = aws_nat_gateway.main[count.index].id
-    }
-  }
-
-  tags = merge(
-    local.common_tags,
-    var.additional_tags,
-    {
-      Name = "${var.project_name}-${local.environment}-private-rt-${count.index + 1}"
-      Type = "route-table"
-    }
-  )
-}
+# Private route tables moved to runtime workspace (depend on NAT Gateways)
 
 # Route Table Associations - Public
 resource "aws_route_table_association" "public" {
@@ -166,13 +109,7 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
-# Route Table Associations - Private
-resource "aws_route_table_association" "private" {
-  count = var.az_count
-
-  subnet_id      = aws_subnet.private[count.index].id
-  route_table_id = aws_route_table.private[count.index].id
-}
+# Private route table associations moved to runtime workspace
 
 # Security Groups
 
@@ -258,125 +195,4 @@ resource "aws_security_group" "ecs_tasks" {
   )
 }
 
-# VPC Endpoints Security Group (for private subnets without NAT Gateway)
-resource "aws_security_group" "vpc_endpoints" {
-  count = !var.enable_nat_gateway ? 1 : 0
-
-  name        = "${var.project_name}-${local.environment}-vpc-endpoints-sg"
-  description = "Security group for VPC endpoints"
-  vpc_id      = aws_vpc.main.id
-
-  ingress {
-    description = "HTTPS from VPC"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = [var.vpc_cidr]
-  }
-
-  egress {
-    description = "All outbound traffic"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = merge(
-    local.common_tags,
-    var.additional_tags,
-    {
-      Name      = "${var.project_name}-${local.environment}-vpc-endpoints-sg"
-      Type      = "security-group"
-      Component = "vpc-endpoints"
-    }
-  )
-}
-
-# VPC Endpoints (for cost optimization when NAT Gateway is disabled)
-
-# S3 VPC Endpoint (Gateway type - no cost)
-resource "aws_vpc_endpoint" "s3" {
-  count = !var.enable_nat_gateway ? 1 : 0
-
-  vpc_id            = aws_vpc.main.id
-  service_name      = "com.amazonaws.${data.aws_region.current.name}.s3"
-  vpc_endpoint_type = "Gateway"
-  route_table_ids   = aws_route_table.private[*].id
-
-  tags = merge(
-    local.common_tags,
-    var.additional_tags,
-    {
-      Name    = "${var.project_name}-${local.environment}-s3-endpoint"
-      Type    = "vpc-endpoint"
-      Service = "s3"
-    }
-  )
-}
-
-# ECR API VPC Endpoint (Interface type)
-resource "aws_vpc_endpoint" "ecr_api" {
-  count = !var.enable_nat_gateway ? 1 : 0
-
-  vpc_id              = aws_vpc.main.id
-  service_name        = "com.amazonaws.${data.aws_region.current.name}.ecr.api"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = aws_subnet.private[*].id
-  security_group_ids  = [aws_security_group.vpc_endpoints[0].id]
-  private_dns_enabled = true
-
-  tags = merge(
-    local.common_tags,
-    var.additional_tags,
-    {
-      Name    = "${var.project_name}-${local.environment}-ecr-api-endpoint"
-      Type    = "vpc-endpoint"
-      Service = "ecr-api"
-    }
-  )
-}
-
-# ECR Docker VPC Endpoint (Interface type)
-resource "aws_vpc_endpoint" "ecr_dkr" {
-  count = !var.enable_nat_gateway ? 1 : 0
-
-  vpc_id              = aws_vpc.main.id
-  service_name        = "com.amazonaws.${data.aws_region.current.name}.ecr.dkr"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = aws_subnet.private[*].id
-  security_group_ids  = [aws_security_group.vpc_endpoints[0].id]
-  private_dns_enabled = true
-
-  tags = merge(
-    local.common_tags,
-    var.additional_tags,
-    {
-      Name    = "${var.project_name}-${local.environment}-ecr-dkr-endpoint"
-      Type    = "vpc-endpoint"
-      Service = "ecr-dkr"
-    }
-  )
-}
-
-# CloudWatch Logs VPC Endpoint (Interface type)
-resource "aws_vpc_endpoint" "logs" {
-  count = !var.enable_nat_gateway ? 1 : 0
-
-  vpc_id              = aws_vpc.main.id
-  service_name        = "com.amazonaws.${data.aws_region.current.name}.logs"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = aws_subnet.private[*].id
-  security_group_ids  = [aws_security_group.vpc_endpoints[0].id]
-  private_dns_enabled = true
-
-  tags = merge(
-    local.common_tags,
-    var.additional_tags,
-    {
-      Name    = "${var.project_name}-${local.environment}-logs-endpoint"
-      Type    = "vpc-endpoint"
-      Service = "cloudwatch-logs"
-    }
-  )
-}
+# VPC Endpoints moved to runtime workspace for cost optimization

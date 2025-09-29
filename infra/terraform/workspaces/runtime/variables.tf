@@ -151,6 +151,13 @@ variable "health_check_unhealthy_threshold" {
   default     = 3
 }
 
+# DNS Configuration
+variable "domain_name" {
+  description = "Domain name for the application (e.g., durableaicoding.net)"
+  type        = string
+  default     = ""
+}
+
 # Auto-scaling Configuration
 variable "enable_autoscaling" {
   description = "Enable ECS service auto-scaling"
@@ -198,6 +205,25 @@ variable "log_retention_days" {
     staging = 14
     prod    = 30
   }
+}
+
+# Networking Configuration
+variable "vpc_cidr" {
+  description = "CIDR block for VPC"
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
+variable "az_count" {
+  description = "Number of Availability Zones"
+  type        = number
+  default     = 2
+}
+
+variable "enable_nat_gateway" {
+  description = "Enable NAT Gateway for private subnet internet access"
+  type        = bool
+  default     = true
 }
 
 # Additional Tags
