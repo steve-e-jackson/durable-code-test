@@ -1,6 +1,6 @@
 ---
 description: Audit and reconcile project files for accuracy, deduplication, and consistency
-argument-hint: "[target: docs, features, howto, templates, roadmap, or leave empty for all AI documentation]"
+argument-hint: "[target: docs, features, howto, templates, roadmap, web-tab:[tab-name], or leave empty for all AI documentation]"
 ---
 
 I'll reconcile the specified area of the project to ensure accuracy, eliminate duplication, and maintain consistency.
@@ -41,6 +41,62 @@ Provide summary of:
 - Percentage corrections made
 - New overall completion percentage
 - Recommendations for stale items
+
+### Case: "web-tab:journey"
+When reconciling the journey tab:
+
+#### Phase 1: Analyze Current Journey Data
+1. **Read journey data file** at `durable-code-app/frontend/src/features/journey/data/journeyData.ts`
+2. **Extract last entry date** from the timeline
+3. **Parse existing milestones** and their metadata
+
+#### Phase 2: Git History Analysis
+1. **Run git log** from the last entry date to present:
+   ```bash
+   git log --since="[last-entry-date]" --pretty=format:"%H|%s|%ad|%an" --date=format:"%b %d, %Y"
+   ```
+2. **Parse commits** for:
+   - Feat/fix/perf/refactor/test prefixes
+   - PR numbers from commit messages
+   - Impact assessment based on changed files
+3. **Group commits** into logical milestones
+
+#### Phase 3: Milestone Classification
+For each new commit/milestone:
+1. **Determine phase** based on commit type and content:
+   - Foundation → Core infrastructure changes
+   - Quality → Linting, testing, standards
+   - Modernization → UI/UX improvements
+   - Architecture → Structural refactoring
+   - Performance → Optimization changes
+   - Deployment → Infrastructure/deployment
+   - Consistency → Visual/behavioral standardization
+2. **Assess impact**:
+   - major: Core functionality, breaking changes, new features
+   - minor: Improvements, non-breaking additions
+3. **Extract details** from commit message and changed files
+
+#### Phase 4: Update Journey Data
+1. **Append new milestones** to appropriate phases
+2. **Maintain chronological order** within phases
+3. **Generate unique IDs** for new milestones
+4. **Preserve existing milestone data** (no overwrites)
+5. **Update the journeyData.ts file** with new entries
+
+#### Phase 5: Validation & Report
+1. **Verify TypeScript compilation** of updated file
+2. **Check for duplicate entries**
+3. **Validate date formatting**
+4. **Generate summary** of:
+   - New milestones added
+   - Phases updated
+   - Any gaps in timeline coverage
+
+### Case: "web-tab:[other-tabs]"
+Future implementation for other web tabs (repository, planning, etc.):
+- Similar pattern to journey tab reconciliation
+- Tab-specific data analysis and updates
+- Codebase-to-UI synchronization
 
 ### Case: "docs", "features", "howto", "templates", or no argument (default)
 When reconciling AI documentation:
@@ -111,6 +167,8 @@ I'll provide:
 The command will execute based on the argument provided:
 - **No argument or "docs"/"features"/"howto"/"templates"**: Run AI documentation reconciliation
 - **"roadmap"**: Run roadmap reconciliation with directory organization
+- **"web-tab:journey"**: Run journey tab reconciliation with git history analysis
+- **"web-tab:[tab-name]"**: Run specific web tab reconciliation (future implementation)
 - **Future cases**: Additional reconciliation types can be added here
 
 **Target**: ${ARGUMENTS:-"all AI documentation"}
