@@ -43,33 +43,35 @@ This is the **PRIMARY HANDOFF DOCUMENT** for AI agents working on the racing gam
 
 ## 🎯 Next PR to Implement
 
-### ➡️ START HERE: PR2 - Physics Engine & Track Generation
+### ➡️ START HERE: PR2 - Basic Physics Foundation
 
 **Quick Summary**:
-Implement core game mechanics including physics simulation and procedural track generation.
+Get a basic car moving on a simple track with Matter.js physics engine. Minimal viable racing implementation.
 
 **Status**: ⚪ Not Started
 **Branch**: `feat/racing-game-pr2-physics`
-**Files**: Physics engine, track generator, game hooks
+**Files**: Backend racing API, Matter.js setup, basic game hook
 
 **Key Tasks**:
-- [ ] Create physics engine with car dynamics
-- [ ] Implement mouse-following controls
-- [ ] Create procedural track generation
-- [ ] Add collision detection
-- [ ] Create useRacingGame hook
-- [ ] Implement game state management
+- [ ] Install Matter.js dependencies
+- [ ] Create simple backend track endpoint
+- [ ] Setup Matter.js physics engine
+- [ ] Create basic car physics
+- [ ] Implement minimal game loop
+- [ ] Update RacingGameTab to show canvas
 
 ## 📊 PR Dashboard
 
 | PR | Title | Status | Branch | Completion |
 |---|---|---|---|---|
 | PR1 | Navigation Dropdown Support | ✅ Complete | `feat/racing-game-pr1-navigation` | 100% |
-| PR2 | Physics Engine & Track Generation | ⚪ Not Started | `feat/racing-game-pr2-physics` | 0% |
-| PR3 | Game Controls & UI | ⚪ Not Started | `feat/racing-game-pr3-controls` | 0% |
-| PR4 | Timing & Scoring System | ⚪ Not Started | `feat/racing-game-pr4-scoring` | 0% |
-| PR5 | Polish & Optimizations | ⚪ Not Started | `feat/racing-game-pr5-polish` | 0% |
-| PR6 | Testing & Documentation | ⚪ Not Started | `feat/racing-game-pr6-testing` | 0% |
+| PR2 | Basic Physics Foundation | ⚪ Not Started | `feat/racing-game-pr2-physics` | 0% |
+| PR3 | Track Generation & Rendering | ⚪ Not Started | `feat/racing-game-pr3-track` | 0% |
+| PR4 | Game UI & Controls | ⚪ Not Started | `feat/racing-game-pr4-controls` | 0% |
+| PR5 | Timing & Scoring System | ⚪ Not Started | `feat/racing-game-pr5-scoring` | 0% |
+| PR6 | Polish & Effects | ⚪ Not Started | `feat/racing-game-pr6-polish` | 0% |
+| PR7 | Security Review & Hardening | ⚪ Not Started | `feat/racing-game-pr7-security` | 0% |
+| PR8 | Testing & Documentation | ⚪ Not Started | `feat/racing-game-pr8-testing` | 0% |
 
 ## ✅ Prerequisites & Validation
 
@@ -151,11 +153,12 @@ Following oscilloscope demo patterns:
 ## 🏁 Final Checklist
 
 Before marking feature complete:
-- [ ] All 6 PRs merged to main
+- [ ] All 8 PRs merged to main
 - [ ] Demo dropdown fully functional
 - [ ] Racing game playable end-to-end
 - [ ] Performance targets met
 - [ ] All tests passing
+- [ ] Security review completed
 - [ ] Documentation complete
 - [ ] Roadmap moved to `complete/` directory
 

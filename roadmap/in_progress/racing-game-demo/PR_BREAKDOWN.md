@@ -2,7 +2,7 @@
 
 **Purpose**: Detailed implementation instructions for each pull request in the racing game demo feature
 
-**Scope**: Step-by-step guidance for all 6 PRs required to complete the racing game demo
+**Scope**: Step-by-step guidance for all 8 PRs required to complete the racing game demo
 
 **Overview**: This document provides comprehensive implementation details for each PR, including specific
     file changes, code examples, testing requirements, and validation criteria. Each PR is designed to be
@@ -107,261 +107,256 @@ Demo: {
 
 ---
 
-## PR2: Physics Engine & Track Generation
+## PR2: Basic Physics Foundation
 
 ### Overview
-Implement core game mechanics including physics simulation and procedural track generation.
+Get a basic car moving on a simple track with Matter.js physics engine. This is a minimal viable racing implementation to establish the foundation.
 
 ### Branch
 `feat/racing-game-pr2-physics`
 
+### Dependencies to Install
+```bash
+npm install matter-js @types/matter-js --save
+```
+
 ### New Files to Create
 
-#### 1. Physics Engine
-**File**: `src/features/racing/utils/physics.ts`
+#### 1. Backend Racing API (Simple Track)
+**File**: `durable-code-app/backend/app/racing.py`
+```python
+from fastapi import APIRouter
+from pydantic import BaseModel
+
+router = APIRouter(prefix="/api/racing", tags=["racing"])
+
+class SimpleTrack(BaseModel):
+    width: int = 800
+    height: int = 600
+    boundaries: list[dict] = []
+
+@router.get("/track/simple")
+async def get_simple_track() -> SimpleTrack:
+    # Return a basic oval track for testing
+    return SimpleTrack(
+        boundaries=[
+            {"x": 100, "y": 100}, {"x": 700, "y": 100},
+            {"x": 700, "y": 500}, {"x": 100, "y": 500}
+        ]
+    )
+```
+
+#### 2. Physics Setup with Matter.js
+**File**: `src/features/racing/physics/setup.ts`
 ```typescript
-export class PhysicsEngine {
-  private car: CarPhysics;
-  private world: WorldPhysics;
+import Matter from 'matter-js';
 
-  update(deltaTime: number, input: InputState): void {
-    // Apply forces
-    this.applyAcceleration(input);
-    this.applyFriction();
-    this.updateVelocity(deltaTime);
-    this.updatePosition(deltaTime);
-    this.handleCollisions();
-  }
+export function createPhysicsEngine() {
+  const engine = Matter.Engine.create();
+  engine.gravity.y = 0; // Top-down view, no gravity
 
-  private applyAcceleration(input: InputState): void {
-    // Mouse following logic
-    const targetVector = this.getTargetVector(input.mousePosition);
-    const throttle = input.leftMouseDown ? 1 : 0;
-    const brake = input.rightMouseDown ? 1 : 0;
-    // Apply forces based on input
-  }
+  return engine;
+}
 
-  private handleCollisions(): void {
-    // Wall bouncing
-    // Track boundary detection
-  }
+export function createCar(x: number, y: number) {
+  return Matter.Bodies.rectangle(x, y, 30, 20, {
+    frictionAir: 0.05,
+    mass: 1,
+  });
 }
 ```
 
-#### 2. Track Generator
-**File**: `src/features/racing/utils/trackGenerator.ts`
-```typescript
-export class TrackGenerator {
-  generate(config: TrackConfig): Track {
-    const segments: TrackSegment[] = [];
-
-    // Generate track segments
-    this.generateStartFinish(segments);
-    this.generateCurves(segments, config);
-    this.generateStraights(segments, config);
-    this.connectSegments(segments);
-
-    return {
-      segments,
-      checkpoints: this.generateCheckpoints(segments),
-      bounds: this.calculateBounds(segments),
-    };
-  }
-
-  private generateCurves(segments: TrackSegment[], config: TrackConfig): void {
-    // Procedural curve generation
-    // Based on difficulty and complexity
-  }
-}
-```
-
-#### 3. Racing Game Hook
+#### 3. Basic Racing Game Hook
 **File**: `src/features/racing/hooks/useRacingGame.ts`
 ```typescript
 export function useRacingGame() {
-  const [gameState, setGameState] = useState<GameState>(GameState.MENU);
-  const [track, setTrack] = useState<Track | null>(null);
-  const [carState, setCarState] = useState<CarState>(initialCarState);
-
-  const physicsEngine = useRef(new PhysicsEngine());
-  const trackGenerator = useRef(new TrackGenerator());
+  const [engine] = useState(() => createPhysicsEngine());
+  const [car] = useState(() => createCar(400, 300));
+  const [track, setTrack] = useState(null);
 
   useEffect(() => {
-    // Game loop
-    let animationId: number;
+    // Fetch simple track from backend
+    fetch('/api/racing/track/simple')
+      .then(res => res.json())
+      .then(setTrack);
+  }, []);
 
-    const gameLoop = (timestamp: number) => {
-      if (gameState === GameState.RACING) {
-        physicsEngine.current.update(deltaTime, inputState);
-        render();
-      }
-      animationId = requestAnimationFrame(gameLoop);
-    };
+  useEffect(() => {
+    // Basic game loop
+    const runner = Matter.Runner.create();
+    Matter.Runner.run(runner, engine);
 
-    animationId = requestAnimationFrame(gameLoop);
-    return () => cancelAnimationFrame(animationId);
-  }, [gameState]);
+    return () => Matter.Runner.stop(runner);
+  }, [engine]);
 
-  return {
-    gameState,
-    track,
-    carState,
-    startGame,
-    pauseGame,
-    resetGame,
-  };
+  return { car, track };
+}
+```
+
+#### 4. Update RacingGameTab Component
+**File**: `src/features/racing/components/RacingGameTab/RacingGameTab.tsx`
+```typescript
+export function RacingGameTab() {
+  const { car, track } = useRacingGame();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    // Basic rendering
+    const canvas = canvasRef.current;
+    if (!canvas || !track) return;
+
+    const ctx = canvas.getContext('2d');
+    // Draw track boundaries
+    // Draw car
+  }, [car, track]);
+
+  return <canvas ref={canvasRef} width={800} height={600} />;
 }
 ```
 
 ### Testing Requirements
-- Physics calculations are accurate
-- Collision detection works correctly
-- Track generation is deterministic with seed
-- Different difficulty levels produce appropriate tracks
-- Performance meets 60 FPS target
+- Backend endpoint returns track data
+- Matter.js engine initializes
+- Car body is created
+- Basic rendering works
 
 ### Success Criteria
-- [ ] Car follows mouse smoothly
-- [ ] Acceleration/braking works
-- [ ] Sliding physics feel realistic
-- [ ] Wall collisions cause bouncing
-- [ ] Track generates with variety
+- [ ] Backend track endpoint working
+- [ ] Matter.js installed and configured
+- [ ] Car visible on canvas
+- [ ] Car responds to physics
+- [ ] Basic tests passing
 
 ---
 
-## PR3: Game Controls & UI Components
+## PR3: Track Generation & Rendering
 
 ### Overview
-Implement user interface components and control systems for the racing game.
+Implement backend procedural track generation and frontend rendering with proper collision boundaries.
 
 ### Branch
-`feat/racing-game-pr3-controls`
+`feat/racing-game-pr3-track`
+
+### New Features
+
+#### 1. Backend Procedural Track Generation
+**File**: `durable-code-app/backend/app/racing.py` (update)
+```python
+@router.post("/track/generate")
+async def generate_track(difficulty: str = "medium") -> Track:
+    # Generate procedural track with curves, straights
+    # Use seed for reproducibility
+    # Return track segments and boundaries
+    pass
+```
+
+#### 2. Track Renderer
+**File**: `src/features/racing/rendering/trackRenderer.ts`
+```typescript
+export function renderTrack(ctx: CanvasRenderingContext2D, track: Track) {
+  // Draw track boundaries
+  // Draw track surface
+  // Draw start/finish line
+}
+```
+
+#### 3. Collision Boundaries
+**File**: `src/features/racing/physics/boundaries.ts`
+```typescript
+export function createTrackBoundaries(track: Track, engine: Matter.Engine) {
+  // Convert track data to Matter.js static bodies
+  // Create walls for collision detection
+}
+```
+
+### Testing Requirements
+- Track generation produces valid tracks
+- Boundaries align with visual track
+- Collision detection works
+- Different difficulties produce appropriate tracks
+
+### Success Criteria
+- [ ] Backend generates varied tracks
+- [ ] Track renders visually
+- [ ] Car collides with walls
+- [ ] Multiple track layouts available
+- [ ] Performance remains good
+
+---
+
+## PR4: Game UI & Controls
+
+### Overview
+Implement user interface components, control systems, and game state management.
+
+### Branch
+`feat/racing-game-pr4-controls`
 
 ### New Components
 
 #### 1. Game Canvas Component
 **File**: `src/features/racing/components/GameCanvas/GameCanvas.tsx`
 ```typescript
-export function GameCanvas({ track, carState, gameState }: GameCanvasProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Render loop
-    const render = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Render layers
-      renderBackground(ctx);
-      renderTrack(ctx, track);
-      renderCar(ctx, carState);
-      renderEffects(ctx);
-      renderUI(ctx, gameState);
-    };
-
-    render();
-  }, [track, carState, gameState]);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      onMouseMove={handleMouseMove}
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
-      className={styles.gameCanvas}
-    />
-  );
+export function GameCanvas({ track, car }: GameCanvasProps) {
+  // Full canvas implementation
+  // Mouse tracking
+  // Render loop
+  // Input handling
 }
 ```
 
 #### 2. Control Panel
 **File**: `src/features/racing/components/ControlPanel/ControlPanel.tsx`
 ```typescript
-export function ControlPanel({ onStart, onPause, onReset, settings }: ControlPanelProps) {
-  return (
-    <div className={styles.controlPanel}>
-      <div className={styles.gameControls}>
-        <button onClick={onStart}>Start Race</button>
-        <button onClick={onPause}>Pause</button>
-        <button onClick={onReset}>Reset</button>
-      </div>
-
-      <div className={styles.settings}>
-        <label>
-          Difficulty:
-          <select value={settings.difficulty} onChange={handleDifficultyChange}>
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
-          </select>
-        </label>
-      </div>
-
-      <div className={styles.instructions}>
-        <h4>Controls:</h4>
-        <ul>
-          <li>Move mouse: Steer car</li>
-          <li>Left click: Accelerate</li>
-          <li>Right click: Brake</li>
-        </ul>
-      </div>
-    </div>
-  );
+export function ControlPanel({ onStart, onPause, onReset }: ControlPanelProps) {
+  // Start/Pause/Reset buttons
+  // Difficulty selector
+  // Instructions display
 }
 ```
 
 #### 3. Status Display
 **File**: `src/features/racing/components/StatusDisplay/StatusDisplay.tsx`
 ```typescript
-export function StatusDisplay({ time, speed, lap, bestTime }: StatusDisplayProps) {
-  return (
-    <div className={styles.statusDisplay}>
-      <div className={styles.metric}>
-        <span className={styles.label}>Time:</span>
-        <span className={styles.value}>{formatTime(time)}</span>
-      </div>
-      <div className={styles.metric}>
-        <span className={styles.label}>Speed:</span>
-        <span className={styles.value}>{Math.round(speed)} km/h</span>
-      </div>
-      <div className={styles.metric}>
-        <span className={styles.label}>Best:</span>
-        <span className={styles.value}>{formatTime(bestTime)}</span>
-      </div>
-    </div>
-  );
+export function StatusDisplay({ speed, time }: StatusDisplayProps) {
+  // Speed indicator
+  // Time display
+  // Current lap
+}
+```
+
+#### 4. Game State Management
+**File**: `src/features/racing/utils/gameState.ts`
+```typescript
+export class GameStateManager {
+  // Menu -> Racing -> Paused -> Finished transitions
+  // State persistence
+  // Event handling
 }
 ```
 
 ### Testing Requirements
-- Canvas renders correctly
-- Mouse events are captured
+- UI components render correctly
 - Controls are responsive
-- UI updates reflect game state
-- Components handle edge cases
+- State transitions work
+- Canvas updates smoothly
 
 ### Success Criteria
-- [ ] Canvas displays track and car
-- [ ] Mouse controls work smoothly
-- [ ] Control panel functions correctly
-- [ ] Status display updates in real-time
-- [ ] UI is responsive on all screen sizes
+- [ ] Canvas displays game properly
+- [ ] Controls work intuitively
+- [ ] Status updates in real-time
+- [ ] Game states transition smoothly
+- [ ] UI is responsive on all screens
 
 ---
 
-## PR4: Timing & Scoring System
+## PR5: Timing & Scoring System
 
 ### Overview
-Implement game logic for timing, scoring, checkpoints, and win conditions.
+Implement checkpoint system, lap timing, best time tracking, and race completion logic.
 
 ### Branch
-`feat/racing-game-pr4-scoring`
+`feat/racing-game-pr5-scoring`
 
 ### New Systems
 
@@ -369,334 +364,250 @@ Implement game logic for timing, scoring, checkpoints, and win conditions.
 **File**: `src/features/racing/utils/timing.ts`
 ```typescript
 export class TimingSystem {
-  private startTime: number = 0;
-  private currentTime: number = 0;
-  private bestTime: number = Infinity;
-  private checkpoints: Set<string> = new Set();
-
-  startRace(): void {
-    this.startTime = performance.now();
-    this.currentTime = 0;
-    this.checkpoints.clear();
-  }
-
-  update(): number {
-    this.currentTime = performance.now() - this.startTime;
-    return this.currentTime;
-  }
-
-  crossCheckpoint(checkpointId: string): boolean {
-    if (this.checkpoints.has(checkpointId)) {
-      return false; // Already crossed
-    }
-    this.checkpoints.add(checkpointId);
-    return true;
-  }
-
-  finishRace(): RaceResult {
-    const finalTime = this.currentTime;
-    if (finalTime < this.bestTime) {
-      this.bestTime = finalTime;
-    }
-    return {
-      time: finalTime,
-      bestTime: this.bestTime,
-      isNewBest: finalTime === this.bestTime,
-    };
-  }
+  // Start/stop timer
+  // Lap timing
+  // Best time tracking
+  // Checkpoint validation
 }
 ```
 
-#### 2. Game State Manager
-**File**: `src/features/racing/utils/gameStateManager.ts`
+#### 2. Checkpoint System
+**File**: `src/features/racing/utils/checkpoints.ts`
 ```typescript
-export class GameStateManager {
-  private state: GameState = GameState.MENU;
-  private listeners: Set<StateChangeListener> = new Set();
-
-  transition(newState: GameState): void {
-    const validTransition = this.isValidTransition(this.state, newState);
-    if (!validTransition) {
-      console.warn(`Invalid transition: ${this.state} -> ${newState}`);
-      return;
-    }
-
-    const oldState = this.state;
-    this.state = newState;
-    this.notifyListeners(oldState, newState);
-  }
-
-  private isValidTransition(from: GameState, to: GameState): boolean {
-    const transitions: Record<GameState, GameState[]> = {
-      [GameState.MENU]: [GameState.LOADING],
-      [GameState.LOADING]: [GameState.COUNTDOWN],
-      [GameState.COUNTDOWN]: [GameState.RACING],
-      [GameState.RACING]: [GameState.PAUSED, GameState.FINISHED],
-      [GameState.PAUSED]: [GameState.RACING, GameState.MENU],
-      [GameState.FINISHED]: [GameState.MENU],
-    };
-    return transitions[from]?.includes(to) ?? false;
-  }
+export class CheckpointManager {
+  // Checkpoint detection
+  // Order validation
+  // Progress tracking
+  // Lap completion
 }
 ```
 
-#### 3. Checkpoint System
-**File**: `src/features/racing/components/Checkpoints/Checkpoints.tsx`
+#### 3. Scoring Display
+**File**: `src/features/racing/components/ScoreBoard/ScoreBoard.tsx`
 ```typescript
-export function Checkpoints({ checkpoints, carPosition }: CheckpointsProps) {
-  const [passedCheckpoints, setPassedCheckpoints] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    checkpoints.forEach(checkpoint => {
-      if (isCarInCheckpoint(carPosition, checkpoint) && !passedCheckpoints.has(checkpoint.id)) {
-        setPassedCheckpoints(prev => new Set(prev).add(checkpoint.id));
-        onCheckpointPass(checkpoint);
-      }
-    });
-  }, [carPosition, checkpoints]);
-
-  return null; // Visual rendering handled by canvas
+export function ScoreBoard({ currentTime, bestTime, lap }: ScoreBoardProps) {
+  // Current time display
+  // Best time comparison
+  // Lap counter
+  // Finish celebration
 }
 ```
 
 ### Testing Requirements
-- Timer accuracy within 1ms
-- Checkpoint detection is reliable
-- State transitions are valid
-- Best time tracking works
-- Race completion triggers correctly
+- Timer accuracy
+- Checkpoint detection reliability
+- Score persistence
+- Edge cases handled
 
 ### Success Criteria
-- [ ] Timer starts and stops correctly
-- [ ] Checkpoints register when crossed
-- [ ] Finish line detection works
-- [ ] Best times are saved
-- [ ] Game states transition smoothly
+- [ ] Timer works accurately
+- [ ] Checkpoints detect properly
+- [ ] Lap times tracked
+- [ ] Best times saved
+- [ ] Finish line works
 
 ---
 
-## PR5: Polish & Optimizations
+## PR6: Polish & Effects
 
 ### Overview
-Add visual effects, sound, animations, and performance optimizations.
+Add visual effects, particle systems, and performance optimizations to enhance gameplay experience.
 
 ### Branch
-`feat/racing-game-pr5-polish`
+`feat/racing-game-pr6-polish`
 
 ### Enhancements
 
 #### 1. Particle Effects
-**File**: `src/features/racing/utils/particles.ts`
+**File**: `src/features/racing/effects/particles.ts`
 ```typescript
 export class ParticleSystem {
-  private particles: Particle[] = [];
-  private pool: Particle[] = [];
-
-  emit(type: ParticleType, position: Point, config: ParticleConfig): void {
-    const particle = this.pool.pop() || new Particle();
-    particle.reset(type, position, config);
-    this.particles.push(particle);
-  }
-
-  update(deltaTime: number): void {
-    for (let i = this.particles.length - 1; i >= 0; i--) {
-      const particle = this.particles[i];
-      particle.update(deltaTime);
-
-      if (particle.isDead()) {
-        this.particles.splice(i, 1);
-        this.pool.push(particle); // Recycle
-      }
-    }
-  }
-
-  render(ctx: CanvasRenderingContext2D): void {
-    this.particles.forEach(particle => particle.render(ctx));
-  }
+  // Dust particles
+  // Exhaust smoke
+  // Collision sparks
+  // Object pooling
 }
 ```
 
-#### 2. Skid Marks
-**File**: `src/features/racing/utils/skidMarks.ts`
+#### 2. Visual Effects
+**File**: `src/features/racing/effects/visualEffects.ts`
 ```typescript
-export class SkidMarkRenderer {
-  private marks: SkidMark[] = [];
-  private canvas: OffscreenCanvas;
-
-  addSkidMark(position: Point, intensity: number): void {
-    if (intensity < 0.3) return; // Threshold
-
-    this.marks.push({
-      position,
-      intensity,
-      age: 0,
-    });
-
-    // Fade old marks
-    this.marks = this.marks.filter(mark => mark.age < MAX_AGE);
-  }
-
-  render(ctx: CanvasRenderingContext2D): void {
-    // Render to offscreen canvas for performance
-    // Then composite onto main canvas
-  }
+export class VisualEffects {
+  // Skid marks
+  // Speed lines
+  // Motion blur
+  // Screen shake
 }
 ```
 
-#### 3. Performance Optimizations
-**File**: `src/features/racing/utils/renderer.ts`
+#### 3. Sound Effects (Optional)
+**File**: `src/features/racing/audio/soundManager.ts`
 ```typescript
-export class OptimizedRenderer {
-  private staticCanvas: OffscreenCanvas;
-  private dynamicCanvas: OffscreenCanvas;
-  private dirtyRegions: DirtyRegion[] = [];
+export class SoundManager {
+  // Engine sounds
+  // Collision sounds
+  // UI feedback
+  // Background music
+}
+```
 
-  renderStatic(track: Track): void {
-    // Render track once to static canvas
-    // Only re-render on track change
-  }
-
-  renderDynamic(gameObjects: GameObject[]): void {
-    // Clear only dirty regions
-    this.clearDirtyRegions();
-
-    // Render moving objects
-    gameObjects.forEach(obj => {
-      if (obj.hasChanged()) {
-        this.renderObject(obj);
-        this.markDirty(obj.getBounds());
-      }
-    });
-  }
-
-  composite(mainCtx: CanvasRenderingContext2D): void {
-    // Layer canvases efficiently
-    mainCtx.drawImage(this.staticCanvas, 0, 0);
-    mainCtx.drawImage(this.dynamicCanvas, 0, 0);
-  }
+#### 4. Performance Optimizations
+**File**: `src/features/racing/utils/optimization.ts`
+```typescript
+export class RenderOptimizer {
+  // Dirty rectangle rendering
+  // Layer caching
+  // Object pooling
+  // Frame rate limiting
 }
 ```
 
 ### Visual Improvements
 - Smooth camera following
-- Speed lines effect
-- Dust particles when sliding
-- Track shadows and lighting
+- Track shadows
 - Animated countdown
-- Victory celebration effects
+- Victory celebration
+- UI animations
 
 ### Performance Targets
-- Maintain 60 FPS with effects
-- Reduce memory allocations
-- Optimize render calls
-- Implement dirty rectangle rendering
-- Use object pooling
+- Maintain 60 FPS
+- < 50MB memory usage
+- Smooth on mobile devices
 
 ### Success Criteria
-- [ ] Particle effects render smoothly
-- [ ] Skid marks appear when sliding
-- [ ] Performance stays above 60 FPS
-- [ ] Memory usage remains stable
-- [ ] Visual polish enhances gameplay
+- [ ] Particle effects working
+- [ ] Visual polish added
+- [ ] Performance maintained
+- [ ] Mobile responsive
+- [ ] Effects enhance gameplay
 
 ---
 
-## PR6: Testing & Documentation
+## PR7: Security Review & Hardening
 
 ### Overview
-Comprehensive testing suite and documentation for the racing game feature.
+Comprehensive security audit, vulnerability scanning, and implementation of security best practices.
 
 ### Branch
-`feat/racing-game-pr6-testing`
+`feat/racing-game-pr7-security`
+
+### Security Tasks
+
+#### 1. Security Audit
+**Areas to Review**:
+- Input validation (mouse coordinates, API parameters)
+- API rate limiting verification
+- XSS prevention in canvas rendering
+- CORS configuration
+- WebSocket security (for future multiplayer)
+- Dependency vulnerabilities
+
+#### 2. Input Sanitization
+**File**: `src/features/racing/security/inputValidator.ts`
+```typescript
+export class InputValidator {
+  // Validate mouse coordinates
+  // Sanitize track parameters
+  // Prevent injection attacks
+  // Boundary checking
+}
+```
+
+#### 3. API Security
+**File**: `durable-code-app/backend/app/racing.py` (update)
+```python
+# Add rate limiting
+# Input validation with Pydantic
+# Error message sanitization
+# Request size limits
+```
+
+#### 4. Frontend Security
+- Content Security Policy headers
+- Secure canvas operations
+- Memory leak prevention
+- Resource cleanup
+
+### Security Testing
+- Penetration testing
+- Fuzzing inputs
+- Performance DoS prevention
+- Dependency scanning
+
+### Success Criteria
+- [ ] No known vulnerabilities
+- [ ] Input validation complete
+- [ ] Rate limiting working
+- [ ] Security tests passing
+- [ ] Documentation updated
+
+---
+
+## PR8: Testing & Documentation
+
+### Overview
+Comprehensive testing suite and complete documentation for the racing game feature.
+
+### Branch
+`feat/racing-game-pr8-testing`
 
 ### Testing Coverage
 
 #### 1. Unit Tests
-**File**: `src/features/racing/utils/__tests__/physics.test.ts`
-```typescript
-describe('PhysicsEngine', () => {
-  describe('collision detection', () => {
-    it('should detect wall collisions', () => {
-      // Test wall collision
-    });
+**Frontend Tests**:
+- Physics calculations
+- Track generation
+- Game state management
+- Component rendering
+- Utility functions
 
-    it('should calculate bounce vector correctly', () => {
-      // Test bounce physics
-    });
-  });
-
-  describe('movement physics', () => {
-    it('should apply acceleration correctly', () => {
-      // Test acceleration
-    });
-
-    it('should simulate friction', () => {
-      // Test friction
-    });
-  });
-});
-```
+**Backend Tests**:
+- API endpoints
+- Track generation
+- Validation logic
+- Error handling
 
 #### 2. Integration Tests
-**File**: `src/features/racing/components/__tests__/RacingGame.integration.test.tsx`
-```typescript
-describe('Racing Game Integration', () => {
-  it('should complete a full game cycle', async () => {
-    // Test menu -> race -> finish flow
-  });
+- Full game flow
+- API integration
+- State persistence
+- Performance benchmarks
 
-  it('should handle input correctly', async () => {
-    // Test mouse controls
-  });
-
-  it('should track timing accurately', async () => {
-    // Test timer system
-  });
-});
-```
-
-#### 3. Performance Tests
-**File**: `src/features/racing/__tests__/performance.test.ts`
-```typescript
-describe('Performance', () => {
-  it('should maintain 60 FPS', async () => {
-    // Measure frame rate
-  });
-
-  it('should not leak memory', async () => {
-    // Check memory usage over time
-  });
-});
-```
+#### 3. Security Tests
+- Input validation
+- API security
+- XSS prevention
+- Rate limiting
 
 ### Documentation
 
-#### 1. User Guide
-**File**: `docs/racing-game-guide.md`
+#### 1. User Documentation
+**File**: `docs/racing-game-user-guide.md`
 - How to play
 - Controls reference
-- Tips and strategies
+- Features overview
 - Troubleshooting
 
 #### 2. Developer Documentation
 **File**: `src/features/racing/README.md`
 - Architecture overview
-- Component structure
-- Adding new features
-- Performance considerations
+- API reference
+- Adding features
+- Performance tips
 
-#### 3. API Documentation
-- JSDoc comments for all public APIs
-- Type definitions documented
-- Hook usage examples
-- Utility function descriptions
+#### 3. Security Documentation
+**File**: `docs/racing-game-security.md`
+- Security measures
+- Threat model
+- Best practices
+- Incident response
 
 ### Success Criteria
 - [ ] 80%+ test coverage
 - [ ] All tests passing
 - [ ] Documentation complete
+- [ ] Security tests passing
 - [ ] Performance benchmarks met
-- [ ] Accessibility standards met
 
 ---
 

@@ -1,98 +1,172 @@
 /**
- * Purpose: Placeholder component for Racing Game demo
- * Scope: Temporary placeholder while racing game is in development
- * Overview: Shows coming soon message and planned features
- * Dependencies: React
+ * Purpose: Racing Game demo with Matter.js physics
+ * Scope: Complete racing game implementation with physics and rendering
+ * Overview: Interactive racing game with car physics, track rendering, and mouse controls
+ * Dependencies: React, useRacingGame hook, Matter.js physics
  * Exports: RacingGameTab component
- * Implementation: Placeholder UI with feature preview
+ * Implementation: Canvas-based racing game with real physics simulation
  */
 
 import type { ReactElement } from 'react';
+import { useRacingGame } from '../../hooks/useRacingGame';
+import { GameState } from '../../types/racing.types';
 import styles from './RacingGameTab.module.css';
 
-interface PlannedFeature {
-  name: string;
-  description: string;
-  icon: string;
-}
-
-const plannedFeatures: PlannedFeature[] = [
-  {
-    name: 'Physics-Based Movement',
-    description: 'Realistic car physics with sliding, friction, and collision dynamics',
-    icon: '⚙️',
-  },
-  {
-    name: 'Mouse-Following Controls',
-    description: 'Intuitive control system where the car follows your mouse cursor',
-    icon: '🖱️',
-  },
-  {
-    name: 'Procedural Track Generation',
-    description: 'Dynamically generated tracks with varying difficulty and layouts',
-    icon: '🛤️',
-  },
-  {
-    name: 'Real-time Scoring',
-    description: 'Time-based scoring with checkpoints and best lap tracking',
-    icon: '⏱️',
-  },
-  {
-    name: 'Visual Effects',
-    description: 'Particle effects, skid marks, and smooth animations',
-    icon: '✨',
-  },
-  {
-    name: 'Performance Optimized',
-    description: 'Hardware-accelerated rendering maintaining 60 FPS',
-    icon: '🚀',
-  },
-];
-
 export function RacingGameTab(): ReactElement {
-  return (
-    <div className={styles.container}>
-      <div className={styles.icon}>🏎️</div>
+  const {
+    gameState,
+    carState,
+    startGame,
+    pauseGame,
+    resetGame,
+    isLoadingTrack,
+    trackError,
+    canvasRef,
+    onMouseMove,
+    onMouseDown,
+    onMouseUp,
+  } = useRacingGame();
 
-      <h2 className={styles.title}>Racing Game Demo</h2>
-      <p className={styles.subtitle}>
-        An exciting physics-based racing game is currently in development
-      </p>
+  const renderControls = () => {
+    return (
+      <div className={styles.controls}>
+        <div className={styles.gameButtons}>
+          {gameState === GameState.MENU && (
+            <button
+              onClick={startGame}
+              className={styles.startButton}
+              disabled={isLoadingTrack || !!trackError}
+            >
+              {isLoadingTrack ? 'Loading Track...' : 'Start Racing'}
+            </button>
+          )}
 
-      <div className={styles.statusBadge}>
-        <span>🚧</span>
-        <span>Under Construction</span>
+          {gameState === GameState.RACING && (
+            <button onClick={pauseGame} className={styles.pauseButton}>
+              Pause Game
+            </button>
+          )}
+
+          {gameState === GameState.PAUSED && (
+            <>
+              <button onClick={pauseGame} className={styles.resumeButton}>
+                Resume Game
+              </button>
+              <button onClick={resetGame} className={styles.resetButton}>
+                Reset Game
+              </button>
+            </>
+          )}
+
+          {(gameState === GameState.RACING || gameState === GameState.PAUSED) && (
+            <button onClick={resetGame} className={styles.resetButton}>
+              Reset Game
+            </button>
+          )}
+        </div>
+
+        {trackError && (
+          <div className={styles.error}>
+            <span>❌</span>
+            <span>Error loading track: {trackError}</span>
+          </div>
+        )}
       </div>
+    );
+  };
 
-      <div className={styles.featureList}>
-        <h3 className={styles.featureTitle}>Planned Features</h3>
-        <ul className={styles.features}>
-          {plannedFeatures.map((feature, index) => (
-            <li key={index} className={styles.feature}>
-              <span className={styles.featureIcon}>{feature.icon}</span>
-              <div className={styles.featureText}>
-                <div className={styles.featureName}>{feature.name}</div>
-                <div className={styles.featureDescription}>{feature.description}</div>
-              </div>
-            </li>
-          ))}
+  const renderInstructions = () => {
+    return (
+      <div className={styles.instructions}>
+        <h4>Controls:</h4>
+        <ul>
+          <li>
+            <strong>Mouse:</strong> Move to steer the car
+          </li>
+          <li>
+            <strong>Left Click:</strong> Accelerate
+          </li>
+          <li>
+            <strong>Right Click:</strong> Brake
+          </li>
         </ul>
       </div>
+    );
+  };
 
-      <div className={styles.progress}>
-        <div className={styles.progressTitle}>Development Progress</div>
-        <div className={styles.progressBar}>
-          <div className={styles.progressFill} />
+  const renderGameInfo = () => {
+    if (gameState === GameState.RACING || gameState === GameState.PAUSED) {
+      return (
+        <div className={styles.gameInfo}>
+          <div className={styles.stat}>
+            <span className={styles.statLabel}>Speed:</span>
+            <span className={styles.statValue}>
+              {Math.round(carState.speed * 10)} km/h
+            </span>
+          </div>
+          <div className={styles.stat}>
+            <span className={styles.statLabel}>Position:</span>
+            <span className={styles.statValue}>
+              ({Math.round(carState.x)}, {Math.round(carState.y)})
+            </span>
+          </div>
+          {gameState === GameState.PAUSED && (
+            <div className={styles.pausedIndicator}>PAUSED</div>
+          )}
         </div>
-        <p
-          style={{
-            marginTop: '0.5rem',
-            fontSize: '0.875rem',
-            color: 'var(--color-text-secondary)',
-          }}
-        >
-          PR1 - Navigation Infrastructure (In Progress)
+      );
+    }
+    return null;
+  };
+
+  return (
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <div className={styles.icon}>🏎️</div>
+        <h2 className={styles.title}>Racing Game Demo</h2>
+        <p className={styles.subtitle}>
+          Physics-based racing with Matter.js - PR2 Basic Implementation
         </p>
+      </div>
+
+      {renderControls()}
+
+      <div className={styles.gameArea}>
+        <canvas
+          ref={canvasRef}
+          width={800}
+          height={600}
+          className={styles.gameCanvas}
+          onMouseMove={onMouseMove}
+          onMouseDown={onMouseDown}
+          onMouseUp={onMouseUp}
+          style={{
+            border: gameState === GameState.MENU ? '2px dashed #ccc' : '2px solid #333',
+            backgroundColor: gameState === GameState.MENU ? '#f5f5f5' : '#90EE90',
+          }}
+        />
+
+        {gameState === GameState.MENU && !isLoadingTrack && !trackError && (
+          <div className={styles.canvasOverlay}>
+            <p>Click "Start Racing" to begin!</p>
+          </div>
+        )}
+
+        {renderGameInfo()}
+      </div>
+
+      {renderInstructions()}
+
+      <div className={styles.techInfo}>
+        <h4>Technical Implementation (PR2):</h4>
+        <ul>
+          <li>✅ Matter.js physics engine integration</li>
+          <li>✅ Backend track generation API</li>
+          <li>✅ Mouse-following car controls</li>
+          <li>✅ Real-time canvas rendering</li>
+          <li>✅ Collision detection with track boundaries</li>
+          <li>✅ 60 FPS game loop</li>
+        </ul>
       </div>
     </div>
   );

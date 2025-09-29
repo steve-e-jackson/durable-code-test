@@ -20,6 +20,7 @@ from loguru import logger
 
 from .core.exceptions import AppExceptionError, ValidationError
 from .oscilloscope import router as oscilloscope_router
+from .racing import router as racing_router
 from .security import SecurityMiddleware, get_rate_limiter, get_security_config
 
 # Application configuration
@@ -163,6 +164,7 @@ app = create_application()
 
 # Include routers
 app.include_router(oscilloscope_router)
+app.include_router(racing_router)
 
 
 @app.get("/")
