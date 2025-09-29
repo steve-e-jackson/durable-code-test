@@ -69,54 +69,103 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      # Build base images first for maximum cache reuse
-      - name: Build base images
+      # Build base images in parallel for maximum speed
+      - name: Build base images in parallel
         run: |
           export BUILDX_CACHE_FROM="type=local,src=/tmp/.buildx-cache"
           export BUILDX_CACHE_TO="type=local,dest=/tmp/.buildx-cache-new,mode=max"
 
-          # Build backend base (shared by all backend stages)
+          # Build backend and frontend base images in parallel
+          echo "Starting parallel base image builds..."
+
+          # Start backend base build in background
           docker buildx build \
             --cache-from $BUILDX_CACHE_FROM \
             --cache-to $BUILDX_CACHE_TO \
             --target base \
             --tag backend-base:latest \
             -f ./.docker/dockerfiles/Dockerfile.backend \
-            .
+            . &
+          BACKEND_PID=$!
 
-          # Build frontend base (shared by all frontend stages)
+          # Start frontend base build in background
           docker buildx build \
             --cache-from $BUILDX_CACHE_FROM \
             --cache-to $BUILDX_CACHE_TO \
             --target base \
             --tag frontend-base:latest \
             -f ./.docker/dockerfiles/Dockerfile.frontend \
-            .
+            . &
+          FRONTEND_PID=$!
 
-      # Build test images only if needed
-      - name: Build backend test image
-        if: steps.changes.outputs.backend == 'true' || github.ref == 'refs/heads/main'
-        run: |
-          docker buildx build \
-            --cache-from type=local,src=/tmp/.buildx-cache \
-            --cache-from backend-base:latest \
-            --load \
-            --target test \
-            --tag backend-test:latest \
-            -f ./.docker/dockerfiles/Dockerfile.backend \
-            .
+          # Wait for both builds to complete
+          echo "Waiting for parallel builds to complete..."
+          wait $BACKEND_PID
+          BACKEND_EXIT=$?
+          wait $FRONTEND_PID
+          FRONTEND_EXIT=$?
 
-      - name: Build frontend test image
-        if: steps.changes.outputs.frontend == 'true' || github.ref == 'refs/heads/main'
+          # Check if both builds succeeded
+          if [ $BACKEND_EXIT -ne 0 ]; then
+            echo "Backend base build failed"
+            exit 1
+          fi
+          if [ $FRONTEND_EXIT -ne 0 ]; then
+            echo "Frontend base build failed"
+            exit 1
+          fi
+
+          echo "Both base images built successfully"
+
+      # Build test images in parallel when needed
+      - name: Build test images in parallel
         run: |
-          docker buildx build \
-            --cache-from type=local,src=/tmp/.buildx-cache \
-            --cache-from frontend-base:latest \
-            --load \
-            --target test \
-            --tag frontend-test:latest \
-            -f ./.docker/dockerfiles/Dockerfile.frontend \
-            .
+          echo "Determining which test images to build..."
+          BUILD_BACKEND=${{ (steps.changes.outputs.backend == 'true' || github.ref == 'refs/heads/main') && 'true' || 'false' }}
+          BUILD_FRONTEND=${{ (steps.changes.outputs.frontend == 'true' || github.ref == 'refs/heads/main') && 'true' || 'false' }}
+
+          PIDS=()
+
+          if [ "$BUILD_BACKEND" = "true" ]; then
+            echo "Starting backend test image build..."
+            docker buildx build \
+              --cache-from type=local,src=/tmp/.buildx-cache \
+              --cache-from backend-base:latest \
+              --load \
+              --target test \
+              --tag backend-test:latest \
+              -f ./.docker/dockerfiles/Dockerfile.backend \
+              . &
+            PIDS+=($!)
+          fi
+
+          if [ "$BUILD_FRONTEND" = "true" ]; then
+            echo "Starting frontend test image build..."
+            docker buildx build \
+              --cache-from type=local,src=/tmp/.buildx-cache \
+              --cache-from frontend-base:latest \
+              --load \
+              --target test \
+              --tag frontend-test:latest \
+              -f ./.docker/dockerfiles/Dockerfile.frontend \
+              . &
+            PIDS+=($!)
+          fi
+
+          # Wait for all background builds to complete
+          if [ ${#PIDS[@]} -gt 0 ]; then
+            echo "Waiting for ${#PIDS[@]} test image build(s) to complete..."
+            for PID in ${PIDS[@]}; do
+              wait $PID
+              if [ $? -ne 0 ]; then
+                echo "Test image build failed (PID: $PID)"
+                exit 1
+              fi
+            done
+            echo "All test images built successfully"
+          else
+            echo "No test images needed to be built"
+          fi
 
       # Move cache for next run
       - name: Move cache
