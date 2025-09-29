@@ -27,7 +27,7 @@ export FRONTEND_PORT
 export BACKEND_PORT
 
 DOCKER_COMPOSE = docker compose
-DOCKER_COMPOSE_DEV = BRANCH_NAME=$(BRANCH_NAME) FRONTEND_PORT=$(FRONTEND_PORT) BACKEND_PORT=$(BACKEND_PORT) docker compose -f .docker/compose/dev.yml
+DOCKER_COMPOSE_APP = BRANCH_NAME=$(BRANCH_NAME) FRONTEND_PORT=$(FRONTEND_PORT) BACKEND_PORT=$(BACKEND_PORT) docker compose -f .docker/compose/app.yml
 FRONTEND_DEV_URL = http://localhost:$(FRONTEND_PORT)
 BACKEND_URL = http://localhost:$(BACKEND_PORT)
 
@@ -64,13 +64,13 @@ init: ## Initialize project (build images, install all git hooks)
 	@echo "$(YELLOW)Installing pre-push hooks...$(NC)"
 	@pre-commit install --hook-type pre-push 2>/dev/null || echo "$(YELLOW)⚠ Pre-push hooks not installed$(NC)"
 	@echo "$(YELLOW)Building Docker images...$(NC)"
-	@$(DOCKER_COMPOSE_DEV) build --no-cache
+	@$(DOCKER_COMPOSE_APP) build --no-cache
 	@echo "$(GREEN)✓ Initialization complete!$(NC)"
 
 # Development targets
 dev-start: ## Start development environment with hot reload
 	@echo "$(CYAN)Starting development environment...$(NC)"
-	@$(DOCKER_COMPOSE_DEV) up -d
+	@$(DOCKER_COMPOSE_APP) up -d
 	@echo "$(GREEN)✓ Development environment started!$(NC)"
 	@echo "$(YELLOW)Frontend (Vite): $(FRONTEND_DEV_URL)$(NC)"
 	@echo "$(YELLOW)Backend (FastAPI): $(BACKEND_URL)$(NC)"
@@ -78,13 +78,13 @@ dev-start: ## Start development environment with hot reload
 
 dev-stop: ## Stop development environment
 	@echo "$(CYAN)Stopping development environment for branch: $(BRANCH_NAME)...$(NC)"
-	@$(DOCKER_COMPOSE_DEV) down
+	@$(DOCKER_COMPOSE_APP) down
 	@echo "$(GREEN)✓ Development environment stopped!$(NC)"
 
 dev-restart: dev-stop dev-start ## Restart development environment
 
 dev-logs: ## Show development logs (follow mode)
-	@$(DOCKER_COMPOSE_DEV) logs -f
+	@$(DOCKER_COMPOSE_APP) logs -f
 
 dev: dev-start ## Start dev environment and open browser (main dev command)
 	@echo "$(CYAN)Launching development environment...$(NC)"
@@ -110,7 +110,7 @@ clean: ## Remove all containers, networks, and volumes
 	@echo "$(YELLOW)Press Ctrl+C to cancel, or wait 5 seconds to continue...$(NC)"
 	@sleep 5
 	@echo "$(CYAN)Cleaning up...$(NC)"
-	@$(DOCKER_COMPOSE_DEV) down -v --remove-orphans
+	@$(DOCKER_COMPOSE_APP) down -v --remove-orphans
 	@docker system prune -f
 	@echo "$(GREEN)✓ Cleanup complete!$(NC)"
 

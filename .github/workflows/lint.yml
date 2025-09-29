@@ -44,33 +44,58 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-lint-buildx-${{ hashFiles('.docker/dockerfiles/linting/Dockerfile*', '**/package*.json', '**/pyproject.toml', '**/poetry.lock', '.docker/compose/lint.yml') }}
+          key: ${{ runner.os }}-lint-buildx-${{ hashFiles('.docker/dockerfiles/Dockerfile.*', '**/package*.json', '**/pyproject.toml', '**/poetry.lock', '.docker/compose/lint.yml') }}
           restore-keys: |
             ${{ runner.os }}-lint-buildx-
 
-      # Build dedicated linting containers with cache
-      - name: Build dedicated linting containers
+      # Build dedicated linting containers in parallel using multi-stage builds
+      - name: Build dedicated linting containers in parallel
         run: |
           export BUILDX_CACHE_FROM="type=local,src=/tmp/.buildx-cache"
           export BUILDX_CACHE_TO="type=local,dest=/tmp/.buildx-cache-new,mode=max"
 
-          # Build Python linting container
+          echo "Starting parallel lint container builds..."
+
+          # Build Python linting container using lint stage (in background)
           docker buildx build \
             --cache-from $BUILDX_CACHE_FROM \
             --cache-to $BUILDX_CACHE_TO \
+            --target lint \
             --load \
             -t durable-code-python-linter:latest \
-            -f ./.docker/dockerfiles/linting/Dockerfile.python-lint \
-            .
+            -f ./.docker/dockerfiles/Dockerfile.backend \
+            . &
+          PYTHON_PID=$!
 
-          # Build JavaScript linting container
+          # Build JavaScript linting container using lint stage (in background)
           docker buildx build \
             --cache-from $BUILDX_CACHE_FROM \
             --cache-to $BUILDX_CACHE_TO \
+            --target lint \
             --load \
             -t durable-code-js-linter:latest \
-            -f ./.docker/dockerfiles/linting/Dockerfile.js-lint \
-            .
+            -f ./.docker/dockerfiles/Dockerfile.frontend \
+            . &
+          JS_PID=$!
+
+          # Wait for both builds to complete
+          echo "Waiting for parallel lint container builds to complete..."
+          wait $PYTHON_PID
+          PYTHON_EXIT=$?
+          wait $JS_PID
+          JS_EXIT=$?
+
+          # Check if both builds succeeded
+          if [ $PYTHON_EXIT -ne 0 ]; then
+            echo "Python linting container build failed"
+            exit 1
+          fi
+          if [ $JS_EXIT -ne 0 ]; then
+            echo "JavaScript linting container build failed"
+            exit 1
+          fi
+
+          echo "Both linting containers built successfully"
 
       # Move cache for next run
       - name: Move cache

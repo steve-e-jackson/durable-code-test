@@ -1,0 +1,102 @@
+# Purpose: Docker Compose configuration for dedicated testing containers
+# Scope: Orchestrates Python, JavaScript, and Playwright testing services
+# Overview: Defines testing services using the 'test' target from multi-stage Dockerfiles.
+#     Services are configured for test execution with proper volume mounting and networking.
+#     Includes Python unit tests, JavaScript/React tests with Vitest, and Playwright E2E tests.
+#     Leverages shared base layers from multi-stage builds for efficient caching and fast builds.
+# Dependencies: Multi-stage Dockerfiles with test target, test files, application code
+# Exports: Named testing services (python-tester, js-tester, playwright-tester)
+# Interfaces: Volume mounts for code and test directories, test result output
+# Implementation: Multi-stage builds with test target, isolated test environment
+
+version: '3.8'
+
+services:
+  python-tester:
+    build:
+      context: ../..
+      dockerfile: .docker/dockerfiles/Dockerfile.backend
+      target: test
+    container_name: durable-code-python-tester-${BRANCH_NAME:-main}
+    volumes:
+      # Backend application code
+      - ../../durable-code-app/backend/app:/app/app
+      # Design linters framework
+      - ../../tools:/app/tools
+      # Test files
+      - ../../test:/app/test
+      # Cache directories for faster subsequent runs
+      - pytest-cache:/tmp/.pytest_cache
+    networks:
+      - test-network
+    environment:
+      - PYTHONPATH=/app:/app/tools
+      - PYTEST_CACHE_DIR=/tmp/.pytest_cache
+    # Resource limits for test execution
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    # Override default CMD for make targets to specify custom test commands
+    command: ["tail", "-f", "/dev/null"]
+
+  js-tester:
+    build:
+      context: ../..
+      dockerfile: .docker/dockerfiles/Dockerfile.frontend
+      target: test
+    container_name: durable-code-js-tester-${BRANCH_NAME:-main}
+    volumes:
+      # Frontend application code
+      - ../../durable-code-app/frontend:/app
+      # Exclude node_modules to prevent conflicts
+      - /app/node_modules
+      # Cache directory for vitest
+      - vitest-cache:/app/.vitest
+    networks:
+      - test-network
+    environment:
+      - NODE_ENV=test
+      - CI=true
+    # Resource limits for frontend testing
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    # Override default CMD for make targets to specify custom test commands
+    command: ["tail", "-f", "/dev/null"]
+
+  # Playwright container remains separate as it has special requirements
+  playwright-tester:
+    build:
+      context: ../../test/integration_test
+      dockerfile: ../../.docker/dockerfiles/Dockerfile.playwright
+    container_name: durable-code-playwright-tester-${BRANCH_NAME:-main}
+    networks:
+      - test-network
+    environment:
+      - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+      - BRANCH_NAME=${BRANCH_NAME:-main}
+      - FRONTEND_PORT=${FRONTEND_PORT:-5173}
+      - BACKEND_PORT=${BACKEND_PORT:-8000}
+      - USE_HOST_NETWORK=false
+    # Resource limits for browser testing
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+    # Playwright tests are run directly, not kept alive
+    # Will be invoked via docker run when needed
+
+networks:
+  test-network:
+    driver: bridge
+
+volumes:
+  pytest-cache:
+    driver: local
+  vitest-cache:
+    driver: local

@@ -141,7 +141,7 @@ repos:
 
       - id: pre-push-test-all
         name: Run all tests before push
-        entry: bash -c 'if [ -z "$PRE_PUSH_SKIP" ]; then make test-all; else echo "⚠️  Tests skipped via PRE_PUSH_SKIP"; fi'
+        entry: bash -c 'if [ -z "$PRE_PUSH_SKIP" ]; then make test-ensure-containers && make test-all; else echo "⚠️  Tests skipped via PRE_PUSH_SKIP"; fi'
         language: system
         pass_filenames: false
         stages: [pre-push]

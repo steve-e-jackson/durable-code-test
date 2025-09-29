@@ -1,13 +1,13 @@
 # Purpose: Docker Compose configuration for dedicated linting containers
-# Scope: Orchestrates Python and JavaScript linting services with proper volume mounting
-# Overview: Defines linting services that mount source code directories for analysis
-#     without including application runtime. Services are configured for manual execution
-#     via make targets, with proper networking isolation and resource constraints.
-#     Volume mounts provide access to backend, frontend, tools, and test directories.
-# Dependencies: Dedicated linting Dockerfiles, source code directories
+# Scope: Orchestrates Python and JavaScript linting services using multi-stage builds
+# Overview: Defines linting services using the 'lint' target from multi-stage Dockerfiles.
+#     Services mount source code directories for analysis without application runtime.
+#     Configured for manual execution via make targets, with networking isolation and
+#     resource constraints. Leverages shared base layers for efficient caching.
+# Dependencies: Multi-stage Dockerfiles with lint target, source code directories
 # Exports: Named linting services (python-linter, js-linter)
 # Interfaces: Volume mounts to source directories, network isolation
-# Implementation: Service-per-linting-type with shared source volume strategy
+# Implementation: Multi-stage builds with lint target, shared base layer caching
 
 version: '3.8'
 
@@ -15,7 +15,8 @@ services:
   python-linter:
     build:
       context: ../..
-      dockerfile: .docker/dockerfiles/linting/Dockerfile.python-lint
+      dockerfile: .docker/dockerfiles/Dockerfile.backend
+      target: lint
     container_name: durable-code-python-linter-${BRANCH_NAME:-main}
     volumes:
       # Backend application code
@@ -42,7 +43,8 @@ services:
   js-linter:
     build:
       context: ../..
-      dockerfile: .docker/dockerfiles/linting/Dockerfile.js-lint
+      dockerfile: .docker/dockerfiles/Dockerfile.frontend
+      target: lint
     container_name: durable-code-js-linter-${BRANCH_NAME:-main}
     volumes:
       # Frontend application code
@@ -57,8 +59,8 @@ services:
         limits:
           cpus: '0.5'
           memory: 512M
-    # Override to keep container running for make targets
-    command: ["tail", "-f", "/dev/null"]
+    # Override to keep container running for make targets and symlink node_modules
+    command: ["sh", "-c", "ln -sf /workspace/node_modules /workspace/frontend/node_modules && tail -f /dev/null"]
 
 networks:
   linting-network:

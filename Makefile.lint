@@ -33,7 +33,7 @@ lint-ensure-containers: ## Ensure linting containers are running
 # Start dedicated linting containers (force start)
 lint-start: ## Start dedicated linting containers
 	@echo "$(CYAN)Starting dedicated linting containers...$(NC)"
-	@$(DOCKER_COMPOSE) -f .docker/compose/lint.yml up -d
+	@$(DOCKER_COMPOSE) -f .docker/compose/lint.yml up -d --build
 	@echo "$(GREEN)✓ Linting containers started$(NC)"
 
 # Stop dedicated linting containers

@@ -47,38 +47,45 @@ git diff --stat
 ```
 
 ### 3. Parallel Fix Phase
-Launch two specialized agents in parallel to fix lint and test issues simultaneously:
+Launch multiple specialized agents in parallel to fix issues on a per-file basis:
 
-**CRITICAL**: Both agents run concurrently using the Task tool with parallel execution.
+**CRITICAL**: Multiple agents run concurrently using the Task tool with parallel execution, up to a maximum of 10 agents.
 
 ```
 🚀 Launching parallel fix agents:
-  - Lint Fix Agent: Iteratively fixes all linting errors and warnings
-  - Test Fix Agent: Iteratively fixes all test failures
+  - One agent per file with issues (maximum 10 concurrent agents)
+  - Each agent focuses on fixing all issues in its assigned file
+  - Agents work independently to maximize parallelization
 ```
 
-#### Lint Fix Agent Task
-The lint fix agent will:
-1. Run `make lint-all` to identify issues
-2. Parse and categorize errors by type and file
-3. Apply fixes using MultiEdit for batch changes
-4. Re-run linting after each batch of fixes
-5. Continue until all linting passes with zero errors/warnings
-6. Maximum 50 iterations to prevent infinite loops
+#### File-Based Agent Strategy
+The system will:
+1. Run `make lint-all` and `make test-all` to identify all issues
+2. Group errors by file path
+3. Launch one agent per file (up to 10 agents maximum)
+4. If more than 10 files have issues, process them in batches
 
-#### Test Fix Agent Task
-The test fix agent will:
-1. Run `make test-all` to identify failures
-2. Analyze failure patterns and root causes
-3. Fix test implementation or source code issues
-4. Re-run tests after each batch of fixes
-5. Continue until all tests pass
-6. Maximum 50 iterations to prevent infinite loops
+#### Individual File Fix Agent Task
+Each file fix agent will:
+1. Focus exclusively on its assigned file
+2. Identify all linting errors, warnings, and test failures in that file
+3. Apply fixes using Edit or MultiEdit for the file
+4. Verify fixes don't introduce new issues
+5. Report completion status for the file
+6. Maximum 20 iterations per file to prevent infinite loops
 
-Both agents work independently and report their progress. The parallel execution significantly reduces total fix time.
+#### Batch Processing Logic
+If more than 10 files need fixes:
+1. Process files in priority order (most errors first)
+2. Launch first batch of 10 agents
+3. Wait for batch completion
+4. Launch next batch with remaining files
+5. Continue until all files are processed
+
+The parallel per-file execution maximizes efficiency by allowing independent fixes to proceed simultaneously without conflicts.
 
 ### 4. Sequential Cleanup Phase
-After both parallel agents complete, perform final sequential cleanup:
+After all parallel file agents complete, perform final sequential cleanup:
 
 This phase ensures that fixes from one agent didn't break the other's domain and that everything works together:
 
@@ -317,44 +324,64 @@ Remaining issues: 27
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚀 Phase 3: Parallel Fix Phase
-Launching two specialized agents in parallel to fix remaining issues...
+Launching multiple file-specific agents to fix issues...
 
-🤖 LINT FIX AGENT                    🤖 TEST FIX AGENT
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Starting lint fix iterations...      Starting test fix iterations...
+📊 Files with issues identified: 18 files
+🤖 Launching first batch: 10 parallel agents (max capacity)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-[Iteration 1/50]                     [Iteration 1/50]
-Running make lint-all...            Running make test-all...
-Found 11 errors to fix               Found 8 failures to fix
+🔧 Agent 1: app/services/auth.py
+   Issues: 3 lint errors, 1 test failure
+   Status: Fixing type hints...
 
-📝 Fixing type hints in:            📝 Fixing test failures in:
-  - app/services/auth.py:45          - tests/test_auth.py::test_login
-  - app/models/user.py:23            - tests/test_user.py::test_create
-  - app/utils/validators.py:12       - tests/test_api.py::test_endpoint
+🔧 Agent 2: app/models/user.py
+   Issues: 2 lint warnings
+   Status: Removing unused imports...
 
-[Iteration 2/50]                     [Iteration 2/50]
-Running make lint-all...            Running make test-all...
-Found 5 errors remaining             Found 3 failures remaining
+🔧 Agent 3: tests/test_auth.py
+   Issues: 2 test failures
+   Status: Fixing mock configuration...
 
-📝 Fixing complexity issues:         📝 Fixing mock issues:
-  - Refactoring user.py methods      - Database mock in test_user.py
-  - Splitting auth.py functions      - API mock in test_integration.py
+🔧 Agent 4: app/utils/validators.py
+   Issues: 1 lint error, 1 complexity issue
+   Status: Refactoring validation logic...
 
-[Iteration 3/50]                     [Iteration 3/50]
-Running make lint-all...            Running make test-all...
-✅ All linting passed!               Found 1 failure remaining
+🔧 Agent 5: tests/test_user.py
+   Issues: 1 test failure
+   Status: Updating assertions...
 
-Agent complete in 2m 34s             📝 Fixing assertion:
-                                       - Updated expected response
+🔧 Agent 6: app/api/endpoints.py
+   Issues: 4 lint errors
+   Status: Adding type annotations...
 
-                                     [Iteration 4/50]
-                                     Running make test-all...
-                                     ✅ All tests passed!
+🔧 Agent 7: frontend/src/App.tsx
+   Issues: 2 ESLint warnings
+   Status: Fixing React hooks...
 
-                                     Agent complete in 3m 12s
+🔧 Agent 8: frontend/src/components/Button.tsx
+   Issues: 1 TypeScript error
+   Status: Fixing prop types...
 
-⏱️ Parallel execution completed in 3m 12s (vs ~5m 46s sequential)
-✅ Both agents reported success!
+🔧 Agent 9: tests/test_api.py
+   Issues: 3 test failures
+   Status: Updating API mocks...
+
+🔧 Agent 10: app/database/models.py
+   Issues: 2 mypy errors
+   Status: Adding type stubs...
+
+⏱️ Batch 1 completed in 2m 18s
+✅ 10/10 agents reported success
+
+🤖 Launching second batch: 8 remaining files
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔧 Agent 11-18: Processing remaining files...
+⏱️ Batch 2 completed in 1m 42s
+✅ 8/8 agents reported success
+
+⏱️ Total parallel execution: 4m 00s (vs ~12m sequential)
+✅ All file agents completed successfully!
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🔄 Phase 4: Sequential Cleanup
@@ -407,8 +434,8 @@ $ make test-all
   ✅ Fixed 3 SOLID violations
   ✅ Improved coverage from 72% to 85%
 
-⏱️ Total Time: 4m 28s (40% faster with parallel execution)
-  - Parallel fix phase: 3m 12s
+⏱️ Total Time: 5m 16s (70% faster with parallel execution)
+  - Parallel fix phase: 4m 00s
   - Sequential cleanup: 1m 16s
 📝 Files Modified: 18
 🔧 Total Fixes Applied: 39
@@ -449,7 +476,7 @@ The command respects project configuration:
 ## Notes
 
 - **Hands-Off Operation**: Once started, runs to completion without user interaction
-- **Parallel Execution**: Runs lint and test fixing agents concurrently for ~40% time savings
+- **Parallel Execution**: Runs up to 10 file-specific agents concurrently for ~70% time savings
 - **Persistent**: Will not give up on fixable errors
 - **Comprehensive**: Fixes root causes, not symptoms
 - **Safe**: Creates proper fixes without breaking functionality

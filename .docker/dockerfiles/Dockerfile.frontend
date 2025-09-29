@@ -1,0 +1,152 @@
+# Purpose: Multi-stage Docker build for React frontend with optimized layer sharing
+# Scope: Unified frontend containerization for dev, lint, test, and production environments
+# Overview: Implements efficient multi-stage build pattern with shared base layer containing
+#     core dependencies. Each stage (dev, lint, test, prod) extends the base with specific
+#     tools while maximizing cache reuse. Base stage includes Node and production deps,
+#     subsequent stages add only what's needed. This design reduces build times and storage
+#     through intelligent layer sharing. Production stage uses nginx for optimal serving.
+# Dependencies: Node.js 20, npm package manager, React application with Vite
+# Exports: Multiple build targets for different environments (dev, lint, test, prod)
+# Interfaces: Build targets accessible via --target flag in docker build command
+# Environment: Supports Vite dev server, linting, Vitest testing, and production builds
+# Related: docker-compose configurations, CI/CD workflows, Makefile build targets
+# Implementation: Shared base layer pattern with specialized stages for each use case
+
+# =============================================================================
+# BASE STAGE - Shared foundation for all other stages
+# =============================================================================
+FROM node:20-alpine AS base
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files for dependency installation
+COPY durable-code-app/frontend/package*.json ./
+
+# Install ONLY production dependencies in base layer
+# This provides the minimal set needed to run the built application
+RUN npm ci --only=production
+
+# =============================================================================
+# DEPENDENCIES STAGE - Full dependencies for dev/lint/test
+# =============================================================================
+FROM base AS dependencies
+
+# Install ALL dependencies (including devDependencies)
+# This stage is used by dev, lint, and test stages
+RUN npm ci
+
+# Copy source code for stages that need it
+COPY durable-code-app/frontend/ ./
+
+# =============================================================================
+# DEVELOPMENT STAGE - Hot reload for local development
+# =============================================================================
+FROM dependencies AS dev
+
+# Expose Vite development server port
+EXPOSE 5173
+
+# Development server with hot module replacement
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+
+# =============================================================================
+# LINTING STAGE - All code quality tools
+# =============================================================================
+FROM dependencies AS lint
+
+# Ensure all dependencies are installed (sometimes cache issues)
+RUN npm ci || npm install
+
+# Install HTMLHint globally for HTML linting
+RUN npm install -g htmlhint
+
+# Ensure TypeScript and other tools are available in PATH for linting
+ENV PATH="/app/node_modules/.bin:${PATH}"
+
+# Create .htmlhintrc configuration
+RUN echo '{ \
+  "tagname-lowercase": true, \
+  "attr-lowercase": true, \
+  "attr-value-double-quotes": true, \
+  "attr-no-duplication": true, \
+  "doctype-first": true, \
+  "tag-pair": true, \
+  "spec-char-escape": true, \
+  "id-unique": true, \
+  "src-not-empty": true, \
+  "title-require": true, \
+  "alt-require": true \
+}' > /.htmlhintrc
+
+# Set working directory for linting operations
+WORKDIR /workspace/frontend
+
+# Keep node_modules in a separate location and symlink it
+# This prevents the volume mount from overriding the dependencies
+RUN mkdir -p /workspace/node_modules && cp -r /app/node_modules/* /workspace/node_modules/
+
+# Keep container running for make targets
+CMD ["tail", "-f", "/dev/null"]
+
+# =============================================================================
+# TESTING STAGE - Test execution environment
+# =============================================================================
+FROM dependencies AS test
+
+# Install any additional test dependencies if needed
+# Playwright is already in package.json if needed
+
+# Set environment for testing
+ENV NODE_ENV=test
+ENV CI=true
+
+# Default test command with coverage
+CMD ["npm", "run", "test:coverage"]
+
+# =============================================================================
+# BUILDER STAGE - Create production build
+# =============================================================================
+FROM dependencies AS builder
+
+# Build the production application
+RUN npm run build
+
+# =============================================================================
+# PRODUCTION STAGE - Minimal nginx runtime
+# =============================================================================
+FROM nginx:alpine AS prod
+
+# Copy custom nginx configuration if exists, otherwise use defaults
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Create nginx config for SPA routing
+RUN echo 'server { \
+    listen 80; \
+    server_name _; \
+    root /usr/share/nginx/html; \
+    index index.html; \
+    \
+    location / { \
+        try_files $uri $uri/ /index.html; \
+    } \
+    \
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ { \
+        expires 1y; \
+        add_header Cache-Control "public, immutable"; \
+    } \
+    \
+    gzip on; \
+    gzip_vary on; \
+    gzip_types text/plain text/css text/xml text/javascript application/json application/javascript application/xml+rss application/rss+xml application/atom+xml image/svg+xml text/javascript application/x-font-ttf font/opentype application/vnd.ms-fontobject image/x-icon; \
+}' > /etc/nginx/conf.d/default.conf
+
+# Expose port 80 for production
+EXPOSE 80
+
+# Health check for production
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost/ || exit 1
+
+# Run nginx in foreground
+CMD ["nginx", "-g", "daemon off;"]
