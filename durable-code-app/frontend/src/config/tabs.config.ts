@@ -8,7 +8,7 @@
  */
 
 import { lazy } from 'react';
-import type { TabContent, TabName } from '../features/navigation';
+import type { SubTabContent, TabContent, TabName } from '../features/navigation';
 
 // Lazy load components normally - error boundaries will be applied at render time
 const RepositoryTab = lazy(() =>
@@ -42,6 +42,19 @@ const DemoTab = lazy(() =>
 const JourneyTab = lazy(() =>
   import('../features/journey/components/JourneyTab/JourneyTab').then((m) => ({
     default: m.JourneyTab,
+  })),
+);
+
+// Lazy load demo sub-components
+const OscilloscopeDemo = lazy(() =>
+  import('../features/demo/components/OscilloscopeDemo').then((m) => ({
+    default: m.OscilloscopeDemo,
+  })),
+);
+
+const RacingGameTab = lazy(() =>
+  import('../features/racing/components/RacingGameTab').then((m) => ({
+    default: m.RacingGameTab,
   })),
 );
 
@@ -80,8 +93,24 @@ export const tabs: Record<TabName, TabContent> = {
   Demo: {
     title: 'Demo',
     icon: '',
-    description: 'Real-time oscilloscope demonstration with WebSocket streaming',
+    description: 'Interactive demonstrations showcasing AI-authored capabilities',
     component: DemoTab,
+    subTabs: [
+      {
+        id: 'oscilloscope',
+        title: 'Oscilloscope',
+        icon: '📊',
+        description: 'Real-time waveform visualization',
+        component: OscilloscopeDemo,
+      },
+      {
+        id: 'racing',
+        title: 'Racing Game',
+        icon: '🏎️',
+        description: 'Physics-based racing game',
+        component: RacingGameTab,
+      },
+    ] as SubTabContent[],
   },
   Journey: {
     title: 'Journey',

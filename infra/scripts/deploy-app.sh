@@ -98,7 +98,7 @@ echo "Updating services with new task definitions..."
 echo "Updating frontend service with new task definition..."
 aws ecs update-service \
   --cluster durableai-${ENV}-cluster \
-  --service durable-code-${ENV}-frontend \
+  --service durableai-${ENV}-frontend \
   --task-definition ${FRONTEND_TASK_ARN} \
   --region ${AWS_REGION} \
   --output json > /dev/null
@@ -106,7 +106,7 @@ aws ecs update-service \
 echo "Updating backend service with new task definition..."
 aws ecs update-service \
   --cluster durableai-${ENV}-cluster \
-  --service durable-code-${ENV}-backend \
+  --service durableai-${ENV}-backend \
   --task-definition ${BACKEND_TASK_ARN} \
   --region ${AWS_REGION} \
   --output json > /dev/null

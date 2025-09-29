@@ -13,7 +13,7 @@
 import type {
   OscilloscopeState,
   OscilloscopeStats,
-  WaveformType,
+  WaveType,
 } from './oscilloscope.types';
 
 export interface OscilloscopeContextType {
@@ -23,7 +23,7 @@ export interface OscilloscopeContextType {
   error: Error | null;
   startStreaming: () => void;
   stopStreaming: () => void;
-  updateWaveform: (waveform: WaveformType) => void;
+  updateWaveform: (waveform: WaveType) => void;
   updateFrequency: (frequency: number) => void;
   updateAmplitude: (amplitude: number) => void;
   updateOffset: (offset: number) => void;

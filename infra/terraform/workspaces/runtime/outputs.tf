@@ -106,12 +106,12 @@ output "frontend_target_group_name" {
 # Application Endpoints
 output "alb_dns_name" {
   description = "ALB DNS name for application access"
-  value       = data.aws_lb.main.dns_name
+  value       = aws_lb.main.dns_name
 }
 
 output "application_url_http" {
   description = "HTTP URL for accessing the application"
-  value       = "http://${data.aws_lb.main.dns_name}"
+  value       = "http://${aws_lb.main.dns_name}"
 }
 
 output "application_url_https" {
@@ -121,7 +121,7 @@ output "application_url_https" {
 
 output "backend_api_endpoint" {
   description = "Backend API endpoint URL"
-  value       = "http://${data.aws_lb.main.dns_name}/api"
+  value       = "http://${aws_lb.main.dns_name}/api"
 }
 
 # CloudWatch Log Groups
@@ -165,7 +165,22 @@ output "deployment_info" {
     cluster          = aws_ecs_cluster.main.name
     backend_service  = aws_ecs_service.backend.name
     frontend_service = aws_ecs_service.frontend.name
-    application_url  = var.domain_name != "" ? "https://${var.domain_name}" : "http://${data.aws_lb.main.dns_name}"
-    api_endpoint     = "http://${data.aws_lb.main.dns_name}/api"
+    application_url  = var.domain_name != "" ? "https://${var.domain_name}" : "http://${aws_lb.main.dns_name}"
+    api_endpoint     = "http://${aws_lb.main.dns_name}/api"
   }
+}
+
+# DNS Outputs
+output "application_url" {
+  description = "Application URL"
+  value       = var.domain_name != "" ? "https://${local.environment}.${var.domain_name}" : "http://${aws_lb.main.dns_name}"
+}
+
+output "dns_records_created" {
+  description = "DNS records created"
+  value = var.domain_name != "" ? {
+    main = "${local.environment}.${var.domain_name}"
+    www  = "www.${local.environment}.${var.domain_name}"
+    api  = "api-${local.environment}.${var.domain_name}"
+  } : {}
 }

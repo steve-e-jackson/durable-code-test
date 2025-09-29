@@ -12,6 +12,7 @@ export { useNavigation } from './hooks/useNavigation';
 export type {
   TabName,
   TabContent,
+  SubTabContent,
   TabConfig,
   NavigationProps,
 } from './types/navigation.types';
