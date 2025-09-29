@@ -8,7 +8,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'vitest';
-import * as Matter from 'matter-js';
+import Matter from 'matter-js';
 import {
   applyCarForces,
   createCar,
