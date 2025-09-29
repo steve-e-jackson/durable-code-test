@@ -14,6 +14,7 @@ Implementation: FastAPI router with async endpoints and comprehensive validation
 
 import math
 import random
+from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query
 from loguru import logger
@@ -93,14 +94,10 @@ def generate_oval_track(width: int, height: int, padding: int = DEFAULT_TRACK_PA
     Returns:
         TrackBoundary with inner and outer boundaries
     """
-    center_x = width / 2
-    center_y = height / 2
-
-    # Calculate oval dimensions
-    outer_width = (width - 2 * padding) / 2
-    outer_height = (height - 2 * padding) / 2
-    inner_width = outer_width - 60  # Track width of ~60 pixels
-    inner_height = outer_height - 60
+    center = (width / 2, height / 2)
+    outer_radius = ((width - 2 * padding) / 2, (height - 2 * padding) / 2)
+    track_width = 60
+    inner_radius = (outer_radius[0] - track_width, outer_radius[1] - track_width)
 
     # Generate points around the oval
     num_points = 32
@@ -109,24 +106,24 @@ def generate_oval_track(width: int, height: int, padding: int = DEFAULT_TRACK_PA
 
     for i in range(num_points):
         angle = (2 * math.pi * i) / num_points
+        cos_angle = math.cos(angle)
+        sin_angle = math.sin(angle)
 
-        # Outer boundary
-        outer_x = center_x + outer_width * math.cos(angle)
-        outer_y = center_y + outer_height * math.sin(angle)
-        outer_points.append(Point2D(x=outer_x, y=outer_y))
-
-        # Inner boundary
-        inner_x = center_x + inner_width * math.cos(angle)
-        inner_y = center_y + inner_height * math.sin(angle)
-        inner_points.append(Point2D(x=inner_x, y=inner_y))
+        # Outer and inner boundaries
+        outer_points.append(
+            Point2D(x=center[0] + outer_radius[0] * cos_angle, y=center[1] + outer_radius[1] * sin_angle)
+        )
+        inner_points.append(
+            Point2D(x=center[0] + inner_radius[0] * cos_angle, y=center[1] + inner_radius[1] * sin_angle)
+        )
 
     return TrackBoundary(outer=outer_points, inner=inner_points)
 
 
 @router.get("/track/simple", response_model=SimpleTrack)
 async def get_simple_track(
-    width: int = Query(default=DEFAULT_TRACK_WIDTH, ge=MIN_TRACK_WIDTH, le=MAX_TRACK_WIDTH),
-    height: int = Query(default=DEFAULT_TRACK_HEIGHT, ge=MIN_TRACK_HEIGHT, le=MAX_TRACK_HEIGHT),
+    width: Annotated[int, Query(ge=MIN_TRACK_WIDTH, le=MAX_TRACK_WIDTH)] = DEFAULT_TRACK_WIDTH,
+    height: Annotated[int, Query(ge=MIN_TRACK_HEIGHT, le=MAX_TRACK_HEIGHT)] = DEFAULT_TRACK_HEIGHT,
 ) -> SimpleTrack:
     """Get a simple oval track for initial testing.
 
@@ -180,7 +177,7 @@ async def generate_track(params: TrackGenerationParams) -> SimpleTrack:
         random.seed(params.seed)
 
     # For now, return the same oval track
-    # TODO: Implement procedural generation based on difficulty
+    # Future: Implement procedural generation based on difficulty
     boundaries = generate_oval_track(params.width, params.height)
     start_position = Point2D(x=params.width / 2, y=params.height - 100)
 
