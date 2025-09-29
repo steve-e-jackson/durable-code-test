@@ -120,6 +120,211 @@ def generate_oval_track(width: int, height: int, padding: int = DEFAULT_TRACK_PA
     return TrackBoundary(outer=outer_points, inner=inner_points)
 
 
+def get_difficulty_params(difficulty: str) -> tuple[float, int, float]:
+    """Get track parameters based on difficulty level.
+
+    Args:
+        difficulty: Track difficulty (easy, medium, hard)
+
+    Returns:
+        Tuple of (track_width, num_control_points, variation)
+    """
+    params = {
+        "easy": (80.0, 8, 0.15),
+        "medium": (60.0, 12, 0.25),
+        "hard": (45.0, 16, 0.35),
+    }
+    return params.get(difficulty, (60.0, 12, 0.25))
+
+
+def generate_control_points(
+    num_points: int,
+    center: tuple[float, float],
+    base_radius: tuple[float, float],
+    variation: float,
+    bounds: tuple[int, int, float],
+) -> list[tuple[float, float]]:
+    """Generate random control points for track generation.
+
+    Args:
+        num_points: Number of control points
+        center: Center point (x, y)
+        base_radius: Base radius (rx, ry)
+        variation: Amount of random variation
+        bounds: Tuple of (width, height, padding)
+
+    Returns:
+        List of control point coordinates
+    """
+    width, height, padding = bounds
+    control_points = []
+
+    for i in range(num_points):
+        angle = (2 * math.pi * i) / num_points
+
+        # Add random variation to radius (not cryptographic use)
+        radius_var_x = base_radius[0] * (1 + random.uniform(-variation, variation))  # noqa: S311  # nosec B311
+        radius_var_y = base_radius[1] * (1 + random.uniform(-variation, variation))  # noqa: S311  # nosec B311
+
+        # Clamp to bounds
+        min_radius = padding + 50
+        radius_var_x = max(min_radius, min(width / 2 - padding, radius_var_x))
+        radius_var_y = max(min_radius, min(height / 2 - padding, radius_var_y))
+
+        x = center[0] + radius_var_x * math.cos(angle)
+        y = center[1] + radius_var_y * math.sin(angle)
+
+        control_points.append((x, y))
+
+    return control_points
+
+
+def catmull_rom_point(
+    p0: tuple[float, float], p1: tuple[float, float], p2: tuple[float, float], p3: tuple[float, float], t: float
+) -> tuple[float, float]:
+    """Calculate a point on a Catmull-Rom curve.
+
+    Args:
+        p0, p1, p2, p3: Control points
+        t: Interpolation parameter (0 to 1)
+
+    Returns:
+        Interpolated point (x, y)
+    """
+    t2 = t * t
+    t3 = t2 * t
+
+    x = 0.5 * (
+        (2 * p1[0])
+        + (-p0[0] + p2[0]) * t
+        + (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2
+        + (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * t3
+    )
+
+    y = 0.5 * (
+        (2 * p1[1])
+        + (-p0[1] + p2[1]) * t
+        + (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2
+        + (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t3
+    )
+
+    return (x, y)
+
+
+def calculate_normal_offset(
+    current: tuple[float, float], next_point: tuple[float, float], track_width: float
+) -> tuple[float, float]:
+    """Calculate inner boundary point using normal vector.
+
+    Args:
+        current: Current point (x, y)
+        next_point: Next point for tangent calculation
+        track_width: Width of track
+
+    Returns:
+        Inner boundary point (x, y)
+    """
+    tangent_x = next_point[0] - current[0]
+    tangent_y = next_point[1] - current[1]
+    length = math.sqrt(tangent_x**2 + tangent_y**2)
+
+    if length > 0:
+        # Perpendicular vector
+        normal_x = -tangent_y / length
+        normal_y = tangent_x / length
+
+        inner_x = current[0] + normal_x * track_width
+        inner_y = current[1] + normal_y * track_width
+    else:
+        inner_x = current[0]
+        inner_y = current[1]
+
+    return (inner_x, inner_y)
+
+
+def interpolate_curve_segment(
+    control_points: list[tuple[float, float]], segment_index: int, points_per_segment: int, track_width: float
+) -> tuple[list[Point2D], list[Point2D]]:
+    """Interpolate a single curve segment with inner/outer boundaries.
+
+    Args:
+        control_points: List of control points
+        segment_index: Index of current segment
+        points_per_segment: Number of interpolation points
+        track_width: Width of track
+
+    Returns:
+        Tuple of (outer_points, inner_points) for this segment
+    """
+    num_control = len(control_points)
+    p0 = control_points[(segment_index - 1) % num_control]
+    p1 = control_points[segment_index]
+    p2 = control_points[(segment_index + 1) % num_control]
+    p3 = control_points[(segment_index + 2) % num_control]
+
+    outer_points = []
+    inner_points = []
+
+    for t in range(points_per_segment):
+        t_norm = t / points_per_segment
+
+        # Calculate outer boundary point
+        outer = catmull_rom_point(p0, p1, p2, p3, t_norm)
+
+        # Calculate next point for tangent
+        next_t = min(t + 1, points_per_segment - 1)
+        next_t_norm = next_t / points_per_segment
+        next_point = catmull_rom_point(p0, p1, p2, p3, next_t_norm)
+
+        # Calculate inner boundary
+        inner = calculate_normal_offset(outer, next_point, track_width)
+
+        outer_points.append(Point2D(x=outer[0], y=outer[1]))
+        inner_points.append(Point2D(x=inner[0], y=inner[1]))
+
+    return outer_points, inner_points
+
+
+def generate_procedural_track(
+    width: int, height: int, difficulty: str, padding: int = DEFAULT_TRACK_PADDING
+) -> TrackBoundary:
+    """Generate a procedural track with curves and varying complexity.
+
+    Args:
+        width: Canvas width
+        height: Canvas height
+        difficulty: Track difficulty (easy, medium, hard)
+        padding: Padding from canvas edges
+
+    Returns:
+        TrackBoundary with procedurally generated boundaries
+    """
+    center = (width / 2, height / 2)
+    base_radius = ((width - 2 * padding) / 2, (height - 2 * padding) / 2)
+
+    # Get difficulty-based parameters
+    track_width, num_control_points, variation = get_difficulty_params(difficulty)
+
+    # Generate control points
+    control_points = generate_control_points(
+        num_control_points, center, base_radius, variation, (width, height, padding)
+    )
+
+    # Interpolate smooth curves
+    num_segments = 64
+    points_per_segment = num_segments // num_control_points
+
+    all_outer_points = []
+    all_inner_points = []
+
+    for i in range(num_control_points):
+        outer, inner = interpolate_curve_segment(control_points, i, points_per_segment, track_width)
+        all_outer_points.extend(outer)
+        all_inner_points.extend(inner)
+
+    return TrackBoundary(outer=all_outer_points, inner=all_inner_points)
+
+
 @router.get("/track/simple", response_model=SimpleTrack)
 async def get_simple_track(
     width: Annotated[int, Query(ge=MIN_TRACK_WIDTH, le=MAX_TRACK_WIDTH)] = DEFAULT_TRACK_WIDTH,
@@ -159,9 +364,6 @@ async def get_simple_track(
 async def generate_track(params: TrackGenerationParams) -> SimpleTrack:
     """Generate a procedural track based on parameters.
 
-    Future endpoint for more complex track generation. Currently returns
-    the same oval track but with seed support for future expansion.
-
     Args:
         params: Track generation parameters including difficulty and seed
 
@@ -176,18 +378,23 @@ async def generate_track(params: TrackGenerationParams) -> SimpleTrack:
     if params.seed is not None:
         random.seed(params.seed)
 
-    # For now, return the same oval track
-    # Future: Implement procedural generation based on difficulty
-    boundaries = generate_oval_track(params.width, params.height)
-    start_position = Point2D(x=params.width / 2, y=params.height - 100)
+    try:
+        # Generate procedural track with curves
+        boundaries = generate_procedural_track(params.width, params.height, params.difficulty)
+        start_position = Point2D(x=params.width / 2, y=params.height - 100)
 
-    return SimpleTrack(
-        width=params.width,
-        height=params.height,
-        boundaries=boundaries,
-        start_position=start_position,
-        track_width=60 if params.difficulty == "easy" else 50 if params.difficulty == "medium" else 40,
-    )
+        track_width, _, _ = get_difficulty_params(params.difficulty)
+
+        return SimpleTrack(
+            width=params.width,
+            height=params.height,
+            boundaries=boundaries,
+            start_position=start_position,
+            track_width=track_width,
+        )
+    except Exception as e:
+        logger.error("Failed to generate procedural track", error=str(e))
+        raise HTTPException(status_code=HTTP_BAD_REQUEST, detail="Failed to generate track") from e
 
 
 @router.get("/health")
