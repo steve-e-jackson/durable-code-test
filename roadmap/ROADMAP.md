@@ -1,12 +1,12 @@
 # Project Roadmap Overview
 
 **Last Updated**: Auto-generated from roadmap items
-**Overall Completion**: 50% (5.07 of 10 items complete)
+**Overall Completion**: 60% (7.07 of 11 items complete)
 
 ## Status Summary
-- 🔴 Planning: 4 items (0% avg)
-- 🟡 In Progress: 5 items (61% avg)
-- 🟢 Complete: 2 items (100%)
+- 🔴 Planning: 3 items (0% avg)
+- 🟡 In Progress: 4 items (52% avg)
+- 🟢 Complete: 4 items (100%)
 - 📝 Total: 11 items
 
 ## Roadmap Items
@@ -19,9 +19,9 @@
 | [Racing Game Demo](in_progress/racing-game-demo/PROGRESS_TRACKER.md) | 🟡 | 17% | [███░░░░░░░░░░░░░░░░░] | Medium | 1/6 PRs | `in_progress/` |
 | [Example API Feature](planning/example-api-feature/PROGRESS_TRACKER.md) | 🔴 | 0% | [░░░░░░░░░░░░░░░░░░░░] | Medium | 0/6 PRs | `planning/` |
 | [Terraform Workspaces](in_progress/terraform-workspaces/PROGRESS_TRACKER.md) | 🟡 | 50% | [██████████░░░░░░░░░░] | High | 3/6 PRs | `in_progress/` |
-| [Docker Linting Separation](in_progress/docker-linting-separation/PROGRESS_TRACKER.md) | 🟡 | 75% | [███████████████░░░░░] | High | 18/24 tasks | `in_progress/` |
-| [Docker Reorganization](in_progress/docker-reorganization/PROGRESS_TRACKER.md) | 🟡 | 80% | [████████████████░░░░] | High | 4/5 PRs | `in_progress/` |
 | [Deployment](in_progress/deployment/PROGRESS_TRACKER.md) | 🟡 | 45% | [█████████░░░░░░░░░░░] | Critical | 5/11 PRs | `in_progress/` |
+| [Docker Linting Separation](complete/docker-linting-separation/PROGRESS_TRACKER.md) | 🟢 | 100% | [████████████████████] | High | Complete | `complete/` |
+| [Docker Reorganization](complete/docker-reorganization/PROGRESS_TRACKER.md) | 🟢 | 100% | [████████████████████] | High | Complete | `complete/` |
 | [Frontend Upgrade](complete/frontend_upgrade/PROGRESS_TRACKER.md) | 🟢 | 100% | [████████████████████] | Medium | Complete | `complete/` |
 | [Make Robust](complete/make_robust/PROGRESS_TRACKER.md) | 🟢 | 100% | [████████████████████] | Low | Complete | `complete/` |
 
@@ -37,14 +37,14 @@ Items are automatically organized by completion percentage:
 
 ### By Status
 ```
-Planning    [░░░░░░░░░░] 0%   (4 items)
-In Progress [█████░░░░░] 55%  (5 items)
-Complete    [██████████] 100% (2 items)
+Planning    [░░░░░░░░░░] 0%   (3 items)
+In Progress [█████░░░░░] 52%  (4 items)
+Complete    [██████████] 100% (4 items)
 ```
 
 ### Overall Project Progress
 ```
-[████████░░░░░░░░░░░░] 40% Complete
+[████████████░░░░░░░░] 60% Complete
 ```
 
 ## Priority Matrix
@@ -57,16 +57,16 @@ Complete    [██████████] 100% (2 items)
 1. **AI Contributions** - 0% - AI workflow improvements planned
 2. **Agent-Agnostic System** - 0% - Universal AI tool compatibility via AGENTS.md + make commands
 3. **Terraform Workspaces** - 50% - PR1, PR2, PR3 complete (base and runtime workspaces implemented)
-4. **Docker Linting Separation** - 75% - Tasks 1-4 complete, documentation remaining
-5. **Docker Reorganization** - 80% - PR1, PR2, PR3+PR4 complete (compose files moved, all references updated)
 
 ### 🟡 Medium Priority
 1. **Racing Game Demo** - 0% - Physics-based racing game with procedural track generation
 2. **Example API Feature** - 0% - Template for new features
 
 ### ✅ Completed
-1. **Frontend Upgrade** - 100% - Complete
-2. **Make Robust** - 100% - Complete
+1. **Docker Linting Separation** - 100% - Complete
+2. **Docker Reorganization** - 100% - Complete
+3. **Frontend Upgrade** - 100% - Complete
+4. **Make Robust** - 100% - Complete
 
 ## Quick Actions
 
@@ -77,10 +77,12 @@ Complete    [██████████] 100% (2 items)
 
 ### Continue Active Work
 1. Focus on items in `in_progress/` directory
-2. **Docker Linting Separation** at 75% is closest to completion
+2. **Terraform Workspaces** at 50% is closest to completion
 3. Check each item's PROGRESS_TRACKER.md for next steps
 
 ### Complete Items
+- **Docker Linting Separation** - Successfully completed
+- **Docker Reorganization** - Successfully completed
 - **Frontend Upgrade** - Successfully completed
 - **Make Robust** - Successfully completed
 Items reaching 100% automatically move to `complete/` directory
@@ -94,10 +96,10 @@ This file is maintained by:
 
 ## Metrics
 
-- **Average Completion**: 56%
-- **Items Started**: 5 of 7 (71.4%)
-- **Items Complete**: 2 of 7 (28.6%)
-- **Items Needing Setup**: 0 of 7 (0%)
+- **Average Completion**: 64%
+- **Items Started**: 7 of 11 (63.6%)
+- **Items Complete**: 4 of 11 (36.4%)
+- **Items Needing Setup**: 0 of 11 (0%)
 
 ---
 

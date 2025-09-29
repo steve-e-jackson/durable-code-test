@@ -90,7 +90,7 @@ class HeaderFieldValidator:
         if word_count < min_words or char_count < min_chars:
             return (
                 False,
-                f"Overview too brief ({word_count} words, {char_count} chars). "
+                f"Overview field too brief ({word_count} words, {char_count} chars). "
                 f"Minimum: {min_words} words, {min_chars} chars. "
                 "Provide comprehensive file documentation.",
             )
@@ -233,9 +233,16 @@ class HeaderParser:
                 line = line[len(prefix) :].strip()
         return line
 
-    def _should_add_to_field(self, cleaned_line: str, original_line: str, is_continuation: bool) -> bool:
+    def _should_add_to_field(
+        self,
+        cleaned_line: str,
+        original_line: str,
+        is_continuation: bool,  # pylint: disable=unused-argument
+    ) -> bool:
         """Determine if line should be added to current field."""
-        return not (":" in original_line and not is_continuation)
+        # If the cleaned line matches the field pattern, it's a new field, not a continuation
+        # Otherwise, it's a continuation line
+        return not (self.field_pattern and self.field_pattern.match(cleaned_line))
 
 
 class FileSkipChecker:
@@ -362,11 +369,12 @@ class HeaderViolationChecker:
             violations.append(
                 LintViolation(
                     rule_id=rule_id,
-                    message=f"Header missing required fields: {self._format_missing_fields(missing_fields)}",
-                    severity=severity,
+                    file_path=context.file_path,
                     line=1,
                     column=0,
-                    file_path=context.file_path,
+                    severity=severity,
+                    message=(f"Missing required header fields: {self._format_missing_fields(missing_fields)}"),
+                    description="File headers should include all required documentation fields",
                     suggestion="Add missing fields to the header documentation",
                 )
             )
@@ -384,11 +392,12 @@ class HeaderViolationChecker:
                 violations.append(
                     LintViolation(
                         rule_id=rule_id,
-                        message=message,
-                        severity=Severity.WARNING,
+                        file_path=context.file_path,
                         line=1,
                         column=0,
-                        file_path=context.file_path,
+                        severity=Severity.WARNING,
+                        message=message,
+                        description="Overview field should provide comprehensive documentation",
                         suggestion="Expand the Overview field with comprehensive documentation",
                     )
                 )
@@ -413,11 +422,12 @@ class HeaderViolationChecker:
             violations.append(
                 LintViolation(
                     rule_id=rule_id,
-                    message=f"Code file missing required fields: {self._format_missing_fields(missing_required)}",
-                    severity=severity,
+                    file_path=context.file_path,
                     line=1,
                     column=0,
-                    file_path=context.file_path,
+                    severity=severity,
+                    message=f"Code file missing required fields: {self._format_missing_fields(missing_required)}",
+                    description="Code files require specific documentation fields",
                     suggestion="Add missing code documentation fields",
                 )
             )
@@ -428,11 +438,12 @@ class HeaderViolationChecker:
             violations.append(
                 LintViolation(
                     rule_id=rule_id,
-                    message=f"Code file missing recommended fields: {self._format_missing_fields(missing_recommended)}",
-                    severity=Severity.WARNING,
+                    file_path=context.file_path,
                     line=1,
                     column=0,
-                    file_path=context.file_path,
+                    severity=Severity.WARNING,
+                    message=f"Code file missing recommended fields: {self._format_missing_fields(missing_recommended)}",
+                    description="Recommended documentation fields improve code maintainability",
                     suggestion="Consider adding recommended documentation fields",
                 )
             )
@@ -450,11 +461,12 @@ class HeaderViolationChecker:
             violations.append(
                 LintViolation(
                     rule_id=rule_id,
-                    message=f"Header field '{issue['field']}' {issue['issue']}",
-                    severity=Severity.WARNING,
+                    file_path=context.file_path,
                     line=1,
                     column=0,
-                    file_path=context.file_path,
+                    severity=Severity.WARNING,
+                    message=f"Header field '{issue['field']}' {issue['issue']}",
+                    description="Header field content should meet quality standards",
                     suggestion=issue["suggestion"],
                 )
             )
@@ -470,20 +482,46 @@ class HeaderViolationChecker:
 
         for issue in temporal_issues:
             suggestion = self.temporal_checker.get_temporal_suggestion(issue["type"], issue["text"])
+
+            # Determine pattern description based on type and matched text
+            pattern_desc = self._get_pattern_description(issue["type"], issue["text"])
+
             violations.append(
                 LintViolation(
                     rule_id=rule_id,
-                    message=f"Header contains temporal language: '{issue['text']}'",
-                    description="Temporal language makes documentation time-dependent",
-                    severity=Severity.WARNING,
+                    file_path=context.file_path,
                     line=1,
                     column=0,
-                    file_path=context.file_path,
+                    severity=Severity.WARNING,
+                    message=f"Header contains temporal language ({pattern_desc}): '{issue['text']}'",
+                    description="Temporal language makes documentation time-dependent",
                     suggestion=suggestion,
                 )
             )
 
         return violations
+
+    def _get_pattern_description(self, pattern_type: str, matched_text: str) -> str:
+        """Get descriptive name for pattern type based on matched text."""
+        if pattern_type == "created_updated":
+            text_lower = matched_text.lower()
+            if "created" in text_lower or "creation" in text_lower:
+                return "creation timestamp"
+            elif "updated" in text_lower or "modified" in text_lower:
+                return "update timestamp"
+            elif "changed" in text_lower:
+                return "change timestamp"
+            else:
+                return "creation/update timestamp"
+
+        # Map other pattern types to descriptive names
+        pattern_descriptions = {
+            "date_stamps": "date stamp",
+            "state_changes": "state change language",
+            "temporal_qualifiers": "temporal qualifier",
+            "future_references": "future reference",
+        }
+        return pattern_descriptions.get(pattern_type, "temporal language")
 
     def _format_missing_fields(self, fields: set[str]) -> str:
         """Format missing fields for display."""
@@ -503,8 +541,22 @@ class FileHeaderRule(ASTLintRule):
         self.skip_test_files = self.config.get("skip_test_files", False)
         self.check_temporal = self.config.get("check_temporal_language", True)
 
-        # Pre-compile regex pattern
+        # Pre-compile regex patterns for different file types
         self._field_pattern = re.compile(r"^(\w+):\s*(.*)$")
+        self._markdown_field_pattern = re.compile(r"^\*\*(\w+)\*\*:\s*(.*)$")
+
+        # File-specific configurations
+        self.FILE_CONFIGS = {
+            ".py": {"field_pattern": self._field_pattern},
+            ".ts": {"field_pattern": self._field_pattern},
+            ".tsx": {"field_pattern": self._field_pattern},
+            ".js": {"field_pattern": self._field_pattern},
+            ".jsx": {"field_pattern": self._field_pattern},
+            ".md": {"field_pattern": self._markdown_field_pattern},
+            ".html": {"field_pattern": self._field_pattern},
+            ".yaml": {"field_pattern": self._field_pattern},
+            ".yml": {"field_pattern": self._field_pattern},
+        }
 
         # Initialize helper classes
         self._field_validator = HeaderFieldValidator()
@@ -567,8 +619,11 @@ class FileHeaderRule(ASTLintRule):
         if header_content is None:
             return [self._create_missing_header_violation(context, node, file_ext)]
 
+        # Get the appropriate field pattern for this file type
+        field_pattern = self.FILE_CONFIGS.get(file_ext, {}).get("field_pattern", self._field_pattern)
+
         # Parse header fields and check violations
-        fields = self._header_parser.parse_header_fields(header_content, self._field_pattern)
+        fields = self._header_parser.parse_header_fields(header_content, field_pattern)
         return self._collect_header_violations(context, node, fields, file_ext, header_content)
 
     def _extract_and_validate_header(
@@ -623,24 +678,31 @@ class FileHeaderRule(ASTLintRule):
 
     def _get_file_content(self, file_path: Path, context: LintContext) -> str | None:
         """Get file content from context or read from disk."""
-        if hasattr(context, "source") and context.source:
-            return context.source
+        if hasattr(context, "file_content") and context.file_content:
+            return context.file_content
         try:
             return file_path.read_text(encoding="utf-8")
         except Exception as e:
             logger.debug("Could not read file", file_path=str(file_path), error=str(e))
             return None
 
+    def _parse_header_fields(self, header_content: str, field_pattern: re.Pattern) -> dict[str, str]:
+        """Parse header content to extract field values.
+
+        This is a public method exposed for testing purposes.
+        """
+        return self._header_parser.parse_header_fields(header_content, field_pattern)
+
     def _create_missing_header_violation(self, context: LintContext, node: Any, file_ext: str) -> LintViolation:
         """Create violation for missing header."""
         template = self._template_provider.get_template(file_ext)
         return LintViolation(
             rule_id=self.rule_id,
-            message="File missing documentation header",
-            description="All files should have proper documentation headers with required fields",
-            severity=self.severity,
+            file_path=context.file_path,
             line=1,
             column=0,
-            file_path=context.file_path,
+            severity=self.severity,
+            message="Missing file header",
+            description="All files should have proper documentation headers with required fields",
             suggestion=f"Add header at the beginning of the file:\n{template}",
         )

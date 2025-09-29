@@ -13,8 +13,6 @@ locals {
   # Common naming prefix including product domain
   name_prefix = "${var.product_domain}-${var.environment}"
 
-  # Extended name prefix with project name
-  full_name_prefix = "${var.product_domain}-${var.project_name}-${var.environment}"
 
   # Common tags applied to all resources (in addition to provider default tags)
   # Note: These tags supplement the default_tags defined in providers.tf
@@ -26,26 +24,12 @@ locals {
 
   # Environment-specific flags
   is_production            = var.environment == "prod"
-  is_development           = var.environment == "dev"
   enable_cost_optimization = !local.is_production
 
-  # Cost optimization settings
-  enable_spot_instances = local.enable_cost_optimization && var.use_fargate_spot
-  enable_auto_shutdown  = local.enable_cost_optimization && var.enable_auto_shutdown
 
-  # Resource sizing based on environment
-  task_cpu    = local.is_production ? max(512, var.fargate_cpu) : var.fargate_cpu
-  task_memory = local.is_production ? max(1024, var.fargate_memory) : var.fargate_memory
 
-  # Scaling configuration
-  min_capacity = local.enable_auto_shutdown ? 0 : var.min_capacity
-  max_capacity = local.is_production ? var.max_capacity : min(3, var.max_capacity)
 
-  # Monitoring configuration
-  enable_detailed_monitoring = local.is_production || var.enable_container_insights
 
-  # Security configuration
-  enable_enhanced_security = local.is_production && (var.enable_waf || var.enable_guardduty || var.enable_security_hub)
 
   # ECS configuration
   ecs_cluster_name = "${var.product_domain}-${var.environment}-cluster"

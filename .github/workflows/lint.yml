@@ -137,7 +137,7 @@ jobs:
             DOCKER_COMPOSE="docker compose"
           fi
 
-          $DOCKER_COMPOSE -f docker-compose.lint.yml down || echo "Containers may have already stopped"
+          $DOCKER_COMPOSE -f .docker/compose/lint.yml down || echo "Containers may have already stopped"
 
       - name: Generate linting summary
         if: always()
