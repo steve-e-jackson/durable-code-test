@@ -164,7 +164,8 @@ ENV PYTEST_CACHE_DIR=/app/.pytest_cache
 ENV COVERAGE_FILE=/app/.coverage_data/.coverage
 
 # Default test command with coverage
-CMD ["pytest", "test/", "--cov=app", "--cov=tools/design_linters", "--cov-report=term", "--cov-report=term:skip-covered", "-v"]
+# Create coverage directory at runtime and run tests
+CMD sh -c "mkdir -p /app/.coverage_data && chmod 777 /app/.coverage_data && pytest test/ --cov=app --cov=tools/design_linters --cov-report=term --cov-report=term:skip-covered -v"
 
 # =============================================================================
 # PRODUCTION STAGE - Minimal runtime
