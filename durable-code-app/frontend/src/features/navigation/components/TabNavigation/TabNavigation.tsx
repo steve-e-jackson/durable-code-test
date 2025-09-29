@@ -9,9 +9,16 @@
  */
 
 import type { ReactElement } from 'react';
+import { useCallback } from 'react';
 import { Tab } from '../../../../components/common/Tab';
 import { Icon } from '../../../../components/common/Icon';
-import type { NavigationProps, TabName } from '../../types/navigation.types';
+import { Dropdown } from '../../../../components/common/Dropdown';
+import { useNavigationStore } from '../../../../store/navigationStore';
+import type {
+  NavigationProps,
+  SubTabContent,
+  TabName,
+} from '../../types/navigation.types';
 import styles from './TabNavigation.module.css';
 
 export function TabNavigation({
@@ -19,19 +26,61 @@ export function TabNavigation({
   onTabChange,
   tabs,
 }: NavigationProps): ReactElement {
+  const { setActiveSubTab } = useNavigationStore();
+
+  const handleSubTabSelect = useCallback(
+    (tabName: TabName, subTab: SubTabContent) => {
+      onTabChange(tabName);
+      setActiveSubTab(subTab.id);
+    },
+    [onTabChange, setActiveSubTab],
+  );
+
   return (
     <nav className={styles.navigation}>
-      {(Object.keys(tabs) as TabName[]).map((tabName) => (
-        <Tab
-          key={tabName}
-          isActive={activeTab === tabName}
-          onClick={() => onTabChange(tabName)}
-          variant="underline"
-        >
-          <Icon emoji={tabs[tabName].icon} label={tabs[tabName].title} />
-          <span className={styles.tabTitle}>{tabs[tabName].title}</span>
-        </Tab>
-      ))}
+      {(Object.keys(tabs) as TabName[]).map((tabName) => {
+        const tab = tabs[tabName];
+        const hasSubTabs = tab.subTabs && tab.subTabs.length > 0;
+
+        if (hasSubTabs) {
+          return (
+            <Dropdown
+              key={tabName}
+              trigger={
+                <Tab
+                  isActive={activeTab === tabName}
+                  onClick={() => onTabChange(tabName)}
+                  variant="underline"
+                >
+                  <Icon emoji={tab.icon} label={tab.title} />
+                  <span className={styles.tabTitle}>{tab.title}</span>
+                  <span className={styles.dropdownIcon}>▼</span>
+                </Tab>
+              }
+              items={tab.subTabs.map((subTab) => ({
+                id: subTab.id,
+                label: subTab.title,
+                icon: subTab.icon,
+                description: subTab.description,
+                onClick: () => handleSubTabSelect(tabName, subTab),
+              }))}
+              align="left"
+            />
+          );
+        }
+
+        return (
+          <Tab
+            key={tabName}
+            isActive={activeTab === tabName}
+            onClick={() => onTabChange(tabName)}
+            variant="underline"
+          >
+            <Icon emoji={tab.icon} label={tab.title} />
+            <span className={styles.tabTitle}>{tab.title}</span>
+          </Tab>
+        );
+      })}
     </nav>
   );
 }

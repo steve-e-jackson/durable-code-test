@@ -20,7 +20,6 @@ import ast
 from typing import Any
 
 from loguru import logger
-
 from tools.design_linters.framework.interfaces import (
     ASTLintRule,
     LintContext,

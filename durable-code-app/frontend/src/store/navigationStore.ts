@@ -12,9 +12,11 @@ export type TabName =
 
 interface NavigationState {
   activeTab: TabName;
+  activeSubTab: string | null;
   tabHistory: TabName[];
   isNavigating: boolean;
   setActiveTab: (tab: TabName) => void;
+  setActiveSubTab: (subTabId: string | null) => void;
   navigateBack: () => void;
 }
 
@@ -22,6 +24,7 @@ export const useNavigationStore = create<NavigationState>()(
   devtools(
     (set, get) => ({
       activeTab: 'Repository',
+      activeSubTab: null,
       tabHistory: [],
       isNavigating: false,
       setActiveTab: (tab) => {
@@ -35,12 +38,37 @@ export const useNavigationStore = create<NavigationState>()(
         // Atomic update with navigation lock
         set({
           activeTab: tab,
+          activeSubTab: null,
           tabHistory: [...state.tabHistory, tab],
           isNavigating: true,
         });
 
         // Update browser history after state
         window.history.pushState(null, '', `#${tab}`);
+
+        // Release navigation lock after microtask
+        Promise.resolve().then(() => {
+          set({ isNavigating: false });
+        });
+      },
+      setActiveSubTab: (subTabId) => {
+        const state = get();
+
+        // Prevent race conditions
+        if (state.isNavigating) {
+          return;
+        }
+
+        set({
+          activeSubTab: subTabId,
+          isNavigating: true,
+        });
+
+        // Update browser history with sub-tab
+        const hash = subTabId
+          ? `#${state.activeTab}/${subTabId}`
+          : `#${state.activeTab}`;
+        window.history.pushState(null, '', hash);
 
         // Release navigation lock after microtask
         Promise.resolve().then(() => {

@@ -80,6 +80,10 @@
       "Bash(source .env)"
     ],
     "deny": [
+      "Bash(npm test:*)",
+      "Bash(npm run test:*)",
+      "Bash(yarn test:*)",
+      "Bash(pnpm test:*)",
       "Bash(python:*)",
       "Bash(python3:*)",
       "Bash(python -m:*)",

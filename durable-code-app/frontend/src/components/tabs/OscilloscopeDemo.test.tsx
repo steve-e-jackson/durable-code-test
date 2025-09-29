@@ -1,17 +1,17 @@
 /**
- * Purpose: Unit tests for DemoTab oscilloscope component
+ * Purpose: Unit tests for OscilloscopeDemo component
  * Scope: Test rendering, WebSocket connection, user interactions, and waveform controls
- * Overview: Comprehensive test suite for the DemoTab component including rendering tests,
+ * Overview: Comprehensive test suite for the OscilloscopeDemo component including rendering tests,
  *     WebSocket mock testing, control interaction verification, and canvas rendering checks.
  * Dependencies: React Testing Library, vitest, WebSocket mock
- * Exports: Test suite for DemoTab component
+ * Exports: Test suite for OscilloscopeDemo component
  * Interfaces: vitest test functions
  * Implementation: Component testing with mocked WebSocket and canvas
  */
 
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { DemoTab } from '../../features/demo';
+import { OscilloscopeDemo } from '../../features/demo/components/OscilloscopeDemo';
 
 // Mock WebSocket
 class MockWebSocket {
@@ -88,7 +88,7 @@ const mockCanvasContext = {
   getContext: vi.fn(() => mockCanvasContext),
 };
 
-describe('DemoTab Component', () => {
+describe('OscilloscopeDemo Component', () => {
   let mockWebSocket: MockWebSocket;
   let originalWebSocket: typeof WebSocket;
 
@@ -129,7 +129,7 @@ describe('DemoTab Component', () => {
 
   describe('Rendering', () => {
     it('should render the component with title', () => {
-      render(<DemoTab />);
+      render(<OscilloscopeDemo />);
       expect(screen.getByText('Oscilloscope Demo')).toBeInTheDocument();
       expect(
         screen.getByText(/Built entirely by AI while the human went to dinner/),
@@ -138,7 +138,7 @@ describe('DemoTab Component', () => {
 
     it('should render control buttons', async () => {
       await act(async () => {
-        render(<DemoTab />);
+        render(<OscilloscopeDemo />);
       });
       await waitFor(() => {
         expect(screen.getByText('▶ Start')).toBeInTheDocument();
@@ -150,7 +150,7 @@ describe('DemoTab Component', () => {
 
     it('should render waveform selection buttons', async () => {
       await act(async () => {
-        render(<DemoTab />);
+        render(<OscilloscopeDemo />);
       });
       await waitFor(() => {
         expect(screen.getByText('∿ Sine Wave')).toBeInTheDocument();
@@ -161,7 +161,7 @@ describe('DemoTab Component', () => {
 
     it('should render parameter controls', async () => {
       await act(async () => {
-        render(<DemoTab />);
+        render(<OscilloscopeDemo />);
       });
       await waitFor(() => {
         expect(screen.getByText(/Frequency \(Hz\)/)).toBeInTheDocument();
@@ -175,7 +175,7 @@ describe('DemoTab Component', () => {
     it('should render canvas element', async () => {
       let container: HTMLElement;
       await act(async () => {
-        const result = render(<DemoTab />);
+        const result = render(<OscilloscopeDemo />);
         container = result.container;
       });
       await waitFor(() => {
@@ -188,7 +188,7 @@ describe('DemoTab Component', () => {
 
     it('should render documentation section', async () => {
       await act(async () => {
-        render(<DemoTab />);
+        render(<OscilloscopeDemo />);
       });
       await waitFor(() => {
         expect(screen.getByText('About This Demo')).toBeInTheDocument();
@@ -200,7 +200,7 @@ describe('DemoTab Component', () => {
 
   describe('WebSocket Connection', () => {
     it('should show connected status when WebSocket opens', async () => {
-      render(<DemoTab />);
+      render(<OscilloscopeDemo />);
 
       await waitFor(() => {
         const statusText = screen.getByText(/Connection:/);
@@ -209,7 +209,7 @@ describe('DemoTab Component', () => {
     });
 
     it('should show disconnected status when WebSocket closes', async () => {
-      render(<DemoTab />);
+      render(<OscilloscopeDemo />);
 
       // Wait for connection
       await waitFor(() => {
@@ -228,7 +228,7 @@ describe('DemoTab Component', () => {
 
   describe('Control Interactions', () => {
     it('should send start command when Start button is clicked', async () => {
-      render(<DemoTab />);
+      render(<OscilloscopeDemo />);
 
       // Wait for connection
       await waitFor(() => {
@@ -248,7 +248,7 @@ describe('DemoTab Component', () => {
     });
 
     it('should send stop command when Stop button is clicked', async () => {
-      render(<DemoTab />);
+      render(<OscilloscopeDemo />);
 
       // Wait for connection and start streaming
       await waitFor(() => {
@@ -272,7 +272,7 @@ describe('DemoTab Component', () => {
     });
 
     it('should toggle pause state when Pause button is clicked', () => {
-      render(<DemoTab />);
+      render(<OscilloscopeDemo />);
 
       const pauseButton = screen.getByText('⏸ Pause');
       fireEvent.click(pauseButton);
@@ -281,7 +281,7 @@ describe('DemoTab Component', () => {
     });
 
     it('should clear buffer when Clear button is clicked', () => {
-      render(<DemoTab />);
+      render(<OscilloscopeDemo />);
 
       const clearButton = screen.getByText('🗑️ Clear');
       fireEvent.click(clearButton);
@@ -293,7 +293,7 @@ describe('DemoTab Component', () => {
 
   describe('Waveform Selection', () => {
     it('should send configure command when sine wave is selected', async () => {
-      render(<DemoTab />);
+      render(<OscilloscopeDemo />);
 
       await waitFor(() => {
         expect(mockWebSocket).toBeDefined();
@@ -314,7 +314,7 @@ describe('DemoTab Component', () => {
     });
 
     it('should send configure command when square wave is selected', async () => {
-      render(<DemoTab />);
+      render(<OscilloscopeDemo />);
 
       await waitFor(() => {
         expect(mockWebSocket).toBeDefined();
@@ -335,7 +335,7 @@ describe('DemoTab Component', () => {
     });
 
     it('should send configure command when white noise is selected', async () => {
-      render(<DemoTab />);
+      render(<OscilloscopeDemo />);
 
       await waitFor(() => {
         expect(mockWebSocket).toBeDefined();
@@ -358,7 +358,7 @@ describe('DemoTab Component', () => {
 
   describe('Parameter Controls', () => {
     it('should update frequency when slider is changed', async () => {
-      render(<DemoTab />);
+      render(<OscilloscopeDemo />);
 
       await waitFor(() => {
         expect(mockWebSocket).toBeDefined();
@@ -383,7 +383,7 @@ describe('DemoTab Component', () => {
     });
 
     it('should update amplitude when slider is changed', async () => {
-      render(<DemoTab />);
+      render(<OscilloscopeDemo />);
 
       await waitFor(() => {
         expect(mockWebSocket).toBeDefined();
@@ -410,7 +410,7 @@ describe('DemoTab Component', () => {
 
   describe('Data Reception', () => {
     it('should process incoming oscilloscope data', async () => {
-      render(<DemoTab />);
+      render(<OscilloscopeDemo />);
 
       await waitFor(() => {
         expect(mockWebSocket).toBeDefined();
@@ -440,7 +440,7 @@ describe('DemoTab Component', () => {
 
   describe('Canvas Rendering', () => {
     it('should draw grid on canvas', () => {
-      render(<DemoTab />);
+      render(<OscilloscopeDemo />);
 
       // Grid drawing involves multiple stroke calls
       expect(mockCanvasContext.beginPath).toHaveBeenCalled();
@@ -450,7 +450,7 @@ describe('DemoTab Component', () => {
     });
 
     it('should display measurements on canvas', () => {
-      render(<DemoTab />);
+      render(<OscilloscopeDemo />);
 
       // Should draw text for measurements
       expect(mockCanvasContext.fillText).toHaveBeenCalledWith(
@@ -463,7 +463,7 @@ describe('DemoTab Component', () => {
 
   describe('Button States', () => {
     it('should disable Start button when streaming', async () => {
-      render(<DemoTab />);
+      render(<OscilloscopeDemo />);
 
       await waitFor(() => {
         expect(mockWebSocket).toBeDefined();
@@ -478,14 +478,14 @@ describe('DemoTab Component', () => {
     });
 
     it('should disable Stop button when not streaming', () => {
-      render(<DemoTab />);
+      render(<OscilloscopeDemo />);
 
       const stopButton = screen.getByText('⏹ Stop');
       expect(stopButton).toBeDisabled();
     });
 
     it('should enable Stop button when streaming', async () => {
-      render(<DemoTab />);
+      render(<OscilloscopeDemo />);
 
       await waitFor(() => {
         expect(mockWebSocket).toBeDefined();

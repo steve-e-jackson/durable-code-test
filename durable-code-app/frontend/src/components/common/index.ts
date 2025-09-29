@@ -33,3 +33,6 @@ export { DetailsCard } from './DetailsCard';
 
 export { FeatureCard } from './FeatureCard';
 export type { FeatureCardProps } from './FeatureCard';
+
+export { Dropdown } from './Dropdown';
+export type { DropdownProps, DropdownItem } from './Dropdown';
