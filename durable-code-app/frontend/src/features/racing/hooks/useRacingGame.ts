@@ -8,7 +8,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import Matter from 'matter-js';
+import * as Matter from 'matter-js';
 import {
   CarState,
   GameState,

@@ -7,7 +7,7 @@
  * Implementation: Matter.js physics with 2D top-down view settings
  */
 
-import Matter from 'matter-js';
+import * as Matter from 'matter-js';
 
 // Physics constants
 const PHYSICS_GRAVITY_X = 0;
