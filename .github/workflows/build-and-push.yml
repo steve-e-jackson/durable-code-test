@@ -13,21 +13,24 @@
 
 name: Build and Push to ECR
 
-on:
-  push:
-    branches:
-      - main
-      - develop
-    paths:
-      - 'durable-code-app/**'
-      - 'Dockerfile*'
-  pull_request:
-    branches:
-      - main
-      - develop
-    paths:
-      - 'durable-code-app/**'
-      - 'Dockerfile*'
+# Workflow temporarily deactivated - not currently in use
+# To re-enable, uncomment the 'on:' section below
+on: workflow_dispatch
+# on:
+#   push:
+#     branches:
+#       - main
+#       - develop
+#     paths:
+#       - 'durable-code-app/**'
+#       - 'Dockerfile*'
+#   pull_request:
+#     branches:
+#       - main
+#       - develop
+#     paths:
+#       - 'durable-code-app/**'
+#       - 'Dockerfile*'
 
 env:
   AWS_REGION: us-west-2
