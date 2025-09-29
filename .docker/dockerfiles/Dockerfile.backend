@@ -144,14 +144,25 @@ RUN if python -c "import playwright" 2>/dev/null; then \
     fi
 
 # Create test user and set permissions
+# Make /app writable for coverage database files
 RUN useradd -m -u 1002 tester && \
-    chown -R tester:tester /app
+    chown -R tester:tester /app && \
+    chmod -R 775 /app
+
+# Create a writable directory for coverage data
+RUN mkdir -p /app/.coverage_data && \
+    chown tester:tester /app/.coverage_data && \
+    chmod 775 /app/.coverage_data
 
 # Switch to test user
 USER tester
 
-# Set cache directory for pytest
-ENV PYTEST_CACHE_DIR=/tmp/.pytest_cache
+# Set working directory
+WORKDIR /app
+
+# Set cache and coverage directories
+ENV PYTEST_CACHE_DIR=/app/.pytest_cache
+ENV COVERAGE_FILE=/app/.coverage_data/.coverage
 
 # Default test command with coverage
 CMD ["pytest", "test/", "--cov=app", "--cov=tools/design_linters", "--cov-report=term", "--cov-report=term:skip-covered", "-v"]
