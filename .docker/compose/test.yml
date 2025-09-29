@@ -27,13 +27,11 @@ services:
       - ../../test:/app/test
       # Cache directories for faster subsequent runs
       - pytest-cache:/tmp/.pytest_cache
-      - coverage-cache:/tmp/.coverage
     networks:
       - test-network
     environment:
       - PYTHONPATH=/app:/app/tools
       - PYTEST_CACHE_DIR=/tmp/.pytest_cache
-      - COVERAGE_FILE=/tmp/.coverage
     # Resource limits for test execution
     deploy:
       resources:
@@ -99,8 +97,6 @@ networks:
 
 volumes:
   pytest-cache:
-    driver: local
-  coverage-cache:
     driver: local
   vitest-cache:
     driver: local

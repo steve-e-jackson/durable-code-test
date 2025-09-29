@@ -14,28 +14,16 @@
 # Detect which docker compose command to use (for CI compatibility)
 DOCKER_COMPOSE := $(shell which docker-compose 2>/dev/null || echo "docker compose")
 
-# Ensure testing containers are running (auto-start if needed)
-test-ensure-containers: ## Ensure testing containers are running
-	@if ! docker ps | grep -q "durable-code-python-tester-$(BRANCH_NAME)"; then \
-		echo "$(CYAN)Starting Python testing container...$(NC)"; \
-		$(DOCKER_COMPOSE) -f .docker/compose/test.yml up -d python-tester; \
-	fi
-	@if ! docker ps | grep -q "durable-code-js-tester-$(BRANCH_NAME)"; then \
-		echo "$(CYAN)Starting JS testing container...$(NC)"; \
-		$(DOCKER_COMPOSE) -f .docker/compose/test.yml up -d js-tester; \
-	fi
+# Ensure testing containers are running (using dev containers for tests)
+test-ensure-containers: dev-start ## Ensure testing containers are running
 	@echo "$(GREEN)✓ Testing containers ready$(NC)"
 
-# Start dedicated testing containers (force start)
-test-start: ## Start dedicated testing containers
-	@echo "$(CYAN)Starting dedicated testing containers...$(NC)"
-	@$(DOCKER_COMPOSE) -f .docker/compose/test.yml up -d --build
+# Start dedicated testing containers (now using dev containers)
+test-start: dev-start ## Start testing containers (uses dev containers)
 	@echo "$(GREEN)✓ Testing containers started$(NC)"
 
-# Stop dedicated testing containers
-test-stop: ## Stop dedicated testing containers
-	@echo "$(CYAN)Stopping dedicated testing containers...$(NC)"
-	@$(DOCKER_COMPOSE) -f .docker/compose/test.yml down
+# Stop testing containers
+test-stop: dev-stop ## Stop testing containers (stops dev containers)
 	@echo "$(GREEN)✓ Testing containers stopped$(NC)"
 
 # Smart test execution - only test what changed
@@ -56,7 +44,7 @@ test-smart: ## Run tests only for changed files
 	fi
 
 # Main testing targets - REQUIRED BY GITHUB ACTIONS
-test-all: dev-start test-ensure-containers test-backend-coverage test-frontend-coverage test-playwright ## Run all tests with coverage
+test-all: test-ensure-containers test-backend-coverage test-frontend-coverage test-playwright ## Run all tests with coverage
 	@echo "$(GREEN)✅ All tests completed with coverage!$(NC)"
 
 # Quick testing without coverage
@@ -65,9 +53,9 @@ test: test-ensure-containers ## Run all tests quickly (no coverage)
 	@echo "$(CYAN)║                    Quick Test Suite                       ║$(NC)"
 	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
 	@echo "$(YELLOW)Running backend tests...$(NC)"
-	@docker exec durable-code-python-tester-$(BRANCH_NAME) bash -c "cd /app && pytest test/ -v" || echo "$(YELLOW)Backend tests completed with some failures$(NC)"
+	@docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "cd /app && PYTHONPATH=/app:/app/tools poetry run pytest test/ -v" || echo "$(YELLOW)Backend tests completed with some failures$(NC)"
 	@echo "$(YELLOW)Running frontend tests...$(NC)"
-	@docker exec durable-code-js-tester-$(BRANCH_NAME) npm run test:run
+	@docker exec durable-code-frontend-$(BRANCH_NAME)-dev npm run test:run
 	@echo "$(GREEN)✓ Quick tests complete$(NC)"
 
 # Backend Python tests
@@ -76,7 +64,7 @@ test-backend: test-ensure-containers ## Run backend tests with coverage
 	@echo "$(CYAN)║              Backend Tests with Coverage                  ║$(NC)"
 	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
 	@echo "$(YELLOW)Running backend and framework tests with coverage...$(NC)"
-	@docker exec durable-code-python-tester-$(BRANCH_NAME) bash -c "cd /app && pytest test/ --cov=app --cov=tools/design_linters --cov-report=term --cov-report=term:skip-covered --tb=short -v" || echo "$(YELLOW)Tests completed with some failures$(NC)"
+	@docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "cd /app && PYTHONPATH=/app:/app/tools poetry run pytest test/ --cov=app --cov=tools/design_linters --cov-report=term --cov-report=term:skip-covered --tb=short -v" || echo "$(YELLOW)Tests completed with some failures$(NC)"
 	@echo "$(GREEN)✓ Backend tests complete$(NC)"
 
 # Internal target for CI
@@ -88,7 +76,7 @@ test-frontend: test-ensure-containers ## Run frontend tests
 	@echo "$(CYAN)║                    Frontend Tests                         ║$(NC)"
 	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
 	@echo "$(YELLOW)Running frontend tests...$(NC)"
-	@docker exec durable-code-js-tester-$(BRANCH_NAME) npm run test:run
+	@docker exec durable-code-frontend-$(BRANCH_NAME)-dev npm run test:run
 	@echo "$(GREEN)✓ Frontend tests complete$(NC)"
 
 # Frontend tests with coverage
@@ -97,7 +85,7 @@ test-frontend-coverage: test-ensure-containers ## Run frontend tests with covera
 	@echo "$(CYAN)║            Frontend Tests with Coverage                   ║$(NC)"
 	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
 	@echo "$(YELLOW)Running frontend tests with coverage...$(NC)"
-	@docker exec durable-code-js-tester-$(BRANCH_NAME) npm run test:coverage
+	@docker exec durable-code-frontend-$(BRANCH_NAME)-dev npm run test:coverage
 	@echo "$(GREEN)✓ Frontend coverage tests complete$(NC)"
 
 # Playwright integration tests - REQUIRED BY GITHUB ACTIONS

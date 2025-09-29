@@ -59,8 +59,8 @@ services:
         limits:
           cpus: '0.5'
           memory: 512M
-    # Override to keep container running for make targets
-    command: ["tail", "-f", "/dev/null"]
+    # Override to keep container running for make targets and symlink node_modules
+    command: ["sh", "-c", "ln -sf /workspace/node_modules /workspace/frontend/node_modules && tail -f /dev/null"]
 
 networks:
   linting-network:

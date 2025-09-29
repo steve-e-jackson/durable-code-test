@@ -82,6 +82,10 @@ RUN echo '{ \
 # Set working directory for linting operations
 WORKDIR /workspace/frontend
 
+# Keep node_modules in a separate location and symlink it
+# This prevents the volume mount from overriding the dependencies
+RUN mkdir -p /workspace/node_modules && cp -r /app/node_modules/* /workspace/node_modules/
+
 # Keep container running for make targets
 CMD ["tail", "-f", "/dev/null"]
 

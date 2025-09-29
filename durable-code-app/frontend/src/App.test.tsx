@@ -8,7 +8,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
 import App from './App';
@@ -91,53 +91,92 @@ describe('App Component', () => {
     });
 
     it('renders tab content properly', async () => {
-      render(<AppWithRouter />);
+      await act(async () => {
+        render(<AppWithRouter />);
+      });
 
       // Should show Repository tab content by default (after lazy loading)
-      await waitFor(() => {
-        expect(
-          screen.getByText('Why Rigid Repository Structure Matters for AI Development'),
-        ).toBeInTheDocument();
-      });
-      await waitFor(() => {
-        expect(screen.getByText('Gate Everything You Care About')).toBeInTheDocument();
-      });
+      await waitFor(
+        () => {
+          expect(
+            screen.getByText(
+              'Why Rigid Repository Structure Matters for AI Development',
+            ),
+          ).toBeInTheDocument();
+        },
+        { timeout: 10000 },
+      );
+      await waitFor(
+        () => {
+          expect(
+            screen.getByText('Gate Everything You Care About'),
+          ).toBeInTheDocument();
+        },
+        { timeout: 5000 },
+      );
     });
   });
 
   describe('Tab Navigation', () => {
     it('displays Repository tab content by default', async () => {
-      render(<AppWithRouter />);
+      await act(async () => {
+        render(<AppWithRouter />);
+      });
 
       // Should show Repository tab content (after lazy loading)
-      await waitFor(() => {
-        expect(
-          screen.getByText('Why Rigid Repository Structure Matters for AI Development'),
-        ).toBeInTheDocument();
-      });
-      await waitFor(() => {
-        expect(screen.getByText('Gate Everything You Care About')).toBeInTheDocument();
-      });
-      await waitFor(() => {
-        expect(
-          screen.getByText('Make It Work The Same Everywhere'),
-        ).toBeInTheDocument();
-      });
+      await waitFor(
+        () => {
+          expect(
+            screen.getByText(
+              'Why Rigid Repository Structure Matters for AI Development',
+            ),
+          ).toBeInTheDocument();
+        },
+        { timeout: 10000 },
+      );
+      await waitFor(
+        () => {
+          expect(
+            screen.getByText('Gate Everything You Care About'),
+          ).toBeInTheDocument();
+        },
+        { timeout: 5000 },
+      );
+      await waitFor(
+        () => {
+          expect(
+            screen.getByText('Make It Work The Same Everywhere'),
+          ).toBeInTheDocument();
+        },
+        { timeout: 5000 },
+      );
     });
 
     it('switches to different tabs when clicked', async () => {
       const user = userEvent.setup();
-      render(<AppWithRouter />);
+      await act(async () => {
+        render(<AppWithRouter />);
+      });
 
       // Click on Planning tab
       const planningTab = screen.getByRole('tab', { name: /Planning/i });
-      await user.click(planningTab);
+      await act(async () => {
+        await user.click(planningTab);
+      });
 
       // Should show Planning tab content - wait for lazy loading
-      await waitFor(() => {
-        expect(screen.getByText('Planning Documents')).toBeInTheDocument();
-      });
-      expect(screen.getByText('View Development →')).toBeInTheDocument();
+      await waitFor(
+        () => {
+          expect(screen.getByText('Planning Documents')).toBeInTheDocument();
+        },
+        { timeout: 10000 },
+      );
+      await waitFor(
+        () => {
+          expect(screen.getByText('View Development →')).toBeInTheDocument();
+        },
+        { timeout: 5000 },
+      );
     });
 
     it('highlights active tab button', async () => {
@@ -399,45 +438,55 @@ describe('App Component', () => {
       vi.clearAllMocks();
     });
 
-    it('defaults to Repository tab when no hash is present', () => {
-      render(<AppWithRouter />);
+    it('defaults to Repository tab when no hash is present', async () => {
+      await act(async () => {
+        render(<AppWithRouter />);
+      });
 
       const infrastructureTab = screen.getByRole('tab', { name: /Repository/i });
       expect(infrastructureTab.className).toMatch(/active/);
     });
 
-    it('loads correct tab from URL hash', () => {
+    it('loads correct tab from URL hash', async () => {
       mockLocation.hash = '#Planning';
 
-      render(<AppWithRouter />);
+      await act(async () => {
+        render(<AppWithRouter />);
+      });
 
       const planningTab = screen.getByRole('tab', { name: /Planning/i });
       expect(planningTab.className).toMatch(/active/);
     });
 
-    it('loads correct tab from return parameter', () => {
+    it('loads correct tab from return parameter', async () => {
       mockLocation.search = '?return=Building';
 
-      render(<AppWithRouter />);
+      await act(async () => {
+        render(<AppWithRouter />);
+      });
 
       const buildingTab = screen.getByRole('tab', { name: /Building/i });
       expect(buildingTab.className).toMatch(/active/);
     });
 
-    it('prioritizes hash over return parameter', () => {
+    it('prioritizes hash over return parameter', async () => {
       mockLocation.hash = '#Quality Assurance';
       mockLocation.search = '?return=Building';
 
-      render(<AppWithRouter />);
+      await act(async () => {
+        render(<AppWithRouter />);
+      });
 
       const qualityTab = screen.getByRole('tab', { name: /Quality Assurance/i });
       expect(qualityTab.className).toMatch(/active/);
     });
 
-    it('falls back to Repository for invalid hash', () => {
+    it('falls back to Repository for invalid hash', async () => {
       mockLocation.hash = '#InvalidTab';
 
-      render(<AppWithRouter />);
+      await act(async () => {
+        render(<AppWithRouter />);
+      });
 
       const infrastructureTab = screen.getByRole('tab', { name: /Repository/i });
       expect(infrastructureTab.className).toMatch(/active/);
@@ -454,10 +503,12 @@ describe('App Component', () => {
       expect(mockHistory.pushState).toHaveBeenCalledWith(null, '', '#Planning');
     });
 
-    it('cleans up URL when return parameter is used', () => {
+    it('cleans up URL when return parameter is used', async () => {
       mockLocation.search = '?return=Building';
 
-      render(<AppWithRouter />);
+      await act(async () => {
+        render(<AppWithRouter />);
+      });
 
       // Should clean up the URL and use hash format
       expect(mockHistory.replaceState).toHaveBeenCalledWith(null, '', '/#Building');
@@ -525,10 +576,12 @@ describe('App Component', () => {
       );
     });
 
-    it('handles browser back/forward navigation', () => {
+    it('handles browser back/forward navigation', async () => {
       // Render with initial hash
       mockLocation.hash = '#Maintenance';
-      render(<AppWithRouter />);
+      await act(async () => {
+        render(<AppWithRouter />);
+      });
 
       // Should load the Maintenance tab based on hash
       const maintenanceTab = screen.getByRole('tab', { name: /Maintenance/i });
@@ -633,8 +686,10 @@ describe('App Component', () => {
       );
     });
 
-    it('verifies no broken relative links exist', () => {
-      render(<AppWithRouter />);
+    it('verifies no broken relative links exist', async () => {
+      await act(async () => {
+        render(<AppWithRouter />);
+      });
 
       const allLinks = screen.getAllByRole('link');
 

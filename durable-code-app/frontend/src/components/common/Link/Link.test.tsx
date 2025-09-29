@@ -15,7 +15,10 @@ describe('Link', () => {
   });
 
   it('handles click events', async () => {
-    const handleClick = vi.fn();
+    const handleClick = vi.fn((event) => {
+      // Prevent navigation to avoid JSDOM "Not implemented: navigation" error
+      event.preventDefault();
+    });
     const user = userEvent.setup();
 
     render(

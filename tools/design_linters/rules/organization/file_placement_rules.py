@@ -25,7 +25,6 @@ from typing import Any
 
 import yaml
 from loguru import logger
-
 from tools.design_linters.framework.interfaces import (
     ASTLintRule,
     LintContext,
