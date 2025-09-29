@@ -74,7 +74,7 @@ services:
   playwright-tester:
     build:
       context: ../../test/integration_test
-      dockerfile: ../../.docker/dockerfiles/testing/Dockerfile.playwright
+      dockerfile: ../../.docker/dockerfiles/Dockerfile.playwright
     container_name: durable-code-playwright-tester-${BRANCH_NAME:-main}
     networks:
       - test-network
