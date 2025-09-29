@@ -362,11 +362,12 @@ class HeaderViolationChecker:
             violations.append(
                 LintViolation(
                     rule_id=rule_id,
-                    message=f"Header missing required fields: {self._format_missing_fields(missing_fields)}",
-                    severity=severity,
+                    file_path=context.file_path,
                     line=1,
                     column=0,
-                    file_path=context.file_path,
+                    severity=severity,
+                    message=(f"Header missing required fields: {self._format_missing_fields(missing_fields)}"),
+                    description="File headers should include all required documentation fields",
                     suggestion="Add missing fields to the header documentation",
                 )
             )
@@ -384,11 +385,12 @@ class HeaderViolationChecker:
                 violations.append(
                     LintViolation(
                         rule_id=rule_id,
-                        message=message,
-                        severity=Severity.WARNING,
+                        file_path=context.file_path,
                         line=1,
                         column=0,
-                        file_path=context.file_path,
+                        severity=Severity.WARNING,
+                        message=message,
+                        description="Overview field should provide comprehensive documentation",
                         suggestion="Expand the Overview field with comprehensive documentation",
                     )
                 )
@@ -413,11 +415,12 @@ class HeaderViolationChecker:
             violations.append(
                 LintViolation(
                     rule_id=rule_id,
-                    message=f"Code file missing required fields: {self._format_missing_fields(missing_required)}",
-                    severity=severity,
+                    file_path=context.file_path,
                     line=1,
                     column=0,
-                    file_path=context.file_path,
+                    severity=severity,
+                    message=f"Code file missing required fields: {self._format_missing_fields(missing_required)}",
+                    description="Code files require specific documentation fields",
                     suggestion="Add missing code documentation fields",
                 )
             )
@@ -428,11 +431,12 @@ class HeaderViolationChecker:
             violations.append(
                 LintViolation(
                     rule_id=rule_id,
-                    message=f"Code file missing recommended fields: {self._format_missing_fields(missing_recommended)}",
-                    severity=Severity.WARNING,
+                    file_path=context.file_path,
                     line=1,
                     column=0,
-                    file_path=context.file_path,
+                    severity=Severity.WARNING,
+                    message=f"Code file missing recommended fields: {self._format_missing_fields(missing_recommended)}",
+                    description="Recommended documentation fields improve code maintainability",
                     suggestion="Consider adding recommended documentation fields",
                 )
             )
@@ -450,11 +454,12 @@ class HeaderViolationChecker:
             violations.append(
                 LintViolation(
                     rule_id=rule_id,
-                    message=f"Header field '{issue['field']}' {issue['issue']}",
-                    severity=Severity.WARNING,
+                    file_path=context.file_path,
                     line=1,
                     column=0,
-                    file_path=context.file_path,
+                    severity=Severity.WARNING,
+                    message=f"Header field '{issue['field']}' {issue['issue']}",
+                    description="Header field content should meet quality standards",
                     suggestion=issue["suggestion"],
                 )
             )
@@ -473,12 +478,12 @@ class HeaderViolationChecker:
             violations.append(
                 LintViolation(
                     rule_id=rule_id,
-                    message=f"Header contains temporal language: '{issue['text']}'",
-                    description="Temporal language makes documentation time-dependent",
-                    severity=Severity.WARNING,
+                    file_path=context.file_path,
                     line=1,
                     column=0,
-                    file_path=context.file_path,
+                    severity=Severity.WARNING,
+                    message=f"Header contains temporal language: '{issue['text']}'",
+                    description="Temporal language makes documentation time-dependent",
                     suggestion=suggestion,
                 )
             )
@@ -623,8 +628,8 @@ class FileHeaderRule(ASTLintRule):
 
     def _get_file_content(self, file_path: Path, context: LintContext) -> str | None:
         """Get file content from context or read from disk."""
-        if hasattr(context, "source") and context.source:
-            return context.source
+        if hasattr(context, "file_content") and context.file_content:
+            return context.file_content
         try:
             return file_path.read_text(encoding="utf-8")
         except Exception as e:
@@ -636,11 +641,11 @@ class FileHeaderRule(ASTLintRule):
         template = self._template_provider.get_template(file_ext)
         return LintViolation(
             rule_id=self.rule_id,
-            message="File missing documentation header",
-            description="All files should have proper documentation headers with required fields",
-            severity=self.severity,
+            file_path=context.file_path,
             line=1,
             column=0,
-            file_path=context.file_path,
+            severity=self.severity,
+            message="File missing documentation header",
+            description="All files should have proper documentation headers with required fields",
             suggestion=f"Add header at the beginning of the file:\n{template}",
         )
