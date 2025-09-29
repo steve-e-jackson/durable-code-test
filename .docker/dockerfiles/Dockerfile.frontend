@@ -55,8 +55,14 @@ CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
 # =============================================================================
 FROM dependencies AS lint
 
+# Ensure all dependencies are installed (sometimes cache issues)
+RUN npm ci || npm install
+
 # Install HTMLHint globally for HTML linting
 RUN npm install -g htmlhint
+
+# Ensure TypeScript and other tools are available in PATH for linting
+ENV PATH="/app/node_modules/.bin:${PATH}"
 
 # Create .htmlhintrc configuration
 RUN echo '{ \
