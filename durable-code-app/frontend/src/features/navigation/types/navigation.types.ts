@@ -12,11 +12,20 @@ import type { TabName } from '../../../store/navigationStore';
 
 export type { TabName };
 
+export interface SubTabContent {
+  id: string;
+  title: string;
+  icon?: string;
+  description: string;
+  component: LazyExoticComponent<ComponentType>;
+}
+
 export interface TabContent {
   title: string;
   icon: string;
   description: string;
-  component: LazyExoticComponent<ComponentType>;
+  component?: LazyExoticComponent<ComponentType>;
+  subTabs?: SubTabContent[];
 }
 
 export interface TabConfig {
