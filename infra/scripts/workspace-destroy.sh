@@ -69,8 +69,7 @@ case $SCOPE in
         echo -e "${GREEN}Note: Base infrastructure (VPC, NAT, ECR) will be preserved${NC}"
         echo ""
 
-        "${SCRIPT_DIR}/workspace-destroy-runtime.sh" "$ENV"
-        if [ $? -eq 0 ]; then
+        if "${SCRIPT_DIR}/workspace-destroy-runtime.sh" "$ENV"; then
             echo -e "${GREEN}✓ Runtime infrastructure destroyed successfully${NC}"
         else
             echo -e "${RED}✗ Runtime infrastructure destruction failed${NC}"
@@ -103,8 +102,7 @@ case $SCOPE in
 
         # Destroy runtime first
         echo -e "${YELLOW}Step 1/2: Destroying runtime infrastructure...${NC}"
-        "${SCRIPT_DIR}/workspace-destroy-runtime.sh" "$ENV"
-        if [ $? -ne 0 ]; then
+        if ! "${SCRIPT_DIR}/workspace-destroy-runtime.sh" "$ENV"; then
             echo -e "${RED}✗ Runtime infrastructure destruction failed${NC}"
             echo -e "${YELLOW}Aborting. Base infrastructure remains intact.${NC}"
             exit 1
@@ -114,8 +112,7 @@ case $SCOPE in
 
         # Then destroy base
         echo -e "${BLUE}Step 2/2: Destroying base infrastructure...${NC}"
-        "${SCRIPT_DIR}/workspace-destroy-base.sh" "$ENV"
-        if [ $? -ne 0 ]; then
+        if ! "${SCRIPT_DIR}/workspace-destroy-base.sh" "$ENV"; then
             echo -e "${RED}✗ Base infrastructure destruction failed${NC}"
             echo -e "${YELLOW}Warning: Partial destruction may have occurred${NC}"
             exit 1
