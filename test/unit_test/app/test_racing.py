@@ -10,15 +10,16 @@ Implementation: Unit tests with API client testing
 
 import pytest
 from fastapi.testclient import TestClient
-from durable_code_app.backend.app.main import app
-from durable_code_app.backend.app.racing import (
-    generate_oval_track,
-    DEFAULT_TRACK_WIDTH,
+
+from app.main import app
+from app.racing import (
     DEFAULT_TRACK_HEIGHT,
-    MIN_TRACK_WIDTH,
+    DEFAULT_TRACK_WIDTH,
+    MAX_TRACK_HEIGHT,
     MAX_TRACK_WIDTH,
     MIN_TRACK_HEIGHT,
-    MAX_TRACK_HEIGHT,
+    MIN_TRACK_WIDTH,
+    generate_oval_track,
 )
 
 client = TestClient(app)
