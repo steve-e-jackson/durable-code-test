@@ -15,6 +15,7 @@
 |------|--------|------------|--------------|----------|---------------|----------|
 | [Frontend Critical Fixes](in_progress/frontend-critical-fixes/PROGRESS_TRACKER.md) | 🟡 | 57% | [████████████░░░░░░░░] | Critical | 4/7 PRs | `in_progress/` |
 | [AI Contributions](planning/ai-contributions/PROGRESS_TRACKER.md) | 🔴 | 0% | [░░░░░░░░░░░░░░░░░░░░] | High | 0/6 PRs | `planning/` |
+| [Agent-Agnostic System](planning/agent-agnostic-system/PROGRESS_TRACKER.md) | 🔴 | 0% | [░░░░░░░░░░░░░░░░░░░░] | High | 0/6 PRs | `planning/` |
 | [Example API Feature](planning/example-api-feature/PROGRESS_TRACKER.md) | 🔴 | 0% | [░░░░░░░░░░░░░░░░░░░░] | Medium | 0/6 PRs | `planning/` |
 | [Terraform Workspaces](in_progress/terraform-workspaces/PROGRESS_TRACKER.md) | 🟡 | 50% | [██████████░░░░░░░░░░] | High | 3/6 PRs | `in_progress/` |
 | [Docker Linting Separation](in_progress/docker-linting-separation/PROGRESS_TRACKER.md) | 🟡 | 75% | [███████████████░░░░░] | High | 18/24 tasks | `in_progress/` |
@@ -35,7 +36,7 @@ Items are automatically organized by completion percentage:
 
 ### By Status
 ```
-Planning    [░░░░░░░░░░] 0%   (2 items)
+Planning    [░░░░░░░░░░] 0%   (3 items)
 In Progress [█████░░░░░] 55%  (5 items)
 Complete    [██████████] 100% (2 items)
 ```
@@ -53,9 +54,10 @@ Complete    [██████████] 100% (2 items)
 
 ### 🟠 High Priority
 1. **AI Contributions** - 0% - AI workflow improvements planned
-2. **Terraform Workspaces** - 50% - PR1, PR2, PR3 complete (base and runtime workspaces implemented)
-3. **Docker Linting Separation** - 75% - Tasks 1-4 complete, documentation remaining
-4. **Docker Reorganization** - 80% - PR1, PR2, PR3+PR4 complete (compose files moved, all references updated)
+2. **Agent-Agnostic System** - 0% - Universal AI tool compatibility via AGENTS.md + make commands
+3. **Terraform Workspaces** - 50% - PR1, PR2, PR3 complete (base and runtime workspaces implemented)
+4. **Docker Linting Separation** - 75% - Tasks 1-4 complete, documentation remaining
+5. **Docker Reorganization** - 80% - PR1, PR2, PR3+PR4 complete (compose files moved, all references updated)
 
 ### 🟡 Medium Priority
 1. **Example API Feature** - 0% - Template for new features
