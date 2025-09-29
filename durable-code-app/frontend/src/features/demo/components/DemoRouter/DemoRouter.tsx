@@ -8,11 +8,17 @@
  */
 
 import type { ReactElement } from 'react';
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { useNavigationStore } from '../../../../store/navigationStore';
 import { OscilloscopeDemo } from '../OscilloscopeDemo';
-import { RacingGameTab } from '../../../racing/components/RacingGameTab';
 import { DemoSelector } from '../DemoSelector';
+
+// Lazy load racing game to prevent import-time errors
+const RacingGameTab = lazy(() =>
+  import('../../../racing/components/RacingGameTab').then((m) => ({
+    default: m.RacingGameTab,
+  })),
+);
 
 export function DemoRouter(): ReactElement {
   const { activeSubTab, setActiveSubTab } = useNavigationStore();
@@ -37,7 +43,11 @@ export function DemoRouter(): ReactElement {
     case 'oscilloscope':
       return <OscilloscopeDemo />;
     case 'racing':
-      return <RacingGameTab />;
+      return (
+        <Suspense fallback={<div>Loading Racing Game...</div>}>
+          <RacingGameTab />
+        </Suspense>
+      );
     default:
       return <DemoSelector />;
   }

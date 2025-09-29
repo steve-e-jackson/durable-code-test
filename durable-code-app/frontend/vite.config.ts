@@ -36,6 +36,9 @@ export default defineConfig({
     //   brotliSize: true,
     // }) as any,
   ],
+  optimizeDeps: {
+    include: ['matter-js']
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
