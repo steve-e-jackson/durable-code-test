@@ -53,7 +53,7 @@ test: test-ensure-containers ## Run all tests quickly (no coverage)
 	@echo "$(CYAN)║                    Quick Test Suite                       ║$(NC)"
 	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
 	@echo "$(YELLOW)Running backend tests...$(NC)"
-	@docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "cd /app && PYTHONPATH=/app:/app/tools poetry run pytest test/ -v" || echo "$(YELLOW)Backend tests completed with some failures$(NC)"
+	@docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "cd /app && PYTHONPATH=/app:/app/tools poetry config virtualenvs.create false && poetry run pytest test/ -v" || echo "$(YELLOW)Backend tests completed with some failures$(NC)"
 	@echo "$(YELLOW)Running frontend tests...$(NC)"
 	@docker exec durable-code-frontend-$(BRANCH_NAME)-dev npm run test:run
 	@echo "$(GREEN)✓ Quick tests complete$(NC)"
@@ -64,7 +64,7 @@ test-backend: test-ensure-containers ## Run backend tests with coverage
 	@echo "$(CYAN)║              Backend Tests with Coverage                  ║$(NC)"
 	@echo "$(CYAN)╚════════════════════════════════════════════════════════════╝$(NC)"
 	@echo "$(YELLOW)Running backend and framework tests with coverage...$(NC)"
-	@docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "cd /app && PYTHONPATH=/app:/app/tools poetry run pytest test/ --cov=app --cov=tools/design_linters --cov-report=term --cov-report=term:skip-covered --tb=short -v" || echo "$(YELLOW)Tests completed with some failures$(NC)"
+	@docker exec durable-code-backend-$(BRANCH_NAME)-dev bash -c "cd /app && PYTHONPATH=/app:/app/tools poetry config virtualenvs.create false && poetry run pytest test/ --cov=app --cov=tools/design_linters --cov-report=term --cov-report=term:skip-covered --tb=short -v" || echo "$(YELLOW)Tests completed with some failures$(NC)"
 	@echo "$(GREEN)✓ Backend tests complete$(NC)"
 
 # Internal target for CI

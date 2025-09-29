@@ -12,10 +12,15 @@ Implementation: Comprehensive test coverage using mocked file paths and contexts
 """
 
 import ast
+import os
+import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../../../tools"))
+
 from tools.design_linters.framework.interfaces import LintContext, Severity
 from tools.design_linters.rules.organization.file_placement_rules import FileOrganizationRule
 

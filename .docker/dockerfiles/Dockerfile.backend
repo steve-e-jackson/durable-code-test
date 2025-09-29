@@ -39,6 +39,9 @@ RUN useradd -m -u 1000 appuser
 # =============================================================================
 FROM base AS dev
 
+# Ensure Poetry doesn't create virtual environments for development
+RUN poetry config virtualenvs.create false
+
 # Install all dependencies including dev group for development
 RUN poetry install --no-interaction --no-ansi --no-root
 
@@ -110,6 +113,9 @@ CMD ["tail", "-f", "/dev/null"]
 # TESTING STAGE - Test execution environment
 # =============================================================================
 FROM base AS test
+
+# Ensure Poetry doesn't create virtual environments for testing
+RUN poetry config virtualenvs.create false
 
 # Install all dependencies including dev group for testing tools
 RUN poetry install --no-interaction --no-ansi --no-root

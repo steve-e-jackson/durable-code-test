@@ -46,43 +46,106 @@ make lint-fix
 git diff --stat
 ```
 
-### 3. Parallel Fix Phase
-Launch multiple specialized agents in parallel to fix issues on a per-file basis:
+### 3. Ultra-Fast Parallel Fix Phase
+Launch 8-12 specialized agents in parallel to fix specific error types simultaneously:
 
-**CRITICAL**: Multiple agents run concurrently using the Task tool with parallel execution, up to a maximum of 10 agents.
+**CRITICAL**: All agents run concurrently using the Task tool with parallel execution. Each agent specializes in one error type for maximum speed.
 
 ```
-🚀 Launching parallel fix agents:
-  - One agent per file with issues (maximum 10 concurrent agents)
-  - Each agent focuses on fixing all issues in its assigned file
-  - Agents work independently to maximize parallelization
+🚀 Launching ULTRA-FAST specialized fix agents:
+  - 8-12 specialized agents running simultaneously
+  - Each agent handles specific error types (not files)
+  - Agents work independently with targeted validation
+  - ~80% speed improvement over sequential fixing
 ```
 
-#### File-Based Agent Strategy
-The system will:
-1. Run `make lint-all` and `make test-all` to identify all issues
-2. Group errors by file path
-3. Launch one agent per file (up to 10 agents maximum)
-4. If more than 10 files have issues, process them in batches
+#### ⚡ SPEED-OPTIMIZED AGENT SPECIALIZATION
 
-#### Individual File Fix Agent Task
-Each file fix agent will:
-1. Focus exclusively on its assigned file
-2. Identify all linting errors, warnings, and test failures in that file
-3. Apply fixes using Edit or MultiEdit for the file
-4. Verify fixes don't introduce new issues
-5. Report completion status for the file
-6. Maximum 20 iterations per file to prevent infinite loops
+**CRITICAL DOCKER REQUIREMENT**: All agents MUST use specific make targets exclusively - NEVER run commands directly.
+- ✅ Use specific targets: `make lint-python`, `make lint-js`, `make test-backend`, `make test-frontend`
+- ✅ Use `make lint-fix` for auto-fixable formatting
+- ✅ Use `make lint-infra` for Terraform/infrastructure
+- ✅ Use `make lint-custom` for design linters
+- ❌ NEVER run raw `pytest`, `ruff`, `python`, `tflint`, etc. directly
+- ❌ NEVER run `PYTHONPATH=tools python -m design_linters.cli` directly
+- All linting/testing goes through Docker containers via specific make targets
 
-#### Batch Processing Logic
-If more than 10 files need fixes:
-1. Process files in priority order (most errors first)
-2. Launch first batch of 10 agents
-3. Wait for batch completion
-4. Launch next batch with remaining files
-5. Continue until all files are processed
+**Agent Types (Launch ALL simultaneously):**
 
-The parallel per-file execution maximizes efficiency by allowing independent fixes to proceed simultaneously without conflicts.
+1. **🔧 Terraform/Infra Agent** (15-30 seconds)
+   - Target: `terraform_unused_declarations` and infrastructure issues
+   - Validation: `make lint-infra` (TFLint, shell scripts via Docker)
+   - Commands: Only `make lint-infra`, never direct terraform/tflint
+   - Speed: Use MultiEdit for batch variable/local removal
+
+2. **🧪 Backend Test Agent** (45-60 seconds)
+   - Target: Python test failures only
+   - Validation: `make test-backend` (backend tests with coverage via Docker)
+   - Commands: Only `make test-backend`, never direct pytest
+   - Speed: Fix multiple test methods per iteration
+
+3. **⚛️ Frontend Test Agent** (30-45 seconds)
+   - Target: Frontend/TypeScript test failures only
+   - Validation: `make test-frontend` (frontend tests via Docker)
+   - Commands: Only `make test-frontend`, never direct vitest
+   - Speed: Fix React/TypeScript test issues
+
+4. **📝 Custom Design Linter Agent** (30-45 seconds)
+   - Target: File header, placement, SOLID violations
+   - Validation: `make lint-custom` (design linters via Docker)
+   - Commands: Only `make lint-custom`, never direct Python calls
+   - Speed: Fix header/organization issues in batch
+
+5. **🐍 Python Lint Agent** (30-45 seconds)
+   - Target: Ruff, Black, isort, mypy violations only
+   - Validation: `make lint-python` (Python linting via Docker)
+   - Commands: `make lint-fix` first, then `make lint-python`
+   - Speed: Auto-fix first, then targeted manual fixes
+
+6. **⚛️ TypeScript Lint Agent** (30-45 seconds)
+   - Target: ESLint, Prettier, TypeScript errors only
+   - Validation: `make lint-js` (JavaScript/TypeScript linting via Docker)
+   - Commands: Only `make lint-js`, never direct ESLint/Prettier
+   - Speed: Batch fix similar errors across files
+
+7. **🧩 Import/Module Agent** (15-30 seconds)
+   - Target: Import errors, missing modules only
+   - Validation: `make test-backend` for Python imports, `make test-frontend` for TS imports
+   - Commands: Only make targets, never direct Python imports
+   - Speed: Fast import path fixes
+
+8. **📊 Integration Test Agent** (45-60 seconds)
+   - Target: Playwright integration test failures
+   - Validation: `make test-playwright` (Playwright tests via Docker)
+   - Commands: Only `make test-playwright`, never direct playwright
+   - Speed: Fix integration test setup/assertions
+
+#### ⚡ ULTRA-FAST EXECUTION STRATEGY
+
+**Phase 3A: Parallel Launch (0-10 seconds)**
+Launch ALL agents simultaneously in a single message with multiple Task calls.
+
+**Phase 3B: Concurrent Execution (60-90 seconds total)**
+All agents work in parallel with these optimizations:
+- **Specific Make Targets**: Use `make lint-python`, `make test-backend`, `make lint-infra`, etc.
+- **Docker Containers**: All commands automatically go through Docker via make targets
+- **Container Startup**: Make targets handle Docker container startup automatically
+- **Targeted Validation**: Each agent runs only its specific domain checks
+- **Parallel Domains**: No conflicts since agents work on different error types
+- **Batch Fixes**: Group related errors for fewer iterations
+- **Early Exit**: Agents stop when their specific errors are resolved
+- **Maximum Speed**: Specific targets are faster than `make lint-all`/`make test-all`
+
+**Phase 3C: Real-time Monitoring (during execution)**
+Track agent progress with status updates every 30 seconds:
+```
+⏱️ 0:30 - 🔧 Infra: 15/28 fixed | 🧪 Backend: 8/25 fixed | 📝 Design: 12/12 fixed ✅
+⏱️ 1:00 - 🔧 Infra: 25/28 fixed | 🧪 Backend: 18/25 fixed | 🐍 Python: 45/50 fixed
+⏱️ 1:30 - 🔧 Infra: 28/28 fixed ✅ | 🧪 Backend: 25/25 fixed ✅ | ⚛️ Frontend: 12/15 fixed ✅
+```
+
+**Expected Total Time: 1.5-2 minutes** (vs 8-12 minutes sequential)
+**Speed Improvement: ~80% faster with specific make targets**
 
 ### 4. Sequential Cleanup Phase
 After all parallel file agents complete, perform final sequential cleanup:
