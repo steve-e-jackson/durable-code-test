@@ -1,0 +1,56 @@
+# Purpose: Application Docker Compose configuration with hot reload support
+# Scope: Local application environment orchestration for development
+# Overview: Configures Docker services for local application development using multi-stage
+#     Dockerfiles with the 'dev' target. Provides automatic code reloading for both backend
+#     (FastAPI with uvicorn --reload) and frontend (Vite HMR) applications. Volume mounts
+#     bind local source directories to containers enabling instant code updates without
+#     rebuilds. Uses the efficient multi-stage build pattern for faster builds and better
+#     layer caching. Services auto-restart unless explicitly stopped.
+# Dependencies: Docker, Docker Compose, multi-stage Dockerfiles, local source code
+# Exports: Application services with hot reload capabilities
+# Interfaces: Backend on port ${BACKEND_PORT:-8000}, Frontend on port ${FRONTEND_PORT:-5173}
+# Implementation: Multi-stage Docker builds with dev target, volume mounts for code
+
+services:
+  backend-dev:
+    build:
+      context: ../..
+      dockerfile: .docker/dockerfiles/Dockerfile.backend
+      target: dev
+    container_name: durable-code-backend-${BRANCH_NAME:-main}-dev
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    environment:
+      - ENV=development
+    volumes:
+      - ../../durable-code-app/backend:/app
+      - ../../test:/app/test
+      - ../../tools:/app/tools
+      - /app/__pycache__
+    networks:
+      - durable-network-dev
+    restart: unless-stopped
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend-dev:
+    build:
+      context: ../..
+      dockerfile: .docker/dockerfiles/Dockerfile.frontend
+      target: dev
+    container_name: durable-code-frontend-${BRANCH_NAME:-main}-dev
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    depends_on:
+      - backend-dev
+    volumes:
+      - ../../durable-code-app/frontend:/app
+      - /app/node_modules
+    networks:
+      - durable-network-dev
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=development
+
+networks:
+  durable-network-dev:
+    driver: bridge
