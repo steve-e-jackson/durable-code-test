@@ -144,15 +144,14 @@ RUN if python -c "import playwright" 2>/dev/null; then \
     fi
 
 # Create test user and set permissions
-# Make /app writable for coverage database files
-RUN useradd -m -u 1002 tester && \
-    chown -R tester:tester /app && \
-    chmod -R 775 /app
+RUN useradd -m -u 1002 tester
 
-# Create a writable directory for coverage data
-RUN mkdir -p /app/.coverage_data && \
-    chown tester:tester /app/.coverage_data && \
-    chmod 775 /app/.coverage_data
+# Create necessary directories with proper permissions before switching user
+# These need to be created as root and given to tester
+RUN mkdir -p /app/.coverage_data /app/.pytest_cache && \
+    chown -R tester:tester /app && \
+    chmod -R 775 /app && \
+    chmod 777 /app/.coverage_data /app/.pytest_cache
 
 # Switch to test user
 USER tester
