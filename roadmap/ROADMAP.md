@@ -1,13 +1,13 @@
 # Project Roadmap Overview
 
 **Last Updated**: Auto-generated from roadmap items
-**Overall Completion**: 56% (5.07 of 9 items complete)
+**Overall Completion**: 50% (5.07 of 10 items complete)
 
 ## Status Summary
-- 🔴 Planning: 2 items (0% avg)
+- 🔴 Planning: 4 items (0% avg)
 - 🟡 In Progress: 5 items (61% avg)
 - 🟢 Complete: 2 items (100%)
-- 📝 Total: 9 items
+- 📝 Total: 11 items
 
 ## Roadmap Items
 
@@ -16,6 +16,7 @@
 | [Frontend Critical Fixes](in_progress/frontend-critical-fixes/PROGRESS_TRACKER.md) | 🟡 | 57% | [████████████░░░░░░░░] | Critical | 4/7 PRs | `in_progress/` |
 | [AI Contributions](planning/ai-contributions/PROGRESS_TRACKER.md) | 🔴 | 0% | [░░░░░░░░░░░░░░░░░░░░] | High | 0/6 PRs | `planning/` |
 | [Agent-Agnostic System](planning/agent-agnostic-system/PROGRESS_TRACKER.md) | 🔴 | 0% | [░░░░░░░░░░░░░░░░░░░░] | High | 0/6 PRs | `planning/` |
+| [Racing Game Demo](planning/racing-game-demo/PROGRESS_TRACKER.md) | 🔴 | 0% | [░░░░░░░░░░░░░░░░░░░░] | Medium | 0/6 PRs | `planning/` |
 | [Example API Feature](planning/example-api-feature/PROGRESS_TRACKER.md) | 🔴 | 0% | [░░░░░░░░░░░░░░░░░░░░] | Medium | 0/6 PRs | `planning/` |
 | [Terraform Workspaces](in_progress/terraform-workspaces/PROGRESS_TRACKER.md) | 🟡 | 50% | [██████████░░░░░░░░░░] | High | 3/6 PRs | `in_progress/` |
 | [Docker Linting Separation](in_progress/docker-linting-separation/PROGRESS_TRACKER.md) | 🟡 | 75% | [███████████████░░░░░] | High | 18/24 tasks | `in_progress/` |
@@ -36,7 +37,7 @@ Items are automatically organized by completion percentage:
 
 ### By Status
 ```
-Planning    [░░░░░░░░░░] 0%   (3 items)
+Planning    [░░░░░░░░░░] 0%   (4 items)
 In Progress [█████░░░░░] 55%  (5 items)
 Complete    [██████████] 100% (2 items)
 ```
@@ -60,7 +61,8 @@ Complete    [██████████] 100% (2 items)
 5. **Docker Reorganization** - 80% - PR1, PR2, PR3+PR4 complete (compose files moved, all references updated)
 
 ### 🟡 Medium Priority
-1. **Example API Feature** - 0% - Template for new features
+1. **Racing Game Demo** - 0% - Physics-based racing game with procedural track generation
+2. **Example API Feature** - 0% - Template for new features
 
 ### ✅ Completed
 1. **Frontend Upgrade** - 100% - Complete
