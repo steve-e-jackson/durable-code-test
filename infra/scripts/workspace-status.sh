@@ -104,9 +104,9 @@ check_workspace() {
 
         # Show key outputs if they exist
         outputs=$(terraform output -json 2>/dev/null)
-        if [ ! -z "$outputs" ] && [ "$outputs" != "{}" ]; then
+        if [ -n "$outputs" ] && [ "$outputs" != "{}" ]; then
             print_message "$CYAN" "  Key outputs:"
-            echo "$outputs" | jq -r 'keys[]' 2>/dev/null | head -5 | while read key; do
+            echo "$outputs" | jq -r 'keys[]' 2>/dev/null | head -5 | while read -r key; do
                 echo "    - $key"
             done
         else

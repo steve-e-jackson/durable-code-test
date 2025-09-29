@@ -17,7 +17,7 @@ import unittest
 from pathlib import Path
 from typing import Any, Dict
 
-sys.path.insert(0, "/home/stevejackson/Projects/durable-code-test/tools")
+sys.path.insert(0, "/home/stevejackson/Projects/durable-code-test-2")
 
 from tools.design_linters.framework.interfaces import LintContext, LintViolation, Severity
 from tools.design_linters.rules.style.print_statement_rules import ConsoleOutputRule, PrintStatementRule

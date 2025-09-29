@@ -54,8 +54,7 @@ echo ""
 case $SCOPE in
     base)
         echo -e "${BLUE}Deploying base infrastructure...${NC}"
-        "${SCRIPT_DIR}/workspace-deploy-base.sh" "$ENV"
-        if [ $? -eq 0 ]; then
+        if "${SCRIPT_DIR}/workspace-deploy-base.sh" "$ENV"; then
             echo -e "${GREEN}✓ Base infrastructure deployed successfully${NC}"
         else
             echo -e "${RED}✗ Base infrastructure deployment failed${NC}"
@@ -65,8 +64,7 @@ case $SCOPE in
 
     runtime)
         echo -e "${GREEN}Deploying runtime infrastructure...${NC}"
-        "${SCRIPT_DIR}/workspace-deploy-runtime.sh" "$ENV"
-        if [ $? -eq 0 ]; then
+        if "${SCRIPT_DIR}/workspace-deploy-runtime.sh" "$ENV"; then
             echo -e "${GREEN}✓ Runtime infrastructure deployed successfully${NC}"
         else
             echo -e "${RED}✗ Runtime infrastructure deployment failed${NC}"
@@ -80,8 +78,7 @@ case $SCOPE in
 
         # Deploy base first
         echo -e "${BLUE}Step 1/2: Deploying base infrastructure...${NC}"
-        "${SCRIPT_DIR}/workspace-deploy-base.sh" "$ENV"
-        if [ $? -ne 0 ]; then
+        if ! "${SCRIPT_DIR}/workspace-deploy-base.sh" "$ENV"; then
             echo -e "${RED}✗ Base infrastructure deployment failed${NC}"
             echo -e "${RED}Aborting deployment${NC}"
             exit 1
@@ -91,8 +88,7 @@ case $SCOPE in
 
         # Then deploy runtime
         echo -e "${GREEN}Step 2/2: Deploying runtime infrastructure...${NC}"
-        "${SCRIPT_DIR}/workspace-deploy-runtime.sh" "$ENV"
-        if [ $? -ne 0 ]; then
+        if ! "${SCRIPT_DIR}/workspace-deploy-runtime.sh" "$ENV"; then
             echo -e "${RED}✗ Runtime infrastructure deployment failed${NC}"
             echo -e "${YELLOW}Note: Base infrastructure was deployed successfully${NC}"
             exit 1

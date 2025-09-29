@@ -39,6 +39,9 @@ RUN useradd -m -u 1000 appuser
 # =============================================================================
 FROM base AS dev
 
+# Ensure Poetry doesn't create virtual environments for development
+RUN poetry config virtualenvs.create false
+
 # Install all dependencies including dev group for development
 RUN poetry install --no-interaction --no-ansi --no-root
 
@@ -111,6 +114,9 @@ CMD ["tail", "-f", "/dev/null"]
 # =============================================================================
 FROM base AS test
 
+# Ensure Poetry doesn't create virtual environments for testing
+RUN poetry config virtualenvs.create false
+
 # Install all dependencies including dev group for testing tools
 RUN poetry install --no-interaction --no-ansi --no-root
 
@@ -138,14 +144,25 @@ RUN if python -c "import playwright" 2>/dev/null; then \
     fi
 
 # Create test user and set permissions
-RUN useradd -m -u 1002 tester && \
-    chown -R tester:tester /app
+RUN useradd -m -u 1002 tester
+
+# Create necessary directories with proper permissions before switching user
+# These need to be created as root and given to tester
+RUN mkdir -p /app/.coverage_data /app/.pytest_cache && \
+    chown -R tester:tester /app && \
+    chmod -R 775 /app && \
+    chmod 777 /app/.coverage_data /app/.pytest_cache
 
 # Switch to test user
 USER tester
 
-# Set cache directory for pytest
-ENV PYTEST_CACHE_DIR=/tmp/.pytest_cache
+# Set working directory
+WORKDIR /app
+
+# Set cache and coverage directories
+ENV PYTEST_CACHE_DIR=/app/.pytest_cache
+# Use /tmp for coverage data which is always writable
+ENV COVERAGE_FILE=/tmp/.coverage
 
 # Default test command with coverage
 CMD ["pytest", "test/", "--cov=app", "--cov=tools/design_linters", "--cov-report=term", "--cov-report=term:skip-covered", "-v"]
