@@ -344,7 +344,7 @@ def generate_procedural_track(
     # Get difficulty-based parameters
     track_width, num_control_points, variation = get_difficulty_params(difficulty)
 
-    # Generate control points
+    # Generate centerline control points
     control_points = generate_control_points(
         num_control_points, center, base_radius, variation, (width, height, padding)
     )
@@ -352,17 +352,51 @@ def generate_procedural_track(
     # Add track features for more interesting layout
     control_points = add_track_variation(control_points, "s_curve")
 
-    # Interpolate smooth curves
+    # Interpolate smooth centerline curve
     num_segments = 128  # More segments for smoother curves
     points_per_segment = num_segments // num_control_points
 
+    # Generate centerline points
+    centerline_points = []
+    for i in range(num_control_points):
+        num_control = len(control_points)
+        p0 = control_points[(i - 1) % num_control]
+        p1 = control_points[i]
+        p2 = control_points[(i + 1) % num_control]
+        p3 = control_points[(i + 2) % num_control]
+
+        for t in range(points_per_segment):
+            t_norm = t / points_per_segment
+            point = catmull_rom_point(p0, p1, p2, p3, t_norm)
+            centerline_points.append(point)
+
+    # Now generate inner and outer boundaries from centerline with consistent offset
     all_outer_points = []
     all_inner_points = []
 
-    for i in range(num_control_points):
-        outer, inner = interpolate_curve_segment(control_points, i, points_per_segment, track_width)
-        all_outer_points.extend(outer)
-        all_inner_points.extend(inner)
+    for i in range(len(centerline_points)):
+        current = centerline_points[i]
+        next_point = centerline_points[(i + 1) % len(centerline_points)]
+
+        # Calculate tangent
+        dx = next_point[0] - current[0]
+        dy = next_point[1] - current[1]
+        length = math.sqrt(dx * dx + dy * dy)
+
+        if length > 0:
+            # Perpendicular vector (normal)
+            normal_x = -dy / length
+            normal_y = dx / length
+
+            # Offset by half track width in each direction
+            half_width = track_width / 2
+            outer_x = current[0] + normal_x * half_width
+            outer_y = current[1] + normal_y * half_width
+            inner_x = current[0] - normal_x * half_width
+            inner_y = current[1] - normal_y * half_width
+
+            all_outer_points.append(Point2D(x=outer_x, y=outer_y))
+            all_inner_points.append(Point2D(x=inner_x, y=inner_y))
 
     return TrackBoundary(outer=all_outer_points, inner=all_inner_points)
 
