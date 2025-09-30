@@ -93,6 +93,15 @@ export interface UseRacingGameReturn {
   startGame: () => void;
   pauseGame: () => void;
   resetGame: () => void;
+  regenerateTrack?: (params?: {
+    numPoints?: number;
+    variationAmount?: number;
+    hairpinChance?: number;
+    hairpinIntensity?: number;
+    smoothingPasses?: number;
+    trackWidth?: number;
+    seed?: number;
+  }) => Promise<void>;
 
   // Loading states
   isLoadingTrack: boolean;

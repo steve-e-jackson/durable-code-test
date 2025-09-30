@@ -14,6 +14,8 @@ import { useRacingGame } from '../../hooks/useRacingGame';
 import { GameCanvas } from '../GameCanvas';
 import { ControlPanel } from '../ControlPanel';
 import { StatusDisplay } from '../StatusDisplay';
+import { TrackControls } from '../TrackControls';
+import { DEFAULT_TRACK_PARAMS } from '../../config/trackConfig';
 import styles from './RacingGameTab.module.css';
 
 export function RacingGameTab(): ReactElement {
@@ -29,7 +31,14 @@ export function RacingGameTab(): ReactElement {
     onMouseMove,
     onMouseDown,
     onMouseUp,
+    regenerateTrack,
   } = useRacingGame();
+
+  const handleRegenerateTrack = () => {
+    if (regenerateTrack) {
+      regenerateTrack(DEFAULT_TRACK_PARAMS);
+    }
+  };
 
   return (
     <div className={styles.container}>
@@ -37,9 +46,14 @@ export function RacingGameTab(): ReactElement {
         <div className={styles.icon}>🏎️</div>
         <h2 className={styles.title}>Racing Game Demo</h2>
         <p className={styles.subtitle}>
-          Physics-based racing with Matter.js - PR4 UI &amp; Controls
+          Physics-based racing with Matter.js - PR6.1 Enhanced Track Generation
         </p>
       </div>
+
+      <TrackControls
+        onRegenerate={handleRegenerateTrack}
+        isGenerating={isLoadingTrack}
+      />
 
       <ControlPanel
         gameState={gameState}
