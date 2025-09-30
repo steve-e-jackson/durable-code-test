@@ -14,12 +14,15 @@ const TRACK_SURFACE_COLOR = '#404040';
 const TRACK_OUTER_WALL_COLOR = '#ff0000';
 const TRACK_INNER_WALL_COLOR = '#ff0000';
 const TRACK_LINE_WIDTH = 4;
-const BACKGROUND_COLOR = '#2d5016';
+const BACKGROUND_COLOR = '#2d7a1f'; // Bright grass green
+const GRASS_DARK = '#247018'; // Darker grass for stripes
 const START_LINE_COLOR = '#ffffff';
 const START_LINE_WIDTH = 6;
+const BLEACHER_COLOR = '#8B4513'; // Brown for wooden bleachers
+const BLEACHER_SEAT_COLOR = '#A0522D';
 
 /**
- * Render the track background
+ * Render the track background with grass pattern
  *
  * @param ctx Canvas rendering context
  * @param width Canvas width
@@ -30,8 +33,29 @@ export function renderBackground(
   width: number,
   height: number,
 ): void {
+  // Base grass color
   ctx.fillStyle = BACKGROUND_COLOR;
   ctx.fillRect(0, 0, width, height);
+
+  // Add grass stripes for texture
+  ctx.fillStyle = GRASS_DARK;
+  const stripeWidth = 40;
+  for (let x = 0; x < width; x += stripeWidth * 2) {
+    ctx.fillRect(x, 0, stripeWidth, height);
+  }
+
+  // Add subtle texture overlay
+  ctx.globalAlpha = 0.1;
+  for (let i = 0; i < 100; i++) {
+    ctx.fillStyle = Math.random() > 0.5 ? GRASS_DARK : BACKGROUND_COLOR;
+    ctx.fillRect(
+      Math.random() * width,
+      Math.random() * height,
+      Math.random() * 5,
+      Math.random() * 5,
+    );
+  }
+  ctx.globalAlpha = 1.0;
 }
 
 /**
@@ -159,6 +183,60 @@ function drawStartLine(ctx: CanvasRenderingContext2D, track: Track): void {
 }
 
 /**
+ * Draw bleachers around the track
+ *
+ * @param ctx Canvas rendering context
+ * @param outer Outer boundary points
+ */
+function drawBleachers(ctx: CanvasRenderingContext2D, outer: Point2D[]): void {
+  const bleacherDistance = 40; // Distance from track edge
+  const seatHeight = 8;
+  const numSeats = 3;
+
+  // Sample points around the track for bleacher placement
+  const bleacherInterval = Math.floor(outer.length / 12); // Place bleachers at 12 locations
+
+  for (let i = 0; i < outer.length; i += bleacherInterval) {
+    const point = outer[i];
+    const nextPoint = outer[(i + 1) % outer.length];
+
+    // Calculate normal (perpendicular) direction pointing outward
+    const dx = nextPoint.x - point.x;
+    const dy = nextPoint.y - point.y;
+    const length = Math.sqrt(dx * dx + dy * dy);
+    if (length === 0) continue;
+
+    const normalX = -dy / length;
+    const normalY = dx / length;
+
+    // Bleacher base position (outside the track)
+    const baseX = point.x + normalX * bleacherDistance;
+    const baseY = point.y + normalY * bleacherDistance;
+
+    // Draw bleacher structure
+    ctx.save();
+    ctx.translate(baseX, baseY);
+    const angle = Math.atan2(dy, dx);
+    ctx.rotate(angle + Math.PI / 2);
+
+    // Draw bleacher rows
+    for (let row = 0; row < numSeats; row++) {
+      const rowY = row * seatHeight;
+
+      // Bleacher seat
+      ctx.fillStyle = BLEACHER_SEAT_COLOR;
+      ctx.fillRect(-15, rowY, 30, seatHeight);
+
+      // Bleacher support
+      ctx.fillStyle = BLEACHER_COLOR;
+      ctx.fillRect(-15, rowY + seatHeight - 2, 30, 2);
+    }
+
+    ctx.restore();
+  }
+}
+
+/**
  * Render the complete track
  *
  * @param ctx Canvas rendering context
@@ -166,6 +244,9 @@ function drawStartLine(ctx: CanvasRenderingContext2D, track: Track): void {
  */
 export function renderTrack(ctx: CanvasRenderingContext2D, track: Track): void {
   const { boundaries } = track;
+
+  // Draw bleachers first (behind track)
+  drawBleachers(ctx, boundaries.outer);
 
   // Fill track surface
   fillTrackSurface(ctx, boundaries.outer, boundaries.inner);

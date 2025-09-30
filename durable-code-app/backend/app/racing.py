@@ -285,6 +285,29 @@ def interpolate_curve_segment(
     return outer_points, inner_points
 
 
+def add_track_variation(
+    control_points: list[tuple[float, float]], variation_type: str = "s_curve"
+) -> list[tuple[float, float]]:
+    """Add specific track features like S-curves, chicanes, hairpins.
+
+    Args:
+        control_points: Base control points
+        variation_type: Type of variation to add
+
+    Returns:
+        Modified control points with added features
+    """
+    if variation_type == "s_curve":
+        # Add S-curve by modifying middle points
+        mid_idx = len(control_points) // 2
+        for i in range(mid_idx - 1, mid_idx + 2):
+            if i < len(control_points):
+                offset = (-1) ** i * 30  # Alternate left/right
+                control_points[i] = (control_points[i][0] + offset, control_points[i][1])
+
+    return control_points
+
+
 def generate_procedural_track(
     width: int, height: int, difficulty: str, padding: int = DEFAULT_TRACK_PADDING
 ) -> TrackBoundary:
@@ -310,8 +333,11 @@ def generate_procedural_track(
         num_control_points, center, base_radius, variation, (width, height, padding)
     )
 
+    # Add track features for more interesting layout
+    control_points = add_track_variation(control_points, "s_curve")
+
     # Interpolate smooth curves
-    num_segments = 64
+    num_segments = 128  # More segments for smoother curves
     points_per_segment = num_segments // num_control_points
 
     all_outer_points = []

@@ -32,8 +32,8 @@ import {
 } from '../rendering/trackRenderer';
 
 // Constants
-const CANVAS_WIDTH = 800;
-const CANVAS_HEIGHT = 600;
+const CANVAS_WIDTH = 1200; // Larger canvas for bigger track
+const CANVAS_HEIGHT = 900; // Larger canvas for bigger track
 const TARGET_FPS = 60;
 const PHYSICS_TIMESTEP = 1000 / TARGET_FPS;
 
