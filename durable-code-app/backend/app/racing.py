@@ -157,37 +157,18 @@ def generate_control_points(
     variation: float,
     bounds: tuple[int, int, float],
 ) -> list[tuple[float, float]]:
-    """Generate random control points for track generation.
-
-    Args:
-        num_points: Number of control points
-        center: Center point (x, y)
-        base_radius: Base radius (rx, ry)
-        variation: Amount of random variation
-        bounds: Tuple of (width, height, padding)
-
-    Returns:
-        List of control point coordinates
-    """
+    """Generate random control points for track generation."""
     width, height, padding = bounds
     control_points = []
+    min_radius = padding + 50
 
     for i in range(num_points):
         angle = (2 * math.pi * i) / num_points
-
-        # Add random variation to radius (not cryptographic use)
-        radius_var_x = base_radius[0] * (1 + random.uniform(-variation, variation))  # noqa: S311  # nosec B311
-        radius_var_y = base_radius[1] * (1 + random.uniform(-variation, variation))  # noqa: S311  # nosec B311
-
-        # Clamp to bounds
-        min_radius = padding + 50
-        radius_var_x = max(min_radius, min(width / 2 - padding, radius_var_x))
-        radius_var_y = max(min_radius, min(height / 2 - padding, radius_var_y))
-
-        x = center[0] + radius_var_x * math.cos(angle)
-        y = center[1] + radius_var_y * math.sin(angle)
-
-        control_points.append((x, y))
+        # Add random variation and clamp to bounds (not cryptographic use)
+        var = random.uniform(-variation, variation)  # noqa: S311  # nosec B311
+        r_x = max(min_radius, min(width / 2 - padding, base_radius[0] * (1 + var)))
+        r_y = max(min_radius, min(height / 2 - padding, base_radius[1] * (1 + var)))
+        control_points.append((center[0] + r_x * math.cos(angle), center[1] + r_y * math.sin(angle)))
 
     return control_points
 
@@ -258,40 +239,23 @@ def calculate_normal_offset(
 def interpolate_curve_segment(
     control_points: list[tuple[float, float]], segment_index: int, points_per_segment: int, track_width: float
 ) -> tuple[list[Point2D], list[Point2D]]:
-    """Interpolate a single curve segment with inner/outer boundaries.
-
-    Args:
-        control_points: List of control points
-        segment_index: Index of current segment
-        points_per_segment: Number of interpolation points
-        track_width: Width of track
-
-    Returns:
-        Tuple of (outer_points, inner_points) for this segment
-    """
+    """Interpolate a single curve segment with inner/outer boundaries."""
     num_control = len(control_points)
-    p0 = control_points[(segment_index - 1) % num_control]
-    p1 = control_points[segment_index]
-    p2 = control_points[(segment_index + 1) % num_control]
-    p3 = control_points[(segment_index + 2) % num_control]
+    ctrl_pts = [
+        control_points[(segment_index - 1) % num_control],
+        control_points[segment_index],
+        control_points[(segment_index + 1) % num_control],
+        control_points[(segment_index + 2) % num_control],
+    ]
 
-    outer_points = []
-    inner_points = []
-
+    outer_points, inner_points = [], []
     for t in range(points_per_segment):
         t_norm = t / points_per_segment
-
-        # Calculate outer boundary point
-        outer = catmull_rom_point(p0, p1, p2, p3, t_norm)
-
-        # Calculate next point for tangent
-        next_t = min(t + 1, points_per_segment - 1)
-        next_t_norm = next_t / points_per_segment
-        next_point = catmull_rom_point(p0, p1, p2, p3, next_t_norm)
-
-        # Calculate inner boundary
+        outer = catmull_rom_point(ctrl_pts[0], ctrl_pts[1], ctrl_pts[2], ctrl_pts[3], t_norm)
+        next_point = catmull_rom_point(
+            ctrl_pts[0], ctrl_pts[1], ctrl_pts[2], ctrl_pts[3], min(t + 1, points_per_segment - 1) / points_per_segment
+        )
         inner = calculate_normal_offset(outer, next_point, track_width)
-
         outer_points.append(Point2D(x=outer[0], y=outer[1]))
         inner_points.append(Point2D(x=inner[0], y=inner[1]))
 
@@ -301,63 +265,39 @@ def interpolate_curve_segment(
 def add_hairpin_turns(
     control_points: list[tuple[float, float]], center: tuple[float, float]
 ) -> list[tuple[float, float]]:
-    """Add dramatic 180-degree hairpin turns to the track.
-
-    Args:
-        control_points: Base control points
-        center: Track center point
-
-    Returns:
-        Modified control points with hairpin turns
-    """
+    """Add dramatic 180-degree hairpin turns to the track."""
     num_points = len(control_points)
 
-    # Add 2-3 hairpin turns at strategic locations
-    hairpin_positions = [num_points // 4, num_points // 2, (3 * num_points) // 4]
-
-    for hairpin_idx, base_idx in enumerate(hairpin_positions):
+    for hairpin_idx, base_idx in enumerate([num_points // 4, num_points // 2, (3 * num_points) // 4]):
         if 1 < base_idx < num_points - 1:
-            # Create a tight 180-degree hairpin by inserting extra control points
-            # This creates the characteristic U-turn shape
-
-            # Get the base point and calculate direction
-            base_point = control_points[base_idx]
-            prev_point = control_points[base_idx - 1]
-            next_point = control_points[(base_idx + 1) % num_points]
-
-            # Calculate the tangent direction
-            dx = next_point[0] - prev_point[0]
-            dy = next_point[1] - prev_point[1]
+            base_point, prev_point, next_point = (
+                control_points[base_idx],
+                control_points[base_idx - 1],
+                control_points[(base_idx + 1) % num_points],
+            )
+            dx, dy = next_point[0] - prev_point[0], next_point[1] - prev_point[1]
             length = math.sqrt(dx * dx + dy * dy)
 
             if length > 0:
-                # Normalize and get perpendicular
-                tx = dx / length
-                ty = dy / length
-                normal_x = -ty
-                normal_y = tx
+                normal = (-dy / length, dx / length)
+                hairpin_distance = 80 + (hairpin_idx * 15)
+                control_points[base_idx] = (
+                    base_point[0] + normal[0] * hairpin_distance,
+                    base_point[1] + normal[1] * hairpin_distance,
+                )
 
-                # Create hairpin apex point (pushed far out for dramatic 180-degree turns)
-                hairpin_distance = 80 + (hairpin_idx * 15)  # Vary hairpin tightness (more dramatic)
-                apex_x = base_point[0] + normal_x * hairpin_distance
-                apex_y = base_point[1] + normal_y * hairpin_distance
-
-                # Modify the base point to be the hairpin apex
-                control_points[base_idx] = (apex_x, apex_y)
-
-                # Push adjacent points strongly to create the U-shape entry and exit
                 if base_idx - 1 >= 0:
-                    entry_point = control_points[base_idx - 1]
+                    entry = control_points[base_idx - 1]
                     control_points[base_idx - 1] = (
-                        entry_point[0] + normal_x * (hairpin_distance * 0.5),
-                        entry_point[1] + normal_y * (hairpin_distance * 0.5),
+                        entry[0] + normal[0] * hairpin_distance * 0.5,
+                        entry[1] + normal[1] * hairpin_distance * 0.5,
                     )
 
                 if base_idx + 1 < num_points:
-                    exit_point = control_points[base_idx + 1]
+                    exit_pt = control_points[base_idx + 1]
                     control_points[base_idx + 1] = (
-                        exit_point[0] + normal_x * (hairpin_distance * 0.5),
-                        exit_point[1] + normal_y * (hairpin_distance * 0.5),
+                        exit_pt[0] + normal[0] * hairpin_distance * 0.5,
+                        exit_pt[1] + normal[1] * hairpin_distance * 0.5,
                     )
 
     return control_points
@@ -482,104 +422,25 @@ def generate_figure8_track(width: int, height: int, track_width: float) -> Track
 
 
 def generate_boundaries_from_centerline(control_points: list[tuple[float, float]], track_width: float) -> TrackBoundary:
-    """Generate inner and outer boundaries from centerline control points.
-
-    Args:
-        control_points: List of centerline control points
-        track_width: Width of track surface
-
-    Returns:
-        TrackBoundary with smooth inner and outer boundaries
-    """
-    # Interpolate smooth centerline using Catmull-Rom spline
-    num_control = len(control_points)
-    points_per_segment = 16
-    centerline_points = []
-
-    for i in range(num_control):
-        p0 = control_points[(i - 1) % num_control]
-        p1 = control_points[i]
-        p2 = control_points[(i + 1) % num_control]
-        p3 = control_points[(i + 2) % num_control]
-
-        for t in range(points_per_segment):
-            t_norm = t / points_per_segment
-            point = catmull_rom_point(p0, p1, p2, p3, t_norm)
-            centerline_points.append(point)
-
-    # Generate inner and outer boundaries from centerline
-    all_outer_points = []
-    all_inner_points = []
-    half_width = track_width / 2
-
-    for i, current in enumerate(centerline_points):
-        next_point = centerline_points[(i + 1) % len(centerline_points)]
-
-        # Calculate tangent
-        dx = next_point[0] - current[0]
-        dy = next_point[1] - current[1]
-        length = math.sqrt(dx * dx + dy * dy)
-
-        if length > 0:
-            # Perpendicular vector (normal)
-            normal_x = -dy / length
-            normal_y = dx / length
-
-            # Offset by half track width in each direction
-            outer_x = current[0] + normal_x * half_width
-            outer_y = current[1] + normal_y * half_width
-            inner_x = current[0] - normal_x * half_width
-            inner_y = current[1] - normal_y * half_width
-
-            all_outer_points.append(Point2D(x=outer_x, y=outer_y))
-            all_inner_points.append(Point2D(x=inner_x, y=inner_y))
-        else:
-            # If two consecutive points are identical, use default offset
-            all_outer_points.append(Point2D(x=current[0] + half_width, y=current[1]))
-            all_inner_points.append(Point2D(x=current[0] - half_width, y=current[1]))
-
-    return TrackBoundary(outer=all_outer_points, inner=all_inner_points)
+    """Generate inner and outer boundaries from centerline control points."""
+    centerline_points = _interpolate_centerline(control_points)
+    boundaries = _generate_track_boundaries(centerline_points, track_width)
+    return TrackBoundary(outer=boundaries[0], inner=boundaries[1])
 
 
 def generate_random_track_points(
     num_points: int, center: tuple[float, float], max_radius: tuple[float, float], min_spacing: float
 ) -> list[tuple[float, float]]:
-    """Generate random points that will form the basis of a track with good spacing.
-
-    Args:
-        num_points: Number of points to generate
-        center: Center point of the area
-        max_radius: Maximum radius (rx, ry) from center
-        min_spacing: Minimum distance between points
-
-    Returns:
-        List of well-spaced random points
-    """
+    """Generate random points that will form the basis of a track with good spacing."""
     points: list[tuple[float, float]] = []
-    max_attempts = 1000
 
     for _ in range(num_points):
-        attempts = 0
-        while attempts < max_attempts:
-            # Generate random point in elliptical area
-            angle = random.uniform(0, 2 * math.pi)  # noqa: S311  # nosec B311
-            r = random.uniform(0.3, 1.0)  # noqa: S311  # nosec B311
-            x = center[0] + max_radius[0] * r * math.cos(angle)
-            y = center[1] + max_radius[1] * r * math.sin(angle)
-
-            # Check spacing with existing points
-            too_close = False
-            for existing_pt in points:
-                dist = math.sqrt((x - existing_pt[0]) ** 2 + (y - existing_pt[1]) ** 2)
-                if dist < min_spacing:
-                    too_close = True
-                    break
-
-            if not too_close:
-                points.append((x, y))
+        for _ in range(1000):  # max attempts
+            angle, r = random.uniform(0, 2 * math.pi), random.uniform(0.3, 1.0)  # noqa: S311  # nosec B311
+            pt = (center[0] + max_radius[0] * r * math.cos(angle), center[1] + max_radius[1] * r * math.sin(angle))
+            if all(math.sqrt((pt[0] - e[0]) ** 2 + (pt[1] - e[1]) ** 2) >= min_spacing for e in points):
+                points.append(pt)
                 break
-
-            attempts += 1
 
     return points
 
@@ -754,28 +615,21 @@ def _generate_track_boundaries(
     interpolated_centerline: list[tuple[float, float]], track_width: float
 ) -> tuple[list[Point2D], list[Point2D]]:
     """Generate inner and outer track boundaries from centerline."""
-    all_outer_points = []
-    all_inner_points = []
-    half_width = track_width / 2
+    all_outer_points, all_inner_points, half_width = [], [], track_width / 2
 
     for i, current in enumerate(interpolated_centerline):
-        next_point = interpolated_centerline[(i + 1) % len(interpolated_centerline)]
-
-        dx = next_point[0] - current[0]
-        dy = next_point[1] - current[1]
+        next_pt = interpolated_centerline[(i + 1) % len(interpolated_centerline)]
+        dx, dy = next_pt[0] - current[0], next_pt[1] - current[1]
         length = math.sqrt(dx * dx + dy * dy)
 
         if length > 0:
-            normal_x = -dy / length
-            normal_y = dx / length
-
-            outer_x = current[0] + normal_x * half_width
-            outer_y = current[1] + normal_y * half_width
-            inner_x = current[0] - normal_x * half_width
-            inner_y = current[1] - normal_y * half_width
-
-            all_outer_points.append(Point2D(x=outer_x, y=outer_y))
-            all_inner_points.append(Point2D(x=inner_x, y=inner_y))
+            normal = (-dy / length, dx / length)
+            all_outer_points.append(
+                Point2D(x=current[0] + normal[0] * half_width, y=current[1] + normal[1] * half_width)
+            )
+            all_inner_points.append(
+                Point2D(x=current[0] - normal[0] * half_width, y=current[1] - normal[1] * half_width)
+            )
         else:
             all_outer_points.append(Point2D(x=current[0] + half_width, y=current[1]))
             all_inner_points.append(Point2D(x=current[0] - half_width, y=current[1]))
@@ -787,6 +641,7 @@ def generate_procedural_track(
     width: int,
     height: int,
     difficulty: str,
+    *,
     padding: int = DEFAULT_TRACK_PADDING,
     num_points: int | None = None,
     variation_amount: float | None = None,
@@ -795,59 +650,36 @@ def generate_procedural_track(
     smoothing_passes: int | None = None,
     track_width_override: float | None = None,
 ) -> TrackBoundary:
-    """Generate a windy procedural track using radial variation for guaranteed continuous loop.
-
-    Args:
-        width: Canvas width
-        height: Canvas height
-        difficulty: Track difficulty (easy, medium, hard)
-        padding: Padding from canvas edges
-        num_points: Number of control points (overrides difficulty default)
-        variation_amount: Radius variation (overrides difficulty default)
-        hairpin_chance: Probability of extreme curves (default 0.2)
-        hairpin_intensity: Multiplier for extreme curves (default 2.5)
-        smoothing_passes: Number of smoothing iterations (default 2)
-        track_width_override: Override track width
-
-    Returns:
-        TrackBoundary with procedurally generated boundaries
-    """
-    center = (width / 2, height / 2)
-    base_radius = ((width - 2 * padding) / 2, (height - 2 * padding) / 2)
-
-    track_width, default_num_points, default_variation = get_difficulty_params(difficulty)
-
-    num_points = num_points if num_points is not None else default_num_points
-    variation_amount = variation_amount if variation_amount is not None else default_variation
-    hairpin_chance = hairpin_chance if hairpin_chance is not None else 0.2
-    hairpin_intensity = hairpin_intensity if hairpin_intensity is not None else 2.5
-    smoothing_passes = smoothing_passes if smoothing_passes is not None else 2
-    track_width = track_width_override if track_width_override is not None else track_width
-
-    control_points = _generate_control_points_with_variation(
-        _ControlPointParams(
-            num_points=num_points,
-            center=center,
-            base_radius=base_radius,
-            variation_amount=variation_amount,
-            hairpin_chance=hairpin_chance,
-            hairpin_intensity=hairpin_intensity,
-            width=width,
-            padding=padding,
-            track_width=track_width,
-        )
+    """Generate a windy procedural track using radial variation for guaranteed continuous loop."""
+    tw, dnp, dv = get_difficulty_params(difficulty)
+    boundaries = _generate_track_boundaries(
+        _interpolate_centerline(
+            smooth_track_centerline(
+                _generate_control_points_with_variation(
+                    _ControlPointParams(
+                        num_points=num_points if num_points is not None else dnp,
+                        center=(width / 2, height / 2),
+                        base_radius=((width - 2 * padding) / 2, (height - 2 * padding) / 2),
+                        variation_amount=variation_amount if variation_amount is not None else dv,
+                        hairpin_chance=hairpin_chance if hairpin_chance is not None else 0.2,
+                        hairpin_intensity=hairpin_intensity if hairpin_intensity is not None else 2.5,
+                        width=width,
+                        padding=padding,
+                        track_width=track_width_override if track_width_override is not None else tw,
+                    )
+                ),
+                smoothing_passes if smoothing_passes is not None else 2,
+            )
+        ),
+        track_width_override if track_width_override is not None else tw,
     )
 
-    smoothed_points = smooth_track_centerline(control_points, smoothing_passes=smoothing_passes)
-    interpolated_centerline = _interpolate_centerline(smoothed_points)
-    all_outer_points, all_inner_points = _generate_track_boundaries(interpolated_centerline, track_width)
+    if len(boundaries[0]) < 3 or len(boundaries[1]) < 3:
+        raise ValueError(
+            f"Track generation failed: insufficient points (outer={len(boundaries[0])}, inner={len(boundaries[1])})"
+        )
 
-    if len(all_outer_points) < 3 or len(all_inner_points) < 3:
-        outer_count = len(all_outer_points)
-        inner_count = len(all_inner_points)
-        raise ValueError(f"Track generation failed: insufficient points (outer={outer_count}, inner={inner_count})")
-
-    return TrackBoundary(outer=all_outer_points, inner=all_inner_points)
+    return TrackBoundary(outer=boundaries[0], inner=boundaries[1])
 
 
 @router.get("/track/simple", response_model=SimpleTrack)
