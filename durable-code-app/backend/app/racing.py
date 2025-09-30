@@ -96,7 +96,7 @@ def generate_oval_track(width: int, height: int, padding: int = DEFAULT_TRACK_PA
     """
     center = (width / 2, height / 2)
     outer_radius = ((width - 2 * padding) / 2, (height - 2 * padding) / 2)
-    track_width = 60
+    track_width = 100  # Wider track for better gameplay
     inner_radius = (outer_radius[0] - track_width, outer_radius[1] - track_width)
 
     # Generate points around the oval
@@ -130,11 +130,11 @@ def get_difficulty_params(difficulty: str) -> tuple[float, int, float]:
         Tuple of (track_width, num_control_points, variation)
     """
     params = {
-        "easy": (80.0, 8, 0.15),
-        "medium": (60.0, 12, 0.25),
-        "hard": (45.0, 16, 0.35),
+        "easy": (120.0, 8, 0.15),  # Wider track for easier navigation
+        "medium": (100.0, 12, 0.25),  # Medium width with more curves
+        "hard": (80.0, 16, 0.35),  # Narrower track with complex curves
     }
-    return params.get(difficulty, (60.0, 12, 0.25))
+    return params.get(difficulty, (100.0, 12, 0.25))
 
 
 def generate_control_points(
@@ -353,7 +353,7 @@ async def get_simple_track(
         start_position = Point2D(x=width / 2, y=height - 100)
 
         return SimpleTrack(
-            width=width, height=height, boundaries=boundaries, start_position=start_position, track_width=60
+            width=width, height=height, boundaries=boundaries, start_position=start_position, track_width=100
         )
     except Exception as e:
         logger.error("Failed to generate track", error=str(e))

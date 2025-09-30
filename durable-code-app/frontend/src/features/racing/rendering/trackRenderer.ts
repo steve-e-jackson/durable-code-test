@@ -178,40 +178,98 @@ export function renderTrack(ctx: CanvasRenderingContext2D, track: Track): void {
 }
 
 /**
- * Render car on the track
+ * Render car on the track with character and style
  *
  * @param ctx Canvas rendering context
  * @param x Car X position
  * @param y Car Y position
  * @param angle Car angle in radians
+ * @param speed Optional speed for visual effects
  */
 export function renderCar(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
   angle: number,
+  speed: number = 0,
 ): void {
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(angle);
 
-  // Draw car body
-  ctx.fillStyle = '#ff0000';
-  ctx.fillRect(-15, -10, 30, 20);
+  // Car dimensions
+  const carLength = 30;
+  const carWidth = 20;
 
-  // Draw car outline
-  ctx.strokeStyle = '#000000';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(-15, -10, 30, 20);
+  // Draw shadow for depth
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+  ctx.fillRect(-carLength / 2 + 2, -carWidth / 2 + 2, carLength, carWidth);
 
-  // Draw direction indicator
-  ctx.fillStyle = '#ffffff';
+  // Draw car body with gradient
+  const gradient = ctx.createLinearGradient(0, -carWidth / 2, 0, carWidth / 2);
+  gradient.addColorStop(0, '#ff4444');
+  gradient.addColorStop(0.5, '#cc0000');
+  gradient.addColorStop(1, '#990000');
+  ctx.fillStyle = gradient;
+
+  // Rounded car body
   ctx.beginPath();
-  ctx.moveTo(15, 0);
-  ctx.lineTo(5, -5);
-  ctx.lineTo(5, 5);
-  ctx.closePath();
+  ctx.roundRect(-carLength / 2, -carWidth / 2, carLength, carWidth, 4);
   ctx.fill();
+
+  // Car outline
+  ctx.strokeStyle = '#330000';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Windshield
+  ctx.fillStyle = 'rgba(100, 150, 200, 0.6)';
+  ctx.beginPath();
+  ctx.roundRect(-carLength / 4, -carWidth / 3, carLength / 3, carWidth * 0.66, 2);
+  ctx.fill();
+
+  // Racing stripes for character
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-carLength / 2 + 5, -2);
+  ctx.lineTo(carLength / 2 - 5, -2);
+  ctx.moveTo(-carLength / 2 + 5, 2);
+  ctx.lineTo(carLength / 2 - 5, 2);
+  ctx.stroke();
+
+  // Front wheels
+  ctx.fillStyle = '#222222';
+  ctx.fillRect(carLength / 2 - 8, -carWidth / 2 - 2, 6, 3);
+  ctx.fillRect(carLength / 2 - 8, carWidth / 2 - 1, 6, 3);
+
+  // Rear wheels
+  ctx.fillRect(-carLength / 2 + 2, -carWidth / 2 - 2, 6, 3);
+  ctx.fillRect(-carLength / 2 + 2, carWidth / 2 - 1, 6, 3);
+
+  // Headlights
+  ctx.fillStyle = '#ffff00';
+  ctx.beginPath();
+  ctx.arc(carLength / 2 - 2, -carWidth / 3, 2, 0, Math.PI * 2);
+  ctx.arc(carLength / 2 - 2, carWidth / 3, 2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Speed lines effect when moving fast
+  if (speed > 2) {
+    ctx.strokeStyle = `rgba(255, 255, 255, ${Math.min(0.5, speed / 10)})`;
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 3; i++) {
+      const offset = -carLength / 2 - 10 - i * 5;
+      ctx.beginPath();
+      ctx.moveTo(offset, -5);
+      ctx.lineTo(offset - 8, -5);
+      ctx.moveTo(offset, 0);
+      ctx.lineTo(offset - 8, 0);
+      ctx.moveTo(offset, 5);
+      ctx.lineTo(offset - 8, 5);
+      ctx.stroke();
+    }
+  }
 
   ctx.restore();
 }

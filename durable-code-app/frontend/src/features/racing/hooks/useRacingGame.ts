@@ -129,12 +129,12 @@ export function useRacingGame(): UseRacingGameReturn {
       // Draw track
       renderTrack(ctx, trackData);
 
-      // Draw car
+      // Draw car with speed for visual effects
       const { car } = world;
-      renderCar(ctx, car.position.x, car.position.y, car.angle);
+      const speed = Math.sqrt(car.velocity.x ** 2 + car.velocity.y ** 2);
+      renderCar(ctx, car.position.x, car.position.y, car.angle, speed);
 
       // Draw debug info
-      const speed = Math.sqrt(car.velocity.x ** 2 + car.velocity.y ** 2);
       renderDebugInfo(ctx, speed, { x: car.position.x, y: car.position.y });
     },
     [],
