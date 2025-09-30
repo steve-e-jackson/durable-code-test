@@ -1,0 +1,43 @@
+/**
+ * Purpose: Styling for GameCanvas component
+ * Scope: Canvas container and overlay styles
+ * Overview: Provides styling for the racing game canvas with responsive layout
+ */
+
+.canvasContainer {
+  position: relative;
+  display: inline-block;
+  margin: 1rem auto;
+}
+
+.gameCanvas {
+  display: block;
+  cursor: crosshair;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.gameCanvas:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.menuOverlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.overlayText {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-muted, #666);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}

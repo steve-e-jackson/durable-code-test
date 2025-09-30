@@ -44,7 +44,7 @@ class TestRacingAPI:
         data = response.json()
         assert data["width"] == DEFAULT_TRACK_WIDTH
         assert data["height"] == DEFAULT_TRACK_HEIGHT
-        assert data["track_width"] == 60
+        assert data["track_width"] == 100
 
         # Check boundaries structure
         assert "boundaries" in data
@@ -103,14 +103,14 @@ class TestRacingAPI:
         data = response.json()
         assert data["width"] == 800
         assert data["height"] == 600
-        assert data["track_width"] == 50  # Medium difficulty
+        assert data["track_width"] == 100  # Medium difficulty
 
     def test_track_generation_different_difficulties(self):
         """Test track generation with different difficulty levels."""
         difficulties = {
-            "easy": 60,
-            "medium": 50,
-            "hard": 40
+            "easy": 120,
+            "medium": 100,
+            "hard": 80
         }
 
         for difficulty, expected_width in difficulties.items():

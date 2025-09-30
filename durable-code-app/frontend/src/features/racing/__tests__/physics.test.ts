@@ -152,7 +152,12 @@ describe('Physics Engine', () => {
       expect(car.velocity.x).toBeLessThan(0);
     });
 
-    it('should apply angular velocity for turning', () => {
+    it('should apply angular velocity for turning when car is moving', () => {
+      // Car needs minimum speed to turn (MIN_SPEED_FOR_STEERING = 0.5)
+      // Give the car some initial velocity
+      Matter.Body.setVelocity(car, { x: 2, y: 0 });
+      Matter.Engine.update(engine, 16);
+
       const mouseX = car.position.x;
       const mouseY = car.position.y + 100;
       const initialAngularVelocity = car.angularVelocity;
@@ -161,6 +166,18 @@ describe('Physics Engine', () => {
 
       // Should have changed angular velocity for turning
       expect(car.angularVelocity).not.toBe(initialAngularVelocity);
+    });
+
+    it('should not turn when car is stationary', () => {
+      // Car starts with zero velocity
+      const mouseX = car.position.x;
+      const mouseY = car.position.y + 100;
+      const initialAngularVelocity = car.angularVelocity;
+
+      applyCarForces(car, mouseX, mouseY, true, false);
+
+      // Should NOT change angular velocity when stationary (realistic physics)
+      expect(car.angularVelocity).toBe(initialAngularVelocity);
     });
   });
 
