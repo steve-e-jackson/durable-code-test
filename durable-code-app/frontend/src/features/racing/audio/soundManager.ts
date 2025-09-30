@@ -39,12 +39,12 @@ export class SoundManager {
 
   // Audio file paths
   private readonly audioFiles: Record<string, AudioFile> = {
-    engineIdle: { path: '/audio/racing/engine-idle.mp3', loop: true, volume: 0.4 },
-    engineRev: { path: '/audio/racing/engine-rev.mp3', loop: false, volume: 0.6 },
-    engineHigh: { path: '/audio/racing/engine-high.mp3', loop: true, volume: 0.5 },
-    tireScreech: { path: '/audio/racing/tire-screech.mp3', loop: false, volume: 0.7 },
-    collision: { path: '/audio/racing/collision.mp3', loop: false, volume: 0.8 },
-    gearShift: { path: '/audio/racing/gear-shift.mp3', loop: false, volume: 0.5 },
+    engineIdle: { path: '/audio/racing/engine-idle.mp3', loop: true, volume: 0.8 },
+    engineRev: { path: '/audio/racing/engine-rev.mp3', loop: false, volume: 0.9 },
+    engineHigh: { path: '/audio/racing/engine-high.mp3', loop: true, volume: 0.8 },
+    tireScreech: { path: '/audio/racing/tire-screech.mp3', loop: false, volume: 0.9 },
+    collision: { path: '/audio/racing/collision.mp3', loop: false, volume: 1.0 },
+    gearShift: { path: '/audio/racing/gear-shift.mp3', loop: false, volume: 0.7 },
   };
 
   /**
@@ -60,7 +60,7 @@ export class SoundManager {
 
       // Master gain for overall volume control
       this.masterGain = this.audioContext.createGain();
-      this.masterGain.gain.value = 0.3; // 30% volume
+      this.masterGain.gain.value = 0.7; // 70% volume
       this.masterGain.connect(this.audioContext.destination);
 
       // Try to load real audio files
