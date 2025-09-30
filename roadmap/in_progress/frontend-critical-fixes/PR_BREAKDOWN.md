@@ -22,21 +22,25 @@
 ## 🚀 PROGRESS TRACKER - MUST BE UPDATED AFTER EACH PR!
 
 ### ✅ Completed PRs
-- ⬜ None yet - Planning phase just completed
+- ✅ PR1: CSS Architecture Refactor
+- ✅ PR2: WebSocket Memory Leak Fix
+- ✅ PR3: React Hook Dependencies Fix
+- ✅ PR4: Navigation Race Condition Fix
+- ✅ PR5: Component Performance Optimization
 
 ### 🎯 NEXT PR TO IMPLEMENT
-➡️ **START HERE: PR1** - CSS Architecture Refactor
+➡️ **IN PROGRESS: PR6** - Critical System Testing (ErrorBoundary + PerformanceMonitor)
 
 ### 📋 Remaining PRs
-- ⬜ PR1: CSS Architecture Refactor
-- ⬜ PR2: WebSocket Memory Leak Fix
-- ⬜ PR3: React Hook Dependencies Fix
-- ⬜ PR4: Navigation Race Condition Fix
-- ⬜ PR5: Component Performance Optimization
-- ⬜ PR6: Testing Coverage Expansion
-- ⬜ PR7: Documentation Enhancement
+- 🟡 PR6: Critical System Testing (IN PROGRESS)
+- ⬜ PR7: Integration & E2E Testing
+- ⬜ PR8: Accessibility Testing
+- ⬜ PR9: Coverage Gap Filling
+- ⬜ PR10: Documentation Enhancement
 
-**Progress**: 0% Complete (0/7 PRs)
+**Progress**: 50% Complete (5/10 PRs)
+
+**Note**: Original 7 PRs expanded to 10 PRs for better focus and manageability. PR6 (Testing) was split into PR6-9 (Critical Systems, Integration, A11y, Coverage).
 
 ---
 
@@ -651,18 +655,21 @@ npm run benchmark:components
 
 ---
 
-## PR6: Testing Coverage Expansion
+## PR6: Critical System Testing
 
 ### Overview
-Add comprehensive tests for critical paths, achieving 80% coverage target.
+Add comprehensive tests for ErrorBoundary and PerformanceMonitor - the two critical production systems with ZERO test coverage.
+
+### Rationale for Split
+The original PR6 was too large, trying to cover unit tests, integration tests, accessibility tests, and coverage analysis all in one PR. This focused PR targets only the most critical gap: untested error handling and performance monitoring systems that are essential for production stability.
 
 ### Files to Create
 ```
-src/hooks/useWebSocket.test.ts
-src/components/ErrorBoundary/ErrorBoundary.test.tsx
-src/core/performance/PerformanceMonitor.test.ts
+src/core/errors/__tests__/ErrorBoundary.test.tsx
+src/core/errors/__tests__/ErrorFallback.test.tsx
+src/core/performance/__tests__/PerformanceMonitor.test.ts
+src/core/performance/__tests__/usePerformanceMetrics.test.ts
 src/test-utils/render.tsx
-src/test-utils/providers.tsx
 ```
 
 ### Implementation Steps
@@ -742,25 +749,331 @@ describe('ErrorBoundary Recovery', () => {
 
 ### Testing Requirements
 ```bash
-# Coverage report
-npm run test:coverage
+# Run new tests
+cd durable-code-app/frontend
+npm test -- src/core/errors/__tests__
+npm test -- src/core/performance/__tests__
 
-# Critical path tests
-npm run test:critical
-
-# Integration tests
-npm run test:integration
+# Coverage for critical systems
+npm run test:coverage -- src/core/errors
+npm run test:coverage -- src/core/performance
 ```
 
 ### Success Criteria
-- ✅ Coverage > 80%
-- ✅ All critical paths tested
+- ✅ ErrorBoundary >90% coverage
+- ✅ PerformanceMonitor >90% coverage
+- ✅ All error recovery paths tested (reset, retry, auto-recovery)
+- ✅ All performance threshold scenarios tested
 - ✅ Zero flaky tests
 - ✅ CI/CD pipeline green
 
 ---
 
-## PR7: Documentation Enhancement
+## PR7: Integration & E2E Testing
+
+### Overview
+Test component interactions and data flow across system boundaries. Focus on WebSocket reconnection scenarios, navigation + browser history integration, and racing game lifecycle testing.
+
+### Rationale
+Integration tests catch bugs that unit tests miss by testing the seams between systems. This PR focuses on testing how components work together rather than in isolation.
+
+### Files to Create/Enhance
+```
+src/features/demo/services/__tests__/websocketService.integration.test.ts (enhance existing)
+src/store/__tests__/navigationStore.integration.test.ts (enhance existing)
+src/features/racing/__tests__/integration.test.ts (new)
+src/test-utils/providers.tsx (new)
+src/test-utils/mocks.ts (new)
+```
+
+### Implementation Steps
+
+#### Step 1: Create Comprehensive Test Providers
+```typescript
+// src/test-utils/providers.tsx
+import { ReactNode } from 'react';
+import { BrowserRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ErrorBoundary } from '@/core/errors';
+
+export const TestProviders: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+  return (
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
+      </QueryClientProvider>
+    </BrowserRouter>
+  );
+};
+```
+
+#### Step 2: WebSocket Reconnection Integration Tests
+```typescript
+// Enhance src/features/demo/services/__tests__/websocketService.integration.test.ts
+describe('WebSocket Integration - Reconnection Scenarios', () => {
+  it('should automatically reconnect after connection loss', async () => {
+    const service = new WebSocketService();
+    await service.connect();
+
+    // Simulate network disruption
+    simulateNetworkDisruption();
+
+    // Should attempt reconnection
+    await waitFor(() => {
+      expect(service.isConnected()).toBe(true);
+    }, { timeout: 5000 });
+  });
+
+  it('should handle multiple rapid disconnections gracefully', async () => {
+    // Test connection resilience under stress
+  });
+});
+```
+
+#### Step 3: Navigation Integration Tests
+```typescript
+// Enhance src/store/__tests__/navigationStore.integration.test.ts
+describe('Navigation Integration - Browser History', () => {
+  it('should sync navigation state with browser history', () => {
+    const { result } = renderHook(() => useNavigation(), {
+      wrapper: TestProviders,
+    });
+
+    act(() => {
+      result.current.navigate('Planning');
+    });
+
+    expect(window.location.hash).toBe('#Planning');
+    expect(result.current.activeTab).toBe('Planning');
+  });
+
+  it('should handle browser back button correctly', () => {
+    // Test browser history integration
+  });
+});
+```
+
+#### Step 4: Racing Game Lifecycle Integration
+```typescript
+// src/features/racing/__tests__/integration.test.ts
+describe('Racing Game Integration', () => {
+  it('should handle complete game lifecycle', () => {
+    const { result } = renderHook(() => useRacingGame());
+
+    // Start game
+    act(() => {
+      result.current.startGame();
+    });
+    expect(result.current.isRunning).toBe(true);
+
+    // Pause game
+    act(() => {
+      result.current.pauseGame();
+    });
+    expect(result.current.isPaused).toBe(true);
+
+    // Reset game
+    act(() => {
+      result.current.resetGame();
+    });
+    expect(result.current.isRunning).toBe(false);
+  });
+
+  it('should integrate physics with rendering correctly', () => {
+    // Test physics engine + render loop integration
+  });
+});
+```
+
+### Testing Requirements
+```bash
+# Run integration tests
+cd durable-code-app/frontend
+npm test -- --testNamePattern="Integration"
+
+# Run with coverage
+npm run test:coverage -- --testNamePattern="Integration"
+```
+
+### Success Criteria
+- ✅ WebSocket reconnection tested in multiple scenarios
+- ✅ Navigation + browser history fully integrated and tested
+- ✅ Racing game lifecycle fully tested
+- ✅ Reusable test providers created
+- ✅ Zero flaky integration tests
+- ✅ All integration tests pass in CI/CD
+
+---
+
+## PR8: Accessibility Testing
+
+### Overview
+Ensure the application is accessible, keyboard navigable, and screen reader compatible. Focus on critical interactive components.
+
+### Rationale
+Accessibility is essential for production applications but often overlooked. This focused PR ensures the app meets WCAG guidelines.
+
+### Files to Create
+```
+src/components/common/Button/__tests__/Button.a11y.test.tsx
+src/components/tabs/__tests__/TabNavigation.a11y.test.tsx
+src/core/errors/__tests__/ErrorFallback.a11y.test.tsx
+src/test-utils/a11y-helpers.ts
+```
+
+### Implementation Steps
+
+#### Step 1: Create A11y Test Helpers
+```typescript
+// src/test-utils/a11y-helpers.ts
+import { render } from '@testing-library/react';
+import { axe, toHaveNoViolations } from 'jest-axe';
+
+expect.extend(toHaveNoViolations);
+
+export const testA11y = async (ui: React.ReactElement) => {
+  const { container } = render(ui);
+  const results = await axe(container);
+  expect(results).toHaveNoViolations();
+};
+
+export const testKeyboardNavigation = (
+  element: HTMLElement,
+  expectedKeys: string[]
+) => {
+  expectedKeys.forEach(key => {
+    fireEvent.keyDown(element, { key });
+    // Verify expected behavior
+  });
+};
+```
+
+#### Step 2: Button A11y Tests
+```typescript
+// src/components/common/Button/__tests__/Button.a11y.test.tsx
+describe('Button Accessibility', () => {
+  it('should have no a11y violations', async () => {
+    await testA11y(<Button>Click me</Button>);
+  });
+
+  it('should be keyboard accessible', () => {
+    const onClick = vi.fn();
+    const { getByRole } = render(<Button onClick={onClick}>Click</Button>);
+    const button = getByRole('button');
+
+    fireEvent.keyDown(button, { key: 'Enter' });
+    expect(onClick).toHaveBeenCalled();
+
+    fireEvent.keyDown(button, { key: ' ' });
+    expect(onClick).toHaveBeenCalledTimes(2);
+  });
+
+  it('should have proper ARIA attributes when loading', () => {
+    const { getByRole } = render(<Button isLoading>Save</Button>);
+    expect(getByRole('button')).toHaveAttribute('aria-busy', 'true');
+  });
+});
+```
+
+#### Step 3: Tab Navigation A11y Tests
+```typescript
+// src/components/tabs/__tests__/TabNavigation.a11y.test.tsx
+describe('Tab Navigation Accessibility', () => {
+  it('should support keyboard navigation', () => {
+    const { getAllByRole } = render(<TabNavigation />);
+    const tabs = getAllByRole('tab');
+
+    // Arrow key navigation
+    fireEvent.keyDown(tabs[0], { key: 'ArrowRight' });
+    expect(tabs[1]).toHaveFocus();
+  });
+
+  it('should have proper ARIA roles and labels', () => {
+    const { getByRole } = render(<TabNavigation />);
+    expect(getByRole('tablist')).toBeInTheDocument();
+  });
+});
+```
+
+### Testing Requirements
+```bash
+# Run a11y tests
+cd durable-code-app/frontend
+npm test -- --testNamePattern="Accessibility"
+
+# Run with axe-core
+npm test -- Button.a11y.test
+```
+
+### Success Criteria
+- ✅ All interactive components have a11y tests
+- ✅ Keyboard navigation fully tested
+- ✅ ARIA attributes validated
+- ✅ Screen reader compatibility verified
+- ✅ Zero a11y violations in axe-core tests
+
+---
+
+## PR9: Coverage Gap Filling
+
+### Overview
+Analyze coverage reports and systematically fill gaps to achieve 80%+ overall coverage target.
+
+### Rationale
+This is the "cleanup" PR that gets us over the finish line on coverage goals. After testing critical systems (PR6), integration (PR7), and a11y (PR8), we now fill remaining gaps.
+
+### Implementation Steps
+
+#### Step 1: Run Coverage Analysis
+```bash
+cd durable-code-app/frontend
+npm run test:coverage
+
+# Generate detailed HTML report
+npm run test:coverage -- --reporter=html
+
+# Open coverage/index.html and identify gaps
+```
+
+#### Step 2: Identify Critical Uncovered Branches
+Focus on:
+- Async operations and error paths
+- State mutation edge cases
+- Complex conditional logic
+- Error handling in catch blocks
+
+#### Step 3: Add Missing Tests
+Create tests targeting specific uncovered lines/branches identified in Step 1.
+
+### Testing Requirements
+```bash
+# Run full coverage
+npm run test:coverage
+
+# Verify thresholds met
+npm test -- --coverage --coverageThreshold='{"global":{"branches":80,"functions":80,"lines":80,"statements":80}}'
+```
+
+### Success Criteria
+- ✅ Overall coverage >80% (branches, functions, lines, statements)
+- ✅ All async operations tested
+- ✅ All error paths tested
+- ✅ All edge cases covered
+- ✅ Zero flaky tests
+- ✅ Coverage thresholds enforced in CI/CD
+
+---
+
+## PR10: Documentation Enhancement
 
 ### Overview
 Add comprehensive documentation including JSDoc, examples, and architectural guides.
@@ -883,26 +1196,32 @@ npm run build:docs
 
 ## Rollout Strategy
 
-### Phase 1: Critical Stability
+### Phase 1: Critical Stability ✅ COMPLETE
 - PR1: CSS Architecture Refactor
 - PR2: WebSocket Memory Leak Fix
 
-### Phase 2: Code Quality
+### Phase 2: Code Quality ✅ COMPLETE
 - PR3: React Hook Dependencies Fix
 - PR4: Navigation Race Condition Fix
 
-### Phase 3: Optimization & Testing
+### Phase 3: Optimization ✅ COMPLETE
 - PR5: Component Performance Optimization
-- PR6: Testing Coverage Expansion
 
-### Phase 4: Documentation
-- PR7: Documentation Enhancement
+### Phase 4: Quality Assurance 🟡 IN PROGRESS
+- PR6: Critical System Testing ← IN PROGRESS
+- PR7: Integration & E2E Testing
+- PR8: Accessibility Testing
+- PR9: Coverage Gap Filling
+
+### Phase 5: Documentation
+- PR10: Documentation Enhancement
 - Final review and deployment
 
 ## Success Metrics
 
 ### Launch Metrics
-- All 7 critical issues resolved
+- All 10 PRs completed (5/10 complete ✅)
+- All 7 original critical issues resolved
 - Test coverage > 80%
 - Zero memory leaks
 - Performance targets met
