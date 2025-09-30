@@ -52,8 +52,8 @@ export function RacingGameTab(): ReactElement {
 
       <div className={styles.gameArea}>
         <GameCanvas
-          width={800}
-          height={600}
+          width={1200}
+          height={900}
           gameState={gameState}
           canvasRef={canvasRef}
           onMouseMove={onMouseMove}

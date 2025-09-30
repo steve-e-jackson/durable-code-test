@@ -130,11 +130,11 @@ def get_difficulty_params(difficulty: str) -> tuple[float, int, float]:
         Tuple of (track_width, num_control_points, variation)
     """
     params = {
-        "easy": (120.0, 8, 0.15),  # Wider track for easier navigation
-        "medium": (100.0, 12, 0.25),  # Medium width with more curves
-        "hard": (80.0, 16, 0.35),  # Narrower track with complex curves
+        "easy": (120.0, 8, 0.08),  # Wider track, gentle curves
+        "medium": (100.0, 10, 0.12),  # Medium width, moderate curves
+        "hard": (80.0, 12, 0.18),  # Narrower track, tighter curves
     }
-    return params.get(difficulty, (100.0, 12, 0.25))
+    return params.get(difficulty, (100.0, 10, 0.12))
 
 
 def generate_control_points(
@@ -298,12 +298,28 @@ def add_track_variation(
         Modified control points with added features
     """
     if variation_type == "s_curve":
-        # Add S-curve by modifying middle points
-        mid_idx = len(control_points) // 2
-        for i in range(mid_idx - 1, mid_idx + 2):
-            if i < len(control_points):
-                offset = (-1) ** i * 30  # Alternate left/right
-                control_points[i] = (control_points[i][0] + offset, control_points[i][1])
+        # Add subtle S-curve sections by modifying a few points
+        num_points = len(control_points)
+        # Add gentle curves at quarter positions
+        for i in [num_points // 4, num_points // 2, (3 * num_points) // 4]:
+            if 0 < i < num_points:
+                # Calculate perpendicular offset
+                prev_pt = control_points[i - 1]
+                next_pt = control_points[(i + 1) % num_points]
+
+                # Tangent vector
+                dx = next_pt[0] - prev_pt[0]
+                dy = next_pt[1] - prev_pt[1]
+                length = math.sqrt(dx * dx + dy * dy)
+
+                if length > 0:
+                    # Perpendicular offset (alternate direction)
+                    offset_dist = 40 if i == num_points // 2 else 20
+                    normal_x = -dy / length * offset_dist * ((-1) ** i)
+                    normal_y = dx / length * offset_dist * ((-1) ** i)
+
+                    current = control_points[i]
+                    control_points[i] = (current[0] + normal_x, current[1] + normal_y)
 
     return control_points
 

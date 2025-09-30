@@ -83,7 +83,18 @@ export function useRacingGame(): UseRacingGameReturn {
     setTrackError(null);
 
     try {
-      const response = await fetch('/api/racing/track/simple');
+      // Use procedural track generation for more interesting layouts
+      const response = await fetch('/api/racing/track/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          difficulty: 'medium',
+          width: CANVAS_WIDTH,
+          height: CANVAS_HEIGHT,
+        }),
+      });
       if (!response.ok) {
         throw new Error(`Failed to load track: ${response.statusText}`);
       }
