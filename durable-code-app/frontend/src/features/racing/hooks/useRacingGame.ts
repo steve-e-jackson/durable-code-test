@@ -9,14 +9,14 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Matter from 'matter-js';
-import {
+import type {
   CarState,
-  GameState,
   InputState,
   PhysicsWorld,
   Track,
   UseRacingGameReturn,
 } from '../types/racing.types';
+import { GameState } from '../types/racing.types';
 import {
   applyCarForces,
   createCar,
