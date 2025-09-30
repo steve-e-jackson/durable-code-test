@@ -58,7 +58,7 @@ export default defineConfig({
     proxy: {
       // Proxy API requests to backend
       '/api': {
-        target: 'http://durable-code-backend-dev:8000',
+        target: 'http://durable-code-backend-main-dev:8000',
         changeOrigin: true,
         ws: true, // Enable WebSocket proxy
       },
