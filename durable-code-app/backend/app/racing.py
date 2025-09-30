@@ -47,8 +47,8 @@ router = APIRouter(
 class Point2D(BaseModel):
     """2D point representation."""
 
-    x: float = Field(..., ge=0, description="X coordinate")
-    y: float = Field(..., ge=0, description="Y coordinate")
+    x: float = Field(..., description="X coordinate")
+    y: float = Field(..., description="Y coordinate")
 
 
 class TrackBoundary(BaseModel):
@@ -397,6 +397,17 @@ def generate_procedural_track(
 
             all_outer_points.append(Point2D(x=outer_x, y=outer_y))
             all_inner_points.append(Point2D(x=inner_x, y=inner_y))
+        else:
+            # If two consecutive points are identical, use a default offset
+            half_width = track_width / 2
+            all_outer_points.append(Point2D(x=current[0] + half_width, y=current[1]))
+            all_inner_points.append(Point2D(x=current[0] - half_width, y=current[1]))
+
+    # Validate we have enough points
+    if len(all_outer_points) < 3 or len(all_inner_points) < 3:
+        raise ValueError(
+            f"Track generation failed: insufficient points (outer={len(all_outer_points)}, inner={len(all_inner_points)})"
+        )
 
     return TrackBoundary(outer=all_outer_points, inner=all_inner_points)
 
@@ -469,8 +480,8 @@ async def generate_track(params: TrackGenerationParams) -> SimpleTrack:
             track_width=track_width,
         )
     except Exception as e:
-        logger.error("Failed to generate procedural track", error=str(e))
-        raise HTTPException(status_code=HTTP_BAD_REQUEST, detail="Failed to generate track") from e
+        logger.exception("Failed to generate procedural track")
+        raise HTTPException(status_code=HTTP_BAD_REQUEST, detail=f"Failed to generate track: {str(e)}") from e
 
 
 @router.get("/health")
