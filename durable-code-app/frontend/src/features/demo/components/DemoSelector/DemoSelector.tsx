@@ -48,7 +48,7 @@ const demos: DemoInfo[] = [
       'Procedural tracks',
       'Scoring system',
     ],
-    status: 'coming-soon',
+    status: 'available',
   },
 ];
 

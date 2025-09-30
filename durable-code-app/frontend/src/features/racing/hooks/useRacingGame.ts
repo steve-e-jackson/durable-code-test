@@ -9,14 +9,14 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Matter from 'matter-js';
-import {
+import type {
   CarState,
-  GameState,
   InputState,
   PhysicsWorld,
   Track,
   UseRacingGameReturn,
 } from '../types/racing.types';
+import { GameState } from '../types/racing.types';
 import {
   applyCarForces,
   createCar,
@@ -24,6 +24,12 @@ import {
   createTrackWalls,
   getCarState,
 } from '../physics/setup';
+import {
+  renderBackground,
+  renderCar,
+  renderDebugInfo,
+  renderTrack,
+} from '../rendering/trackRenderer';
 
 // Constants
 const CANVAS_WIDTH = 800;
@@ -69,6 +75,7 @@ export function useRacingGame(): UseRacingGameReturn {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
+  const inputStateRef = useRef<InputState>(initialInputState);
 
   // Track loading function
   const loadTrack = useCallback(async () => {
@@ -110,6 +117,29 @@ export function useRacingGame(): UseRacingGameReturn {
     return { engine, car, walls };
   }, []);
 
+  // Rendering function
+  const renderGame = useCallback(
+    (canvas: HTMLCanvasElement, world: PhysicsWorld, trackData: Track) => {
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      // Clear and draw background
+      renderBackground(ctx, canvas.width, canvas.height);
+
+      // Draw track
+      renderTrack(ctx, trackData);
+
+      // Draw car
+      const { car } = world;
+      renderCar(ctx, car.position.x, car.position.y, car.angle);
+
+      // Draw debug info
+      const speed = Math.sqrt(car.velocity.x ** 2 + car.velocity.y ** 2);
+      renderDebugInfo(ctx, speed, { x: car.position.x, y: car.position.y });
+    },
+    [],
+  );
+
   // Game loop
   const gameLoop = useCallback(
     (timestamp: number) => {
@@ -123,14 +153,15 @@ export function useRacingGame(): UseRacingGameReturn {
       // Update physics (fixed timestep for consistency)
       if (deltaTime >= PHYSICS_TIMESTEP) {
         const { engine, car } = physicsWorldRef.current;
+        const input = inputStateRef.current;
 
         // Apply forces based on input
         applyCarForces(
           car,
-          inputState.mouseX,
-          inputState.mouseY,
-          inputState.leftMouseDown,
-          inputState.rightMouseDown,
+          input.mouseX,
+          input.mouseY,
+          input.leftMouseDown,
+          input.rightMouseDown,
         );
 
         // Update physics engine
@@ -148,40 +179,7 @@ export function useRacingGame(): UseRacingGameReturn {
       // Continue game loop
       animationFrameRef.current = requestAnimationFrame(gameLoop);
     },
-    [gameState, inputState, track, renderGame],
-  );
-
-  // Rendering function
-  const renderGame = useCallback(
-    (canvas: HTMLCanvasElement, world: PhysicsWorld, trackData: Track) => {
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-
-      // Import dynamically to avoid issues during testing
-      import('../rendering/trackRenderer')
-        .then(({ renderBackground, renderTrack, renderCar, renderDebugInfo }) => {
-          // Clear and draw background
-          renderBackground(ctx, canvas.width, canvas.height);
-
-          // Draw track
-          renderTrack(ctx, trackData);
-
-          // Draw car
-          const { car } = world;
-          renderCar(ctx, car.position.x, car.position.y, car.angle);
-
-          // Draw debug info (optional)
-          const speed = Math.sqrt(car.velocity.x ** 2 + car.velocity.y ** 2);
-          renderDebugInfo(ctx, speed, { x: car.position.x, y: car.position.y });
-        })
-        .catch((error) => {
-          console.error('Failed to load track renderer:', error);
-          // Fallback to simple rendering if import fails
-          ctx.fillStyle = '#2d5016';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-        });
-    },
-    [],
+    [gameState, track, renderGame],
   );
 
   // Mouse event handlers
@@ -193,11 +191,13 @@ export function useRacingGame(): UseRacingGameReturn {
     const mouseX = event.clientX - rect.left;
     const mouseY = event.clientY - rect.top;
 
-    setInputState((prev) => ({
-      ...prev,
+    const newState = {
+      ...inputStateRef.current,
       mouseX,
       mouseY,
-    }));
+    };
+    inputStateRef.current = newState;
+    setInputState(newState);
   }, []);
 
   const handleMouseDown = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -205,22 +205,26 @@ export function useRacingGame(): UseRacingGameReturn {
     const isLeftClick = event.button === 0;
     const isRightClick = event.button === 2;
 
-    setInputState((prev) => ({
-      ...prev,
-      leftMouseDown: isLeftClick ? true : prev.leftMouseDown,
-      rightMouseDown: isRightClick ? true : prev.rightMouseDown,
-    }));
+    const newState = {
+      ...inputStateRef.current,
+      leftMouseDown: isLeftClick ? true : inputStateRef.current.leftMouseDown,
+      rightMouseDown: isRightClick ? true : inputStateRef.current.rightMouseDown,
+    };
+    inputStateRef.current = newState;
+    setInputState(newState);
   }, []);
 
   const handleMouseUp = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
     const isLeftClick = event.button === 0;
     const isRightClick = event.button === 2;
 
-    setInputState((prev) => ({
-      ...prev,
-      leftMouseDown: isLeftClick ? false : prev.leftMouseDown,
-      rightMouseDown: isRightClick ? false : prev.rightMouseDown,
-    }));
+    const newState = {
+      ...inputStateRef.current,
+      leftMouseDown: isLeftClick ? false : inputStateRef.current.leftMouseDown,
+      rightMouseDown: isRightClick ? false : inputStateRef.current.rightMouseDown,
+    };
+    inputStateRef.current = newState;
+    setInputState(newState);
   }, []);
 
   // Game control functions
@@ -237,13 +241,14 @@ export function useRacingGame(): UseRacingGameReturn {
     }
 
     physicsWorldRef.current = world;
-    setGameState(GameState.RACING);
     setCarState(getCarState(world.car));
 
-    // Start game loop
+    // Start game loop BEFORE setting state so gameLoop has the right state
     lastTimeRef.current = performance.now();
-    animationFrameRef.current = requestAnimationFrame(gameLoop);
-  }, [track, loadTrack, initializePhysicsWorld, gameLoop]);
+
+    // Set state which will cause gameLoop to re-render with correct dependencies
+    setGameState(GameState.RACING);
+  }, [track, loadTrack, initializePhysicsWorld]);
 
   const pauseGame = useCallback(() => {
     setGameState((prev) =>
@@ -283,6 +288,18 @@ export function useRacingGame(): UseRacingGameReturn {
       canvas.removeEventListener('contextmenu', preventContextMenu);
     };
   }, []);
+
+  // Start/stop game loop based on game state
+  useEffect(() => {
+    if (gameState === GameState.RACING && !animationFrameRef.current) {
+      // Start game loop
+      animationFrameRef.current = requestAnimationFrame(gameLoop);
+    } else if (gameState !== GameState.RACING && animationFrameRef.current) {
+      // Stop game loop
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+  }, [gameState, gameLoop]);
 
   // Cleanup on unmount
   useEffect(() => {

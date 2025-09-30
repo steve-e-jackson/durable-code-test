@@ -7,7 +7,7 @@
  * Implementation: Canvas 2D rendering with smooth curves and visual effects
  */
 
-import { Point2D, Track } from '../types/racing.types';
+import type { Point2D, Track } from '../types/racing.types';
 
 // Rendering constants
 const TRACK_SURFACE_COLOR = '#404040';
