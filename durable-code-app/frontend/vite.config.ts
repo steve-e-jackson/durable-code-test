@@ -56,9 +56,9 @@ export default defineConfig({
     port: 5173,
     host: true, // Listen on all interfaces and accept connections from any hostname
     proxy: {
-      // Proxy API requests to backend
+      // Proxy API requests to backend (use service name, not container name)
       '/api': {
-        target: 'http://durable-code-backend-main-dev:8000',
+        target: 'http://backend-dev:8000',
         changeOrigin: true,
         ws: true, // Enable WebSocket proxy
       },
