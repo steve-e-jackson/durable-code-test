@@ -362,6 +362,62 @@ def add_hairpin_turns(
     return control_points
 
 
+def _apply_curve_offset(
+    control_points: list[tuple[float, float]], index: int, offset_dist: float, direction: int
+) -> None:
+    """Apply perpendicular offset to a control point to create curves."""
+    num_points = len(control_points)
+    prev_pt = control_points[index - 1]
+    next_pt = control_points[(index + 1) % num_points]
+
+    dx = next_pt[0] - prev_pt[0]
+    dy = next_pt[1] - prev_pt[1]
+    length = math.sqrt(dx * dx + dy * dy)
+
+    if length > 0:
+        normal_x = -dy / length * offset_dist * direction
+        normal_y = dx / length * offset_dist * direction
+        current = control_points[index]
+        control_points[index] = (current[0] + normal_x, current[1] + normal_y)
+
+
+def _add_s_curves(control_points: list[tuple[float, float]]) -> None:
+    """Add S-curves at multiple locations along the track."""
+    num_points = len(control_points)
+    s_curve_positions = [num_points // 6, num_points // 3, (2 * num_points) // 3, (5 * num_points) // 6]
+
+    for idx, i in enumerate(s_curve_positions):
+        if 0 < i < num_points:
+            offset_dist = 50 if idx % 2 == 0 else 35
+            direction = (-1) ** idx
+            _apply_curve_offset(control_points, i, offset_dist, direction)
+
+
+def _add_chicanes(control_points: list[tuple[float, float]]) -> None:
+    """Add chicane-style quick direction changes."""
+    num_points = len(control_points)
+    chicane_positions = [num_points // 4, (3 * num_points) // 4]
+
+    for idx, i in enumerate(chicane_positions):
+        if 1 < i < num_points - 1:
+            direction = (-1) ** idx
+            _apply_curve_offset(control_points, i, 30, direction)
+
+            # Adjust adjacent point in opposite direction for chicane effect
+            if i + 1 < num_points:
+                prev_pt = control_points[i - 1]
+                next_pt = control_points[(i + 1) % num_points]
+                dx = next_pt[0] - prev_pt[0]
+                dy = next_pt[1] - prev_pt[1]
+                length = math.sqrt(dx * dx + dy * dy)
+
+                if length > 0:
+                    normal_x = -dy / length * 30 * direction
+                    normal_y = dx / length * 30 * direction
+                    next_current = control_points[i + 1]
+                    control_points[i + 1] = (next_current[0] - normal_x * 0.6, next_current[1] - normal_y * 0.6)
+
+
 def add_track_variation(
     control_points: list[tuple[float, float]],
     variation_type: str = "complex",
@@ -377,60 +433,9 @@ def add_track_variation(
     Returns:
         Modified control points with added features
     """
-    num_points = len(control_points)
-
     if variation_type == "complex":
-        # Add multiple features: S-curves, chicanes, and hairpins
-        # This creates a more dynamic, windy track similar to real racing circuits
-
-        # Add S-curves at multiple locations
-        s_curve_positions = [num_points // 6, num_points // 3, (2 * num_points) // 3, (5 * num_points) // 6]
-
-        for idx, i in enumerate(s_curve_positions):
-            if 0 < i < num_points:
-                prev_pt = control_points[i - 1]
-                next_pt = control_points[(i + 1) % num_points]
-
-                dx = next_pt[0] - prev_pt[0]
-                dy = next_pt[1] - prev_pt[1]
-                length = math.sqrt(dx * dx + dy * dy)
-
-                if length > 0:
-                    # Vary the offset to create different curve intensities
-                    offset_dist = 50 if idx % 2 == 0 else 35
-                    normal_x = -dy / length * offset_dist * ((-1) ** idx)
-                    normal_y = dx / length * offset_dist * ((-1) ** idx)
-
-                    current = control_points[i]
-                    control_points[i] = (current[0] + normal_x, current[1] + normal_y)
-
-        # Add chicane-style quick direction changes
-        chicane_positions = [num_points // 4, (3 * num_points) // 4]
-        for idx, i in enumerate(chicane_positions):
-            if 1 < i < num_points - 1:
-                # Create quick left-right or right-left chicane
-                prev_pt = control_points[i - 1]
-                next_pt = control_points[(i + 1) % num_points]
-
-                dx = next_pt[0] - prev_pt[0]
-                dy = next_pt[1] - prev_pt[1]
-                length = math.sqrt(dx * dx + dy * dy)
-
-                if length > 0:
-                    # Chicane effect: push point perpendicular
-                    offset_dist = 30
-                    normal_x = -dy / length * offset_dist * ((-1) ** idx)
-                    normal_y = dx / length * offset_dist * ((-1) ** idx)
-
-                    current = control_points[i]
-                    control_points[i] = (current[0] + normal_x, current[1] + normal_y)
-
-                    # Also adjust adjacent point in opposite direction
-                    if i + 1 < num_points:
-                        next_current = control_points[i + 1]
-                        control_points[i + 1] = (next_current[0] - normal_x * 0.6, next_current[1] - normal_y * 0.6)
-
-        # Add dramatic 180-degree hairpin turns
+        _add_s_curves(control_points)
+        _add_chicanes(control_points)
         if center:
             control_points = add_hairpin_turns(control_points, center)
 
@@ -704,6 +709,44 @@ def generate_random_track_points(
     return points
 
 
+def _normalize_angle(angle: float) -> float:
+    """Normalize angle to [-pi, pi] range."""
+    while angle > math.pi:
+        angle -= 2 * math.pi
+    while angle < -math.pi:
+        angle += 2 * math.pi
+    return angle
+
+
+def _find_k_nearest(current: tuple[float, float], points_set: set, k: int) -> list[tuple[float, float]]:
+    """Find k nearest neighbors to current point."""
+    distances = [(p, math.sqrt((p[0] - current[0]) ** 2 + (p[1] - current[1]) ** 2)) for p in points_set]
+    distances.sort(key=lambda x: x[1])
+    return [p for p, _ in distances[: min(k, len(distances))]]
+
+
+def _select_best_candidate(
+    candidates: list[tuple[float, float]], current: tuple[float, float], prev: tuple[float, float] | None
+) -> tuple[float, float]:
+    """Select best candidate based on angle from previous direction."""
+    if prev is None:
+        return candidates[0]
+
+    ref_angle = math.atan2(current[1] - prev[1], current[0] - prev[0])
+    best_angle = -math.pi
+    best_candidate = candidates[0]
+
+    for candidate in candidates:
+        angle = math.atan2(candidate[1] - current[1], candidate[0] - current[0])
+        relative_angle = _normalize_angle(angle - ref_angle)
+
+        if relative_angle > best_angle:
+            best_angle = relative_angle
+            best_candidate = candidate
+
+    return best_candidate
+
+
 def compute_concave_hull(points: list[tuple[float, float]], k: int = 3) -> list[tuple[float, float]]:
     """Compute concave hull of points using k-nearest neighbors approach.
 
@@ -717,7 +760,6 @@ def compute_concave_hull(points: list[tuple[float, float]], k: int = 3) -> list[
     if len(points) < 3:
         return points
 
-    # Find the leftmost point as starting point
     start = min(points, key=lambda p: (p[0], p[1]))
     hull = [start]
     current = start
@@ -725,41 +767,13 @@ def compute_concave_hull(points: list[tuple[float, float]], k: int = 3) -> list[
     points_set.remove(start)
 
     while points_set:
-        # Find k nearest neighbors
-        distances = [(p, math.sqrt((p[0] - current[0]) ** 2 + (p[1] - current[1]) ** 2)) for p in points_set]
-        distances.sort(key=lambda x: x[1])
-        candidates = [p for p, _ in distances[: min(k, len(distances))]]
-
+        candidates = _find_k_nearest(current, points_set, k)
         if not candidates:
             break
 
-        # Choose the rightmost candidate (largest angle)
-        if len(hull) > 1:
-            prev = hull[-2]
-            ref_angle = math.atan2(current[1] - prev[1], current[0] - prev[0])
+        prev = hull[-2] if len(hull) > 1 else None
+        next_point = _select_best_candidate(candidates, current, prev)
 
-            best_angle = -math.pi
-            best_candidate = candidates[0]
-
-            for candidate in candidates:
-                angle = math.atan2(candidate[1] - current[1], candidate[0] - current[0])
-                relative_angle = angle - ref_angle
-                # Normalize to [-pi, pi]
-                while relative_angle > math.pi:
-                    relative_angle -= 2 * math.pi
-                while relative_angle < -math.pi:
-                    relative_angle += 2 * math.pi
-
-                if relative_angle > best_angle:
-                    best_angle = relative_angle
-                    best_candidate = candidate
-
-            next_point = best_candidate
-        else:
-            # First step, just pick nearest
-            next_point = candidates[0]
-
-        # Check if we've completed the loop
         if next_point == start and len(hull) > 2:
             break
 
@@ -767,7 +781,6 @@ def compute_concave_hull(points: list[tuple[float, float]], k: int = 3) -> list[
         current = next_point
         points_set.discard(next_point)
 
-        # Prevent infinite loops
         if len(hull) > len(points) * 2:
             break
 
@@ -806,6 +819,92 @@ def smooth_track_centerline(points: list[tuple[float, float]], smoothing_passes:
     return smoothed
 
 
+def _generate_control_points_with_variation(
+    num_points: int,
+    center: tuple[float, float],
+    base_radius: tuple[float, float],
+    variation_amount: float,
+    hairpin_chance: float,
+    hairpin_intensity: float,
+    width: int,
+    padding: int,
+    track_width: float,
+) -> list[tuple[float, float]]:
+    """Generate control points with radial variation."""
+    control_points = []
+    for i in range(num_points):
+        angle = (2 * math.pi * i) / num_points
+        variation = random.uniform(-variation_amount, variation_amount)  # noqa: S311  # nosec B311
+
+        if random.random() < hairpin_chance:  # noqa: S311  # nosec B311
+            variation *= hairpin_intensity
+
+        r_x = base_radius[0] * (1 + variation)
+        r_y = base_radius[1] * (1 + variation)
+
+        r_x = max(padding + track_width, min(width / 2 - padding, r_x))
+        r_y = max(padding + track_width, min(width / 2 - padding, r_y))
+
+        x = center[0] + r_x * math.cos(angle)
+        y = center[1] + r_y * math.sin(angle)
+        control_points.append((x, y))
+
+    return control_points
+
+
+def _interpolate_centerline(smoothed_points: list[tuple[float, float]]) -> list[tuple[float, float]]:
+    """Interpolate centerline points using Catmull-Rom splines."""
+    interpolated_centerline = []
+    num_control = len(smoothed_points)
+
+    for i in range(num_control):
+        p0 = smoothed_points[(i - 1) % num_control]
+        p1 = smoothed_points[i]
+        p2 = smoothed_points[(i + 1) % num_control]
+        p3 = smoothed_points[(i + 2) % num_control]
+
+        for t in range(10):
+            t_norm = t / 10
+            point = catmull_rom_point(p0, p1, p2, p3, t_norm)
+            interpolated_centerline.append(point)
+
+    return interpolated_centerline
+
+
+def _generate_track_boundaries(
+    interpolated_centerline: list[tuple[float, float]], track_width: float
+) -> tuple[list[Point2D], list[Point2D]]:
+    """Generate inner and outer track boundaries from centerline."""
+    all_outer_points = []
+    all_inner_points = []
+    half_width = track_width / 2
+
+    for i in range(len(interpolated_centerline)):
+        current = interpolated_centerline[i]
+        next_point = interpolated_centerline[(i + 1) % len(interpolated_centerline)]
+
+        dx = next_point[0] - current[0]
+        dy = next_point[1] - current[1]
+        length = math.sqrt(dx * dx + dy * dy)
+
+        if length > 0:
+            normal_x = -dy / length
+            normal_y = dx / length
+
+            outer_x = current[0] + normal_x * half_width
+            outer_y = current[1] + normal_y * half_width
+            inner_x = current[0] - normal_x * half_width
+            inner_y = current[1] - normal_y * half_width
+
+            all_outer_points.append(Point2D(x=outer_x, y=outer_y))
+            all_inner_points.append(Point2D(x=inner_x, y=inner_y))
+        else:
+            all_outer_points.append(Point2D(x=current[0] + half_width, y=current[1]))
+            all_inner_points.append(Point2D(x=current[0] - half_width, y=current[1]))
+
+    return all_outer_points, all_inner_points
+
+
 def generate_procedural_track(
     width: int,
     height: int,
@@ -838,7 +937,6 @@ def generate_procedural_track(
     center = (width / 2, height / 2)
     base_radius = ((width - 2 * padding) / 2, (height - 2 * padding) / 2)
 
-    # Get difficulty-based parameters or use overrides
     track_width, default_num_points, default_variation = get_difficulty_params(difficulty)
 
     num_points = num_points if num_points is not None else default_num_points
@@ -848,82 +946,22 @@ def generate_procedural_track(
     smoothing_passes = smoothing_passes if smoothing_passes is not None else 2
     track_width = track_width_override if track_width_override is not None else track_width
 
-    # Generate control points with radial variation for dramatic curves
-    control_points = []
-    for i in range(num_points):
-        angle = (2 * math.pi * i) / num_points
+    control_points = _generate_control_points_with_variation(
+        num_points,
+        center,
+        base_radius,
+        variation_amount,
+        hairpin_chance,
+        hairpin_intensity,
+        width,
+        padding,
+        track_width,
+    )
 
-        # Random radius variation - occasionally make it extreme for hairpins
-        variation = random.uniform(-variation_amount, variation_amount)  # noqa: S311  # nosec B311
-
-        # Chance of creating a dramatic curve (hairpin-like)
-        if random.random() < hairpin_chance:  # noqa: S311  # nosec B311
-            variation *= hairpin_intensity  # Make it much more extreme
-
-        # Calculate radius with variation
-        r_x = base_radius[0] * (1 + variation)
-        r_y = base_radius[1] * (1 + variation)
-
-        # Ensure we stay within bounds
-        r_x = max(padding + track_width, min(width / 2 - padding, r_x))
-        r_y = max(padding + track_width, min(height / 2 - padding, r_y))
-
-        x = center[0] + r_x * math.cos(angle)
-        y = center[1] + r_y * math.sin(angle)
-
-        control_points.append((x, y))
-
-    # Smooth the control points with moving average
     smoothed_points = smooth_track_centerline(control_points, smoothing_passes=smoothing_passes)
+    interpolated_centerline = _interpolate_centerline(smoothed_points)
+    all_outer_points, all_inner_points = _generate_track_boundaries(interpolated_centerline, track_width)
 
-    # Interpolate more points for smoother curves using Catmull-Rom
-    interpolated_centerline = []
-    num_control = len(smoothed_points)
-
-    for i in range(num_control):
-        p0 = smoothed_points[(i - 1) % num_control]
-        p1 = smoothed_points[i]
-        p2 = smoothed_points[(i + 1) % num_control]
-        p3 = smoothed_points[(i + 2) % num_control]
-
-        # Add 10 interpolated points between each control point for smooth curves
-        for t in range(10):
-            t_norm = t / 10
-            point = catmull_rom_point(p0, p1, p2, p3, t_norm)
-            interpolated_centerline.append(point)
-
-    # Generate inner and outer boundaries from centerline
-    all_outer_points = []
-    all_inner_points = []
-    half_width = track_width / 2
-
-    for i in range(len(interpolated_centerline)):
-        current = interpolated_centerline[i]
-        next_point = interpolated_centerline[(i + 1) % len(interpolated_centerline)]
-
-        # Calculate tangent
-        dx = next_point[0] - current[0]
-        dy = next_point[1] - current[1]
-        length = math.sqrt(dx * dx + dy * dy)
-
-        if length > 0:
-            # Perpendicular vector (normal)
-            normal_x = -dy / length
-            normal_y = dx / length
-
-            # Create boundaries
-            outer_x = current[0] + normal_x * half_width
-            outer_y = current[1] + normal_y * half_width
-            inner_x = current[0] - normal_x * half_width
-            inner_y = current[1] - normal_y * half_width
-
-            all_outer_points.append(Point2D(x=outer_x, y=outer_y))
-            all_inner_points.append(Point2D(x=inner_x, y=inner_y))
-        else:
-            all_outer_points.append(Point2D(x=current[0] + half_width, y=current[1]))
-            all_inner_points.append(Point2D(x=current[0] - half_width, y=current[1]))
-
-    # Validate we have enough points
     if len(all_outer_points) < 3 or len(all_inner_points) < 3:
         outer_count = len(all_outer_points)
         inner_count = len(all_inner_points)
@@ -967,6 +1005,63 @@ async def get_simple_track(
         raise HTTPException(status_code=HTTP_BAD_REQUEST, detail="Failed to generate track") from e
 
 
+def _select_track_layout(params: TrackGenerationParams, track_width: float) -> TrackBoundary:
+    """Select and generate track based on layout parameter."""
+    layout_generators = {
+        "figure8": lambda: generate_figure8_track(params.width, params.height, track_width),
+        "spa": lambda: generate_spa_inspired_track(params.width, params.height, track_width),
+        "monaco": lambda: generate_monaco_style_track(params.width, params.height, track_width),
+        "laguna": lambda: generate_laguna_seca_track(params.width, params.height, track_width),
+        "suzuka": lambda: generate_suzuka_style_track(params.width, params.height, track_width),
+    }
+
+    if params.layout in layout_generators:
+        return layout_generators[params.layout]()
+
+    return generate_procedural_track(
+        params.width,
+        params.height,
+        params.difficulty,
+        num_points=params.num_points,
+        variation_amount=params.variation_amount,
+        hairpin_chance=params.hairpin_chance,
+        hairpin_intensity=params.hairpin_intensity,
+        smoothing_passes=params.smoothing_passes,
+        track_width_override=params.track_width_override,
+    )
+
+
+def _get_default_start_position(width: int, height: int) -> Point2D:
+    """Get default start position at bottom center."""
+    return Point2D(x=width / 2, y=height - 150)
+
+
+def _find_bottom_boundary_points(
+    boundaries: TrackBoundary, center_x: float, bottom_threshold: float
+) -> tuple[list[Point2D], list[Point2D]]:
+    """Find boundary points near the bottom."""
+    inner_bottom = [p for p in boundaries.inner if p.y > bottom_threshold]
+    outer_bottom = [p for p in boundaries.outer if p.y > bottom_threshold]
+    return inner_bottom, outer_bottom
+
+
+def _calculate_start_position(boundaries: TrackBoundary, width: int, height: int) -> Point2D:
+    """Calculate start position on the centerline of the track near the bottom."""
+    if not boundaries.inner or not boundaries.outer:
+        return _get_default_start_position(width, height)
+
+    center_x = width / 2
+    bottom_threshold = height * 0.7
+    inner_bottom, outer_bottom = _find_bottom_boundary_points(boundaries, center_x, bottom_threshold)
+
+    if not inner_bottom or not outer_bottom:
+        return _get_default_start_position(width, height)
+
+    inner_closest = min(inner_bottom, key=lambda p: abs(p.x - center_x))
+    outer_closest = min(outer_bottom, key=lambda p: abs(p.x - center_x))
+    return Point2D(x=(inner_closest.x + outer_closest.x) / 2, y=(inner_closest.y + outer_closest.y) / 2)
+
+
 @router.post("/track/generate", response_model=SimpleTrack)
 async def generate_track(params: TrackGenerationParams) -> SimpleTrack:
     """Generate a procedural track based on parameters.
@@ -986,63 +1081,13 @@ async def generate_track(params: TrackGenerationParams) -> SimpleTrack:
         layout=params.layout,
     )
 
-    # Set random seed if provided for reproducibility
     if params.seed is not None:
         random.seed(params.seed)
 
     try:
         track_width, _, _ = get_difficulty_params(params.difficulty)
-
-        # Select track generation based on layout parameter
-        if params.layout == "figure8":
-            boundaries = generate_figure8_track(params.width, params.height, track_width)
-        elif params.layout == "spa":
-            boundaries = generate_spa_inspired_track(params.width, params.height, track_width)
-        elif params.layout == "monaco":
-            boundaries = generate_monaco_style_track(params.width, params.height, track_width)
-        elif params.layout == "laguna":
-            boundaries = generate_laguna_seca_track(params.width, params.height, track_width)
-        elif params.layout == "suzuka":
-            boundaries = generate_suzuka_style_track(params.width, params.height, track_width)
-        else:  # procedural (default)
-            boundaries = generate_procedural_track(
-                params.width,
-                params.height,
-                params.difficulty,
-                num_points=params.num_points,
-                variation_amount=params.variation_amount,
-                hairpin_chance=params.hairpin_chance,
-                hairpin_intensity=params.hairpin_intensity,
-                smoothing_passes=params.smoothing_passes,
-                track_width_override=params.track_width_override,
-            )
-
-        # Calculate start position on the centerline of the track near the bottom
-        # This ensures the car always starts within the racing surface
-        if boundaries.inner and boundaries.outer and len(boundaries.inner) > 0 and len(boundaries.outer) > 0:
-            # Find inner and outer points near the bottom center
-            center_x = params.width / 2
-            bottom_threshold = params.height * 0.7
-
-            # Get bottom points from both boundaries
-            inner_bottom = [p for p in boundaries.inner if p.y > bottom_threshold]
-            outer_bottom = [p for p in boundaries.outer if p.y > bottom_threshold]
-
-            if inner_bottom and outer_bottom:
-                # Find closest points to center on each boundary
-                inner_closest = min(inner_bottom, key=lambda p: abs(p.x - center_x))
-                outer_closest = min(outer_bottom, key=lambda p: abs(p.x - center_x))
-
-                # Start position on the centerline between inner and outer boundaries
-                start_position = Point2D(
-                    x=(inner_closest.x + outer_closest.x) / 2, y=(inner_closest.y + outer_closest.y) / 2
-                )
-            else:
-                # Fallback: just use center of track
-                start_position = Point2D(x=center_x, y=params.height - 150)
-        else:
-            # Fallback for tracks without proper boundaries
-            start_position = Point2D(x=params.width / 2, y=params.height - 150)
+        boundaries = _select_track_layout(params, track_width)
+        start_position = _calculate_start_position(boundaries, params.width, params.height)
 
         return SimpleTrack(
             width=params.width,
