@@ -13,6 +13,9 @@
 export class SoundManager {
   private audioContext: AudioContext | null = null;
   private engineOscillator: OscillatorNode | null = null;
+  private engineOscillator2: OscillatorNode | null = null;
+  private modulatorOscillator: OscillatorNode | null = null;
+  private modulatorGain: GainNode | null = null;
   private engineGain: GainNode | null = null;
   private isEngineRunning = false;
   private masterGain: GainNode | null = null;
@@ -41,22 +44,42 @@ export class SoundManager {
   }
 
   /**
-   * Setup engine sound oscillator
+   * Setup engine sound with modulation for realistic motor rumble
    */
   private setupEngineSound(): void {
     if (!this.audioContext || !this.masterGain) return;
 
-    // Create oscillator for engine sound
+    // Create low-frequency modulator for engine rumble (gives it that throaty sound)
+    this.modulatorOscillator = this.audioContext.createOscillator();
+    this.modulatorOscillator.type = 'sine';
+    this.modulatorOscillator.frequency.value = 30; // Deep rumble modulation
+
+    this.modulatorGain = this.audioContext.createGain();
+    this.modulatorGain.gain.value = 20; // Modulation depth
+
+    // Connect modulator to control main oscillator frequency
+    this.modulatorOscillator.connect(this.modulatorGain);
+
+    // Create main engine oscillator (lower frequency for deeper sound)
     this.engineOscillator = this.audioContext.createOscillator();
     this.engineOscillator.type = 'sawtooth'; // Rich, engine-like sound
-    this.engineOscillator.frequency.value = 80; // Base engine frequency
+    this.engineOscillator.frequency.value = 50; // Lower base frequency (was 80)
+
+    // Connect modulator to main oscillator frequency
+    this.modulatorGain.connect(this.engineOscillator.frequency);
+
+    // Create second oscillator for harmonic richness
+    this.engineOscillator2 = this.audioContext.createOscillator();
+    this.engineOscillator2.type = 'square';
+    this.engineOscillator2.frequency.value = 100; // Octave above main
 
     // Create gain node for engine volume
     this.engineGain = this.audioContext.createGain();
     this.engineGain.gain.value = 0; // Start silent
 
-    // Connect: oscillator -> gain -> master -> destination
+    // Connect: oscillators -> gain -> master -> destination
     this.engineOscillator.connect(this.engineGain);
+    this.engineOscillator2.connect(this.engineGain);
     this.engineGain.connect(this.masterGain);
   }
 
@@ -64,12 +87,20 @@ export class SoundManager {
    * Start engine sound
    */
   public startEngine(): void {
-    if (!this.audioContext || this.isEngineRunning || !this.engineOscillator) {
+    if (
+      !this.audioContext ||
+      this.isEngineRunning ||
+      !this.engineOscillator ||
+      !this.engineOscillator2 ||
+      !this.modulatorOscillator
+    ) {
       return;
     }
 
     try {
+      this.modulatorOscillator.start();
       this.engineOscillator.start();
+      this.engineOscillator2.start();
       this.isEngineRunning = true;
     } catch (error) {
       console.warn('Failed to start engine sound:', error);
@@ -97,6 +128,8 @@ export class SoundManager {
     if (
       !this.audioContext ||
       !this.engineOscillator ||
+      !this.engineOscillator2 ||
+      !this.modulatorOscillator ||
       !this.engineGain ||
       !this.isEngineRunning
     ) {
@@ -105,19 +138,22 @@ export class SoundManager {
 
     const now = this.audioContext.currentTime;
 
-    // Map speed to frequency (80Hz idle to 300Hz max)
-    const minFreq = 80;
-    const maxFreq = 300;
+    // Map speed to frequency (lower range for deeper sound: 50Hz idle to 200Hz max)
+    const minFreq = 50;
+    const maxFreq = 200;
     const frequency = minFreq + (speed / 10) * (maxFreq - minFreq);
-    this.engineOscillator.frequency.setTargetAtTime(
-      Math.min(maxFreq, Math.max(minFreq, frequency)),
-      now,
-      0.1,
-    );
+    const targetFreq = Math.min(maxFreq, Math.max(minFreq, frequency));
 
-    // Map speed to volume (0.1 idle to 0.5 max)
-    const minVolume = 0.1;
-    const maxVolume = 0.5;
+    this.engineOscillator.frequency.setTargetAtTime(targetFreq, now, 0.1);
+    this.engineOscillator2.frequency.setTargetAtTime(targetFreq * 2, now, 0.1);
+
+    // Increase modulation rate with speed for more aggressive sound
+    const modulationFreq = 30 + (speed / 10) * 20; // 30Hz to 50Hz
+    this.modulatorOscillator.frequency.setTargetAtTime(modulationFreq, now, 0.1);
+
+    // Map speed to volume (0.15 idle to 0.6 max for more presence)
+    const minVolume = 0.15;
+    const maxVolume = 0.6;
     const volume = minVolume + (speed / 10) * (maxVolume - minVolume);
     this.engineGain.gain.setTargetAtTime(
       Math.min(maxVolume, Math.max(minVolume, volume)),
@@ -183,9 +219,11 @@ export class SoundManager {
   public dispose(): void {
     this.stopEngine();
 
-    if (this.engineOscillator && this.isEngineRunning) {
+    if (this.isEngineRunning) {
       try {
-        this.engineOscillator.stop();
+        if (this.engineOscillator) this.engineOscillator.stop();
+        if (this.engineOscillator2) this.engineOscillator2.stop();
+        if (this.modulatorOscillator) this.modulatorOscillator.stop();
       } catch {
         // Already stopped
       }
@@ -201,6 +239,9 @@ export class SoundManager {
 
     this.audioContext = null;
     this.engineOscillator = null;
+    this.engineOscillator2 = null;
+    this.modulatorOscillator = null;
+    this.modulatorGain = null;
     this.engineGain = null;
     this.masterGain = null;
     this.isEngineRunning = false;
