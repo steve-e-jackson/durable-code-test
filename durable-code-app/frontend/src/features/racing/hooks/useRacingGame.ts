@@ -233,13 +233,14 @@ export function useRacingGame(): UseRacingGameReturn {
     }
 
     physicsWorldRef.current = world;
-    setGameState(GameState.RACING);
     setCarState(getCarState(world.car));
 
-    // Start game loop
+    // Start game loop BEFORE setting state so gameLoop has the right state
     lastTimeRef.current = performance.now();
-    animationFrameRef.current = requestAnimationFrame(gameLoop);
-  }, [track, loadTrack, initializePhysicsWorld, gameLoop]);
+
+    // Set state which will cause gameLoop to re-render with correct dependencies
+    setGameState(GameState.RACING);
+  }, [track, loadTrack, initializePhysicsWorld]);
 
   const pauseGame = useCallback(() => {
     setGameState((prev) =>
@@ -279,6 +280,18 @@ export function useRacingGame(): UseRacingGameReturn {
       canvas.removeEventListener('contextmenu', preventContextMenu);
     };
   }, []);
+
+  // Start/stop game loop based on game state
+  useEffect(() => {
+    if (gameState === GameState.RACING && !animationFrameRef.current) {
+      // Start game loop
+      animationFrameRef.current = requestAnimationFrame(gameLoop);
+    } else if (gameState !== GameState.RACING && animationFrameRef.current) {
+      // Stop game loop
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+  }, [gameState, gameLoop]);
 
   // Cleanup on unmount
   useEffect(() => {
