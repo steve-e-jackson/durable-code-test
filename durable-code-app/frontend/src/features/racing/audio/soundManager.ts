@@ -66,9 +66,11 @@ export class SoundManager {
       // Try to load real audio files
       await this.loadAudioFiles();
 
-      // If real audio failed, fallback to synthesized
+      // Only setup synthesized audio if real audio completely failed
       if (!this.useRealAudio) {
         this.setupEngineSound();
+      } else {
+        console.info('✓ Real audio loaded - synthesized audio disabled');
       }
     } catch (error) {
       console.warn('Web Audio API not supported:', error);
@@ -227,11 +229,13 @@ export class SoundManager {
       }
 
       if (this.useRealAudio) {
-        // Use real audio file
+        // Use ONLY real audio file - no synthesized sound
+        console.info('🎵 Starting real audio engine sound');
         this.playAudioBuffer('engineIdle', this.audioFiles.engineIdle);
         this.engineSource = this.activeAudioSources.get('engineIdle') || null;
       } else {
         // Use synthesized audio - recreate oscillators if they were stopped
+        console.info('🎵 Starting synthesized engine sound');
         if (
           !this.engineOscillator ||
           !this.engineOscillator2 ||
@@ -307,41 +311,83 @@ export class SoundManager {
    * @param speed Current car speed
    */
   public updateEngineSound(speed: number): void {
-    if (
-      !this.audioContext ||
-      !this.engineOscillator ||
-      !this.engineOscillator2 ||
-      !this.modulatorOscillator ||
-      !this.engineGain ||
-      !this.isEngineRunning
-    ) {
+    if (!this.audioContext || !this.isEngineRunning) {
       return;
     }
 
     const now = this.audioContext.currentTime;
 
-    // Map speed to frequency (lower range for deeper sound: 50Hz idle to 200Hz max)
-    const minFreq = 50;
-    const maxFreq = 200;
-    const frequency = minFreq + (speed / 10) * (maxFreq - minFreq);
-    const targetFreq = Math.min(maxFreq, Math.max(minFreq, frequency));
+    if (this.useRealAudio) {
+      // For real audio: adjust playback rate and volume based on speed
+      // Speed threshold: 0-3 = idle, 3+ = high
+      const speedThreshold = 3;
 
-    this.engineOscillator.frequency.setTargetAtTime(targetFreq, now, 0.1);
-    this.engineOscillator2.frequency.setTargetAtTime(targetFreq * 2, now, 0.1);
+      if (speed < speedThreshold) {
+        // Low speed - use engineIdle if not already playing
+        if (!this.activeAudioSources.has('engineIdle')) {
+          // Stop high if playing
+          const highSource = this.activeAudioSources.get('engineHigh');
+          if (highSource) {
+            highSource.stop();
+            this.activeAudioSources.delete('engineHigh');
+          }
+          // Start idle
+          this.playAudioBuffer('engineIdle', this.audioFiles.engineIdle);
+        }
+      } else {
+        // High speed - use engineHigh if not already playing
+        if (!this.activeAudioSources.has('engineHigh')) {
+          // Stop idle if playing
+          const idleSource = this.activeAudioSources.get('engineIdle');
+          if (idleSource) {
+            idleSource.stop();
+            this.activeAudioSources.delete('engineIdle');
+          }
+          // Start high
+          this.playAudioBuffer('engineHigh', this.audioFiles.engineHigh);
+        }
 
-    // Increase modulation rate with speed for more aggressive sound
-    const modulationFreq = 30 + (speed / 10) * 20; // 30Hz to 50Hz
-    this.modulatorOscillator.frequency.setTargetAtTime(modulationFreq, now, 0.1);
+        // Adjust playback rate for high engine sound (1.0 to 1.5x)
+        const engineSource = this.activeAudioSources.get('engineHigh');
+        if (engineSource) {
+          const playbackRate = 1.0 + (speed / 10) * 0.5;
+          engineSource.playbackRate.value = Math.min(1.5, playbackRate);
+        }
+      }
+    } else {
+      // Synthesized audio handling
+      if (
+        !this.engineOscillator ||
+        !this.engineOscillator2 ||
+        !this.modulatorOscillator ||
+        !this.engineGain
+      ) {
+        return;
+      }
 
-    // Map speed to volume (0.15 idle to 0.6 max for more presence)
-    const minVolume = 0.15;
-    const maxVolume = 0.6;
-    const volume = minVolume + (speed / 10) * (maxVolume - minVolume);
-    this.engineGain.gain.setTargetAtTime(
-      Math.min(maxVolume, Math.max(minVolume, volume)),
-      now,
-      0.05,
-    );
+      // Map speed to frequency (lower range for deeper sound: 50Hz idle to 200Hz max)
+      const minFreq = 50;
+      const maxFreq = 200;
+      const frequency = minFreq + (speed / 10) * (maxFreq - minFreq);
+      const targetFreq = Math.min(maxFreq, Math.max(minFreq, frequency));
+
+      this.engineOscillator.frequency.setTargetAtTime(targetFreq, now, 0.1);
+      this.engineOscillator2.frequency.setTargetAtTime(targetFreq * 2, now, 0.1);
+
+      // Increase modulation rate with speed for more aggressive sound
+      const modulationFreq = 30 + (speed / 10) * 20; // 30Hz to 50Hz
+      this.modulatorOscillator.frequency.setTargetAtTime(modulationFreq, now, 0.1);
+
+      // Map speed to volume (0.15 idle to 0.6 max for more presence)
+      const minVolume = 0.15;
+      const maxVolume = 0.6;
+      const volume = minVolume + (speed / 10) * (maxVolume - minVolume);
+      this.engineGain.gain.setTargetAtTime(
+        Math.min(maxVolume, Math.max(minVolume, volume)),
+        now,
+        0.05,
+      );
+    }
   }
 
   /**
