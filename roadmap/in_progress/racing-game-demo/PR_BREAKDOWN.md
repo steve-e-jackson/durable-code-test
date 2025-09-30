@@ -350,13 +350,97 @@ export class GameStateManager {
 
 ---
 
-## PR5: Timing & Scoring System
+## PR5: Advanced Car Physics
+
+### Overview
+Implement realistic car physics with proper steering mechanics, rear-wheel pivot point, drift mechanics, and improved handling model.
+
+### Branch
+`feat/racing-game-pr5-physics`
+
+### Physics Improvements
+
+#### 1. Realistic Steering Model
+**File**: `src/features/racing/physics/carPhysics.ts`
+```typescript
+export class CarPhysicsModel {
+  // Rear-wheel pivot point (car rotates around rear axle, not center)
+  // Front-wheel steering angle calculation
+  // Ackermann steering geometry
+  // Speed-dependent steering sensitivity
+}
+```
+
+#### 2. Drift Mechanics
+**File**: `src/features/racing/physics/driftMechanics.ts`
+```typescript
+export class DriftSystem {
+  // Tire grip calculation
+  // Slip angle simulation
+  // Counter-steering detection
+  // Drift scoring (optional)
+}
+```
+
+#### 3. Advanced Forces
+**File**: `src/features/racing/physics/forces.ts`
+```typescript
+export class ForceSystem {
+  // Weight transfer (acceleration/braking)
+  // Lateral forces (cornering)
+  // Traction control
+  // Downforce (at high speeds)
+}
+```
+
+#### 4. Tire Model
+**File**: `src/features/racing/physics/tireModel.ts`
+```typescript
+export interface TireModel {
+  // Friction circle
+  // Temperature simulation
+  // Wear model (optional)
+  // Surface interaction
+}
+```
+
+### Implementation Details
+
+#### Rear-Wheel Pivot Point
+- Calculate steering based on front wheel angle
+- Apply forces at rear axle position
+- Rotate car body around rear pivot point
+- Adjust turning radius based on wheelbase
+
+#### Improved Handling
+- Speed-dependent steering (tighter at low speed, wider at high speed)
+- Momentum preservation during turns
+- Realistic acceleration/deceleration curves
+- Better collision response
+
+### Testing Requirements
+- Car handles realistically at different speeds
+- Turning feels natural and intuitive
+- Drift mechanics work smoothly
+- No physics glitches or unrealistic behavior
+
+### Success Criteria
+- [ ] Car pivots around rear axle
+- [ ] Steering angle affects turn radius correctly
+- [ ] Speed influences handling appropriately
+- [ ] Drift mechanics implemented
+- [ ] Physics feel responsive and fun
+- [ ] No performance degradation
+
+---
+
+## PR6: Timing & Scoring System
 
 ### Overview
 Implement checkpoint system, lap timing, best time tracking, and race completion logic.
 
 ### Branch
-`feat/racing-game-pr5-scoring`
+`feat/racing-game-pr6-scoring`
 
 ### New Systems
 
@@ -408,13 +492,13 @@ export function ScoreBoard({ currentTime, bestTime, lap }: ScoreBoardProps) {
 
 ---
 
-## PR6: Polish & Effects
+## PR7: Polish & Effects
 
 ### Overview
 Add visual effects, particle systems, and performance optimizations to enhance gameplay experience.
 
 ### Branch
-`feat/racing-game-pr6-polish`
+`feat/racing-game-pr7-polish`
 
 ### Enhancements
 
@@ -483,13 +567,13 @@ export class RenderOptimizer {
 
 ---
 
-## PR7: Security Review & Hardening
+## PR8: Security Review & Hardening
 
 ### Overview
 Comprehensive security audit, vulnerability scanning, and implementation of security best practices.
 
 ### Branch
-`feat/racing-game-pr7-security`
+`feat/racing-game-pr8-security`
 
 ### Security Tasks
 
