@@ -14,11 +14,19 @@ Implementation: FastAPI router with async endpoints and comprehensive validation
 
 import math
 import random
+from dataclasses import dataclass
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query
 from loguru import logger
 from pydantic import BaseModel, Field
+
+from app.famous_tracks import (
+    generate_laguna_seca_track,
+    generate_monaco_style_track,
+    generate_spa_inspired_track,
+    generate_suzuka_style_track,
+)
 
 # Constants
 DEFAULT_TRACK_WIDTH = 800
@@ -133,18 +141,11 @@ def generate_oval_track(width: int, height: int, padding: int = DEFAULT_TRACK_PA
 
 
 def get_difficulty_params(difficulty: str) -> tuple[float, int, float]:
-    """Get track parameters based on difficulty level.
-
-    Args:
-        difficulty: Track difficulty (easy, medium, hard)
-
-    Returns:
-        Tuple of (track_width, num_control_points, variation)
-    """
+    """Get track parameters based on difficulty level."""
     params = {
-        "easy": (120.0, 12, 0.15),  # Wider track, more curves
-        "medium": (100.0, 16, 0.22),  # Medium width, complex curves
-        "hard": (80.0, 20, 0.28),  # Narrower track, very windy
+        "easy": (120.0, 12, 0.15),
+        "medium": (100.0, 16, 0.22),
+        "hard": (80.0, 20, 0.28),
     }
     return params.get(difficulty, (100.0, 16, 0.22))
 
@@ -480,131 +481,6 @@ def generate_figure8_track(width: int, height: int, track_width: float) -> Track
     return generate_boundaries_from_centerline(control_points, track_width)
 
 
-def generate_spa_inspired_track(width: int, height: int, track_width: float) -> TrackBoundary:
-    """Generate Spa-Francorchamps inspired track with fast curves and elevation changes.
-
-    Args:
-        width: Canvas width
-        height: Canvas height
-        track_width: Width of track surface
-
-    Returns:
-        TrackBoundary for Spa-inspired layout
-    """
-    # Create iconic Spa sections: Eau Rouge, Blanchimont, Bus Stop
-    control_points = [
-        (width * 0.5, height * 0.9),  # Start/finish
-        (width * 0.3, height * 0.8),  # Turn 1 (La Source)
-        (width * 0.2, height * 0.65),  # Eau Rouge entry
-        (width * 0.25, height * 0.5),  # Eau Rouge climb
-        (width * 0.35, height * 0.35),  # Raidillon
-        (width * 0.5, height * 0.25),  # Kemmel Straight entry
-        (width * 0.7, height * 0.2),  # Les Combes
-        (width * 0.8, height * 0.3),  # Malmedy
-        (width * 0.85, height * 0.45),  # Rivage
-        (width * 0.8, height * 0.6),  # Pouhon
-        (width * 0.7, height * 0.7),  # Fagnes
-        (width * 0.6, height * 0.75),  # Campus
-        (width * 0.55, height * 0.82),  # La Source approach
-    ]
-
-    return generate_boundaries_from_centerline(control_points, track_width)
-
-
-def generate_monaco_style_track(width: int, height: int, track_width: float) -> TrackBoundary:
-    """Generate Monaco street circuit inspired track with tight corners.
-
-    Args:
-        width: Canvas width
-        height: Canvas height
-        track_width: Width of track surface
-
-    Returns:
-        TrackBoundary for Monaco-style layout
-    """
-    # Tight, technical street circuit with hairpins and chicanes
-    control_points = [
-        (width * 0.5, height * 0.85),  # Start/finish
-        (width * 0.4, height * 0.75),  # Sainte Devote
-        (width * 0.3, height * 0.6),  # Beau Rivage climb
-        (width * 0.25, height * 0.45),  # Massenet
-        (width * 0.2, height * 0.3),  # Casino Square
-        (width * 0.25, height * 0.2),  # Mirabeau
-        (width * 0.4, height * 0.15),  # Hairpin (Loews)
-        (width * 0.55, height * 0.18),  # Portier
-        (width * 0.7, height * 0.25),  # Tunnel entry
-        (width * 0.8, height * 0.35),  # Tunnel exit
-        (width * 0.82, height * 0.5),  # Chicane entry
-        (width * 0.78, height * 0.58),  # Chicane exit
-        (width * 0.7, height * 0.68),  # Tabac
-        (width * 0.6, height * 0.78),  # Piscine
-        (width * 0.55, height * 0.82),  # La Rascasse
-    ]
-
-    return generate_boundaries_from_centerline(control_points, track_width)
-
-
-def generate_laguna_seca_track(width: int, height: int, track_width: float) -> TrackBoundary:
-    """Generate Laguna Seca inspired track with famous corkscrew section.
-
-    Args:
-        width: Canvas width
-        height: Canvas height
-        track_width: Width of track surface
-
-    Returns:
-        TrackBoundary for Laguna Seca layout
-    """
-    control_points = [
-        (width * 0.5, height * 0.85),  # Start/finish
-        (width * 0.3, height * 0.75),  # Turn 1
-        (width * 0.2, height * 0.6),  # Turn 2
-        (width * 0.25, height * 0.4),  # Turn 3 (Andretti Hairpin)
-        (width * 0.4, height * 0.3),  # Turn 4
-        (width * 0.6, height * 0.25),  # Turn 5
-        (width * 0.75, height * 0.3),  # Turn 6 (Corkscrew entry)
-        (width * 0.78, height * 0.42),  # Turn 7 (Corkscrew)
-        (width * 0.75, height * 0.55),  # Turn 8 (Corkscrew exit)
-        (width * 0.65, height * 0.65),  # Turn 9
-        (width * 0.55, height * 0.75),  # Turn 10
-        (width * 0.52, height * 0.82),  # Turn 11
-    ]
-
-    return generate_boundaries_from_centerline(control_points, track_width)
-
-
-def generate_suzuka_style_track(width: int, height: int, track_width: float) -> TrackBoundary:
-    """Generate Suzuka figure-8 inspired track with iconic esses and hairpin.
-
-    Args:
-        width: Canvas width
-        height: Canvas height
-        track_width: Width of track surface
-
-    Returns:
-        TrackBoundary for Suzuka-style layout
-    """
-    control_points = [
-        (width * 0.5, height * 0.88),  # Start/finish
-        (width * 0.3, height * 0.8),  # Turn 1
-        (width * 0.2, height * 0.68),  # Turn 2 (S-curves entry)
-        (width * 0.22, height * 0.54),  # Turn 3 (S-curves)
-        (width * 0.28, height * 0.42),  # Turn 4
-        (width * 0.25, height * 0.28),  # Turn 5 (Degner)
-        (width * 0.35, height * 0.2),  # Turn 6
-        (width * 0.5, height * 0.15),  # Turn 7 (Hairpin)
-        (width * 0.65, height * 0.18),  # Turn 8
-        (width * 0.75, height * 0.28),  # Turn 9 (Spoon entry)
-        (width * 0.78, height * 0.42),  # Turn 10 (Spoon)
-        (width * 0.72, height * 0.55),  # Turn 11
-        (width * 0.68, height * 0.65),  # Turn 12 (130R entry)
-        (width * 0.6, height * 0.75),  # Turn 13 (130R)
-        (width * 0.55, height * 0.82),  # Turn 14 (Chicane)
-    ]
-
-    return generate_boundaries_from_centerline(control_points, track_width)
-
-
 def generate_boundaries_from_centerline(control_points: list[tuple[float, float]], track_width: float) -> TrackBoundary:
     """Generate inner and outer boundaries from centerline control points.
 
@@ -636,8 +512,7 @@ def generate_boundaries_from_centerline(control_points: list[tuple[float, float]
     all_inner_points = []
     half_width = track_width / 2
 
-    for i in range(len(centerline_points)):
-        current = centerline_points[i]
+    for i, current in enumerate(centerline_points):
         next_point = centerline_points[(i + 1) % len(centerline_points)]
 
         # Calculate tangent
@@ -804,9 +679,8 @@ def smooth_track_centerline(points: list[tuple[float, float]], smoothing_passes:
 
     for _ in range(smoothing_passes):
         new_smoothed = []
-        for i in range(len(smoothed)):
+        for i, curr_pt in enumerate(smoothed):
             prev_pt = smoothed[(i - 1) % len(smoothed)]
-            curr_pt = smoothed[i]
             next_pt = smoothed[(i + 1) % len(smoothed)]
 
             # Moving average
@@ -819,34 +693,39 @@ def smooth_track_centerline(points: list[tuple[float, float]], smoothing_passes:
     return smoothed
 
 
-def _generate_control_points_with_variation(
-    num_points: int,
-    center: tuple[float, float],
-    base_radius: tuple[float, float],
-    variation_amount: float,
-    hairpin_chance: float,
-    hairpin_intensity: float,
-    width: int,
-    padding: int,
-    track_width: float,
-) -> list[tuple[float, float]]:
+@dataclass
+class _ControlPointParams:
+    """Parameters for control point generation."""
+
+    num_points: int
+    center: tuple[float, float]
+    base_radius: tuple[float, float]
+    variation_amount: float
+    hairpin_chance: float
+    hairpin_intensity: float
+    width: int
+    padding: int
+    track_width: float
+
+
+def _generate_control_points_with_variation(params: _ControlPointParams) -> list[tuple[float, float]]:
     """Generate control points with radial variation."""
     control_points = []
-    for i in range(num_points):
-        angle = (2 * math.pi * i) / num_points
-        variation = random.uniform(-variation_amount, variation_amount)  # noqa: S311  # nosec B311
+    for i in range(params.num_points):
+        angle = (2 * math.pi * i) / params.num_points
+        variation = random.uniform(-params.variation_amount, params.variation_amount)  # noqa: S311  # nosec B311
 
-        if random.random() < hairpin_chance:  # noqa: S311  # nosec B311
-            variation *= hairpin_intensity
+        if random.random() < params.hairpin_chance:  # noqa: S311  # nosec B311
+            variation *= params.hairpin_intensity
 
-        r_x = base_radius[0] * (1 + variation)
-        r_y = base_radius[1] * (1 + variation)
+        r_x = params.base_radius[0] * (1 + variation)
+        r_y = params.base_radius[1] * (1 + variation)
 
-        r_x = max(padding + track_width, min(width / 2 - padding, r_x))
-        r_y = max(padding + track_width, min(width / 2 - padding, r_y))
+        r_x = max(params.padding + params.track_width, min(params.width / 2 - params.padding, r_x))
+        r_y = max(params.padding + params.track_width, min(params.width / 2 - params.padding, r_y))
 
-        x = center[0] + r_x * math.cos(angle)
-        y = center[1] + r_y * math.sin(angle)
+        x = params.center[0] + r_x * math.cos(angle)
+        y = params.center[1] + r_y * math.sin(angle)
         control_points.append((x, y))
 
     return control_points
@@ -879,8 +758,7 @@ def _generate_track_boundaries(
     all_inner_points = []
     half_width = track_width / 2
 
-    for i in range(len(interpolated_centerline)):
-        current = interpolated_centerline[i]
+    for i, current in enumerate(interpolated_centerline):
         next_point = interpolated_centerline[(i + 1) % len(interpolated_centerline)]
 
         dx = next_point[0] - current[0]
@@ -947,15 +825,17 @@ def generate_procedural_track(
     track_width = track_width_override if track_width_override is not None else track_width
 
     control_points = _generate_control_points_with_variation(
-        num_points,
-        center,
-        base_radius,
-        variation_amount,
-        hairpin_chance,
-        hairpin_intensity,
-        width,
-        padding,
-        track_width,
+        _ControlPointParams(
+            num_points=num_points,
+            center=center,
+            base_radius=base_radius,
+            variation_amount=variation_amount,
+            hairpin_chance=hairpin_chance,
+            hairpin_intensity=hairpin_intensity,
+            width=width,
+            padding=padding,
+            track_width=track_width,
+        )
     )
 
     smoothed_points = smooth_track_centerline(control_points, smoothing_passes=smoothing_passes)
@@ -1009,10 +889,18 @@ def _select_track_layout(params: TrackGenerationParams, track_width: float) -> T
     """Select and generate track based on layout parameter."""
     layout_generators = {
         "figure8": lambda: generate_figure8_track(params.width, params.height, track_width),
-        "spa": lambda: generate_spa_inspired_track(params.width, params.height, track_width),
-        "monaco": lambda: generate_monaco_style_track(params.width, params.height, track_width),
-        "laguna": lambda: generate_laguna_seca_track(params.width, params.height, track_width),
-        "suzuka": lambda: generate_suzuka_style_track(params.width, params.height, track_width),
+        "spa": lambda: generate_spa_inspired_track(
+            params.width, params.height, track_width, generate_boundaries_from_centerline
+        ),
+        "monaco": lambda: generate_monaco_style_track(
+            params.width, params.height, track_width, generate_boundaries_from_centerline
+        ),
+        "laguna": lambda: generate_laguna_seca_track(
+            params.width, params.height, track_width, generate_boundaries_from_centerline
+        ),
+        "suzuka": lambda: generate_suzuka_style_track(
+            params.width, params.height, track_width, generate_boundaries_from_centerline
+        ),
     }
 
     if params.layout in layout_generators:
@@ -1031,11 +919,6 @@ def _select_track_layout(params: TrackGenerationParams, track_width: float) -> T
     )
 
 
-def _get_default_start_position(width: int, height: int) -> Point2D:
-    """Get default start position at bottom center."""
-    return Point2D(x=width / 2, y=height - 150)
-
-
 def _find_bottom_boundary_points(
     boundaries: TrackBoundary, center_x: float, bottom_threshold: float
 ) -> tuple[list[Point2D], list[Point2D]]:
@@ -1047,16 +930,14 @@ def _find_bottom_boundary_points(
 
 def _calculate_start_position(boundaries: TrackBoundary, width: int, height: int) -> Point2D:
     """Calculate start position on the centerline of the track near the bottom."""
+    default = Point2D(x=width / 2, y=height - 150)
     if not boundaries.inner or not boundaries.outer:
-        return _get_default_start_position(width, height)
-
+        return default
     center_x = width / 2
     bottom_threshold = height * 0.7
     inner_bottom, outer_bottom = _find_bottom_boundary_points(boundaries, center_x, bottom_threshold)
-
     if not inner_bottom or not outer_bottom:
-        return _get_default_start_position(width, height)
-
+        return default
     inner_closest = min(inner_bottom, key=lambda p: abs(p.x - center_x))
     outer_closest = min(outer_bottom, key=lambda p: abs(p.x - center_x))
     return Point2D(x=(inner_closest.x + outer_closest.x) / 2, y=(inner_closest.y + outer_closest.y) / 2)
