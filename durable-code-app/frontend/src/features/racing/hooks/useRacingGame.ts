@@ -75,6 +75,7 @@ export function useRacingGame(): UseRacingGameReturn {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
+  const inputStateRef = useRef<InputState>(initialInputState);
 
   // Track loading function
   const loadTrack = useCallback(async () => {
@@ -152,14 +153,15 @@ export function useRacingGame(): UseRacingGameReturn {
       // Update physics (fixed timestep for consistency)
       if (deltaTime >= PHYSICS_TIMESTEP) {
         const { engine, car } = physicsWorldRef.current;
+        const input = inputStateRef.current;
 
         // Apply forces based on input
         applyCarForces(
           car,
-          inputState.mouseX,
-          inputState.mouseY,
-          inputState.leftMouseDown,
-          inputState.rightMouseDown,
+          input.mouseX,
+          input.mouseY,
+          input.leftMouseDown,
+          input.rightMouseDown,
         );
 
         // Update physics engine
@@ -177,7 +179,7 @@ export function useRacingGame(): UseRacingGameReturn {
       // Continue game loop
       animationFrameRef.current = requestAnimationFrame(gameLoop);
     },
-    [gameState, inputState, track, renderGame],
+    [gameState, track, renderGame],
   );
 
   // Mouse event handlers
@@ -189,11 +191,13 @@ export function useRacingGame(): UseRacingGameReturn {
     const mouseX = event.clientX - rect.left;
     const mouseY = event.clientY - rect.top;
 
-    setInputState((prev) => ({
-      ...prev,
+    const newState = {
+      ...inputStateRef.current,
       mouseX,
       mouseY,
-    }));
+    };
+    inputStateRef.current = newState;
+    setInputState(newState);
   }, []);
 
   const handleMouseDown = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -201,22 +205,26 @@ export function useRacingGame(): UseRacingGameReturn {
     const isLeftClick = event.button === 0;
     const isRightClick = event.button === 2;
 
-    setInputState((prev) => ({
-      ...prev,
-      leftMouseDown: isLeftClick ? true : prev.leftMouseDown,
-      rightMouseDown: isRightClick ? true : prev.rightMouseDown,
-    }));
+    const newState = {
+      ...inputStateRef.current,
+      leftMouseDown: isLeftClick ? true : inputStateRef.current.leftMouseDown,
+      rightMouseDown: isRightClick ? true : inputStateRef.current.rightMouseDown,
+    };
+    inputStateRef.current = newState;
+    setInputState(newState);
   }, []);
 
   const handleMouseUp = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
     const isLeftClick = event.button === 0;
     const isRightClick = event.button === 2;
 
-    setInputState((prev) => ({
-      ...prev,
-      leftMouseDown: isLeftClick ? false : prev.leftMouseDown,
-      rightMouseDown: isRightClick ? false : prev.rightMouseDown,
-    }));
+    const newState = {
+      ...inputStateRef.current,
+      leftMouseDown: isLeftClick ? false : inputStateRef.current.leftMouseDown,
+      rightMouseDown: isRightClick ? false : inputStateRef.current.rightMouseDown,
+    };
+    inputStateRef.current = newState;
+    setInputState(newState);
   }, []);
 
   // Game control functions
