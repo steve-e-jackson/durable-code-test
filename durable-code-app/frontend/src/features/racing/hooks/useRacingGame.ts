@@ -30,6 +30,7 @@ import {
   renderDebugInfo,
   renderTrack,
 } from '../rendering/trackRenderer';
+import { SoundManager } from '../audio/soundManager';
 
 // Constants
 const CANVAS_WIDTH = 1200; // Larger canvas for bigger track
@@ -76,6 +77,8 @@ export function useRacingGame(): UseRacingGameReturn {
   const animationFrameRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
   const inputStateRef = useRef<InputState>(initialInputState);
+  const soundManagerRef = useRef<SoundManager | null>(null);
+  const lastSpeedRef = useRef<number>(0);
 
   // Track loading function
   const loadTrack = useCallback(async () => {
@@ -166,6 +169,9 @@ export function useRacingGame(): UseRacingGameReturn {
         const { engine, car } = physicsWorldRef.current;
         const input = inputStateRef.current;
 
+        // Store velocity before physics update for collision detection
+        const velocityBefore = Math.sqrt(car.velocity.x ** 2 + car.velocity.y ** 2);
+
         // Apply forces based on input
         applyCarForces(
           car,
@@ -178,8 +184,25 @@ export function useRacingGame(): UseRacingGameReturn {
         // Update physics engine
         Matter.Engine.update(engine, PHYSICS_TIMESTEP);
 
+        // Check for collisions (significant velocity change)
+        const velocityAfter = Math.sqrt(car.velocity.x ** 2 + car.velocity.y ** 2);
+        const velocityChange = Math.abs(velocityBefore - velocityAfter);
+
+        if (velocityChange > 1.0 && soundManagerRef.current) {
+          // Collision detected - play sound based on impact strength
+          const intensity = Math.min(1, velocityChange / 5);
+          soundManagerRef.current.playCollisionSound(intensity);
+        }
+
         // Update car state
-        setCarState(getCarState(car));
+        const newCarState = getCarState(car);
+        setCarState(newCarState);
+
+        // Update engine sound based on speed
+        if (soundManagerRef.current) {
+          soundManagerRef.current.updateEngineSound(newCarState.speed);
+          lastSpeedRef.current = newCarState.speed;
+        }
       }
 
       // Render if canvas is available
@@ -254,6 +277,13 @@ export function useRacingGame(): UseRacingGameReturn {
     physicsWorldRef.current = world;
     setCarState(getCarState(world.car));
 
+    // Initialize and start sound
+    if (!soundManagerRef.current) {
+      soundManagerRef.current = new SoundManager();
+    }
+    soundManagerRef.current.initialize();
+    soundManagerRef.current.startEngine();
+
     // Start game loop BEFORE setting state so gameLoop has the right state
     lastTimeRef.current = performance.now();
 
@@ -262,16 +292,32 @@ export function useRacingGame(): UseRacingGameReturn {
   }, [track, loadTrack, initializePhysicsWorld]);
 
   const pauseGame = useCallback(() => {
+    const isPausing = gameState === GameState.RACING;
     setGameState((prev) =>
       prev === GameState.RACING ? GameState.PAUSED : GameState.RACING,
     );
-  }, []);
+
+    // Stop or restart engine sound when pausing/unpausing
+    if (soundManagerRef.current) {
+      if (isPausing) {
+        soundManagerRef.current.stopEngine();
+      } else {
+        soundManagerRef.current.startEngine();
+      }
+    }
+  }, [gameState]);
 
   const resetGame = useCallback(() => {
     // Stop game loop
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
+    }
+
+    // Stop and dispose sound
+    if (soundManagerRef.current) {
+      soundManagerRef.current.dispose();
+      soundManagerRef.current = null;
     }
 
     // Reset state
@@ -317,6 +363,9 @@ export function useRacingGame(): UseRacingGameReturn {
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
+      }
+      if (soundManagerRef.current) {
+        soundManagerRef.current.dispose();
       }
     };
   }, []);
