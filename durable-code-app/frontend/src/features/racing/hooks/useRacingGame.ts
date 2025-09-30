@@ -110,6 +110,39 @@ export function useRacingGame(): UseRacingGameReturn {
     return { engine, car, walls };
   }, []);
 
+  // Rendering function
+  const renderGame = useCallback(
+    (canvas: HTMLCanvasElement, world: PhysicsWorld, trackData: Track) => {
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      // Import dynamically to avoid issues during testing
+      import('../rendering/trackRenderer')
+        .then(({ renderBackground, renderTrack, renderCar, renderDebugInfo }) => {
+          // Clear and draw background
+          renderBackground(ctx, canvas.width, canvas.height);
+
+          // Draw track
+          renderTrack(ctx, trackData);
+
+          // Draw car
+          const { car } = world;
+          renderCar(ctx, car.position.x, car.position.y, car.angle);
+
+          // Draw debug info (optional)
+          const speed = Math.sqrt(car.velocity.x ** 2 + car.velocity.y ** 2);
+          renderDebugInfo(ctx, speed, { x: car.position.x, y: car.position.y });
+        })
+        .catch((error) => {
+          console.error('Failed to load track renderer:', error);
+          // Fallback to simple rendering if import fails
+          ctx.fillStyle = '#2d5016';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        });
+    },
+    [],
+  );
+
   // Game loop
   const gameLoop = useCallback(
     (timestamp: number) => {
@@ -149,39 +182,6 @@ export function useRacingGame(): UseRacingGameReturn {
       animationFrameRef.current = requestAnimationFrame(gameLoop);
     },
     [gameState, inputState, track, renderGame],
-  );
-
-  // Rendering function
-  const renderGame = useCallback(
-    (canvas: HTMLCanvasElement, world: PhysicsWorld, trackData: Track) => {
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-
-      // Import dynamically to avoid issues during testing
-      import('../rendering/trackRenderer')
-        .then(({ renderBackground, renderTrack, renderCar, renderDebugInfo }) => {
-          // Clear and draw background
-          renderBackground(ctx, canvas.width, canvas.height);
-
-          // Draw track
-          renderTrack(ctx, trackData);
-
-          // Draw car
-          const { car } = world;
-          renderCar(ctx, car.position.x, car.position.y, car.angle);
-
-          // Draw debug info (optional)
-          const speed = Math.sqrt(car.velocity.x ** 2 + car.velocity.y ** 2);
-          renderDebugInfo(ctx, speed, { x: car.position.x, y: car.position.y });
-        })
-        .catch((error) => {
-          console.error('Failed to load track renderer:', error);
-          // Fallback to simple rendering if import fails
-          ctx.fillStyle = '#2d5016';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-        });
-    },
-    [],
   );
 
   // Mouse event handlers
