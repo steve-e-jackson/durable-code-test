@@ -69,8 +69,6 @@ export class SoundManager {
       // Only setup synthesized audio if real audio completely failed
       if (!this.useRealAudio) {
         this.setupEngineSound();
-      } else {
-        console.info('✓ Real audio loaded - synthesized audio disabled');
       }
     } catch (error) {
       console.warn('Web Audio API not supported:', error);
@@ -99,7 +97,7 @@ export class SoundManager {
             const audioBuffer = await this.audioContext?.decodeAudioData(arrayBuffer);
             if (audioBuffer) {
               this.audioBuffers.set(key, audioBuffer);
-              console.info(`✓ Loaded audio file: ${key} from ${config.path}`);
+              // Audio file loaded successfully
             }
             return true;
           } catch (error) {
@@ -109,8 +107,7 @@ export class SoundManager {
         },
       );
 
-      const results = await Promise.all(loadPromises);
-      const successCount = results.filter((r) => r).length;
+      await Promise.all(loadPromises);
 
       // Use real audio if we successfully loaded at least the engine sounds
       this.useRealAudio =
@@ -118,13 +115,7 @@ export class SoundManager {
         this.audioBuffers.has('engineRev') ||
         this.audioBuffers.has('engineHigh');
 
-      if (this.useRealAudio) {
-        console.info(
-          `🎵 Using real audio files (${successCount}/${Object.keys(this.audioFiles).length} loaded)`,
-        );
-      } else {
-        console.info('🎵 Using synthesized audio (no audio files loaded)');
-      }
+      // Audio system initialized with real or synthesized audio
     } catch (error) {
       console.warn('Audio loading failed:', error);
       this.useRealAudio = false;
@@ -230,12 +221,10 @@ export class SoundManager {
 
       if (this.useRealAudio) {
         // Use ONLY real audio file - no synthesized sound
-        console.info('🎵 Starting real audio engine sound');
         this.playAudioBuffer('engineIdle', this.audioFiles.engineIdle);
         this.engineSource = this.activeAudioSources.get('engineIdle') || null;
       } else {
         // Use synthesized audio - recreate oscillators if they were stopped
-        console.info('🎵 Starting synthesized engine sound');
         if (
           !this.engineOscillator ||
           !this.engineOscillator2 ||
