@@ -86,27 +86,45 @@ export class SoundManager {
         async ([key, config]) => {
           try {
             const response = await fetch(config.path);
-            if (!response.ok) throw new Error(`Failed to load ${config.path}`);
+            if (!response.ok) {
+              console.warn(
+                `Failed to load audio file: ${config.path} (${response.status})`,
+              );
+              throw new Error(`Failed to load ${config.path}`);
+            }
 
             const arrayBuffer = await response.arrayBuffer();
             const audioBuffer = await this.audioContext?.decodeAudioData(arrayBuffer);
             if (audioBuffer) {
               this.audioBuffers.set(key, audioBuffer);
+              console.info(`✓ Loaded audio file: ${key} from ${config.path}`);
             }
             return true;
-          } catch {
+          } catch (error) {
+            console.warn(`✗ Failed to load audio ${key}:`, error);
             return false;
           }
         },
       );
 
-      await Promise.all(loadPromises);
+      const results = await Promise.all(loadPromises);
+      const successCount = results.filter((r) => r).length;
+
       // Use real audio if we successfully loaded at least the engine sounds
       this.useRealAudio =
         this.audioBuffers.has('engineIdle') ||
         this.audioBuffers.has('engineRev') ||
         this.audioBuffers.has('engineHigh');
-    } catch {
+
+      if (this.useRealAudio) {
+        console.info(
+          `🎵 Using real audio files (${successCount}/${Object.keys(this.audioFiles).length} loaded)`,
+        );
+      } else {
+        console.info('🎵 Using synthesized audio (no audio files loaded)');
+      }
+    } catch (error) {
+      console.warn('Audio loading failed:', error);
       this.useRealAudio = false;
     }
   }
