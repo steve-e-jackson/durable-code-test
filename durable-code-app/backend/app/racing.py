@@ -47,8 +47,8 @@ router = APIRouter(
 class Point2D(BaseModel):
     """2D point representation."""
 
-    x: float = Field(..., ge=0, description="X coordinate")
-    y: float = Field(..., ge=0, description="Y coordinate")
+    x: float = Field(..., description="X coordinate")
+    y: float = Field(..., description="Y coordinate")
 
 
 class TrackBoundary(BaseModel):
@@ -96,7 +96,7 @@ def generate_oval_track(width: int, height: int, padding: int = DEFAULT_TRACK_PA
     """
     center = (width / 2, height / 2)
     outer_radius = ((width - 2 * padding) / 2, (height - 2 * padding) / 2)
-    track_width = 60
+    track_width = 100  # Wider track for better gameplay
     inner_radius = (outer_radius[0] - track_width, outer_radius[1] - track_width)
 
     # Generate points around the oval
@@ -130,11 +130,11 @@ def get_difficulty_params(difficulty: str) -> tuple[float, int, float]:
         Tuple of (track_width, num_control_points, variation)
     """
     params = {
-        "easy": (80.0, 8, 0.15),
-        "medium": (60.0, 12, 0.25),
-        "hard": (45.0, 16, 0.35),
+        "easy": (120.0, 8, 0.08),  # Wider track, gentle curves
+        "medium": (100.0, 10, 0.12),  # Medium width, moderate curves
+        "hard": (80.0, 12, 0.18),  # Narrower track, tighter curves
     }
-    return params.get(difficulty, (60.0, 12, 0.25))
+    return params.get(difficulty, (100.0, 10, 0.12))
 
 
 def generate_control_points(
@@ -285,6 +285,45 @@ def interpolate_curve_segment(
     return outer_points, inner_points
 
 
+def add_track_variation(
+    control_points: list[tuple[float, float]], variation_type: str = "s_curve"
+) -> list[tuple[float, float]]:
+    """Add specific track features like S-curves, chicanes, hairpins.
+
+    Args:
+        control_points: Base control points
+        variation_type: Type of variation to add
+
+    Returns:
+        Modified control points with added features
+    """
+    if variation_type == "s_curve":
+        # Add subtle S-curve sections by modifying a few points
+        num_points = len(control_points)
+        # Add gentle curves at quarter positions
+        for i in [num_points // 4, num_points // 2, (3 * num_points) // 4]:
+            if 0 < i < num_points:
+                # Calculate perpendicular offset
+                prev_pt = control_points[i - 1]
+                next_pt = control_points[(i + 1) % num_points]
+
+                # Tangent vector
+                dx = next_pt[0] - prev_pt[0]
+                dy = next_pt[1] - prev_pt[1]
+                length = math.sqrt(dx * dx + dy * dy)
+
+                if length > 0:
+                    # Perpendicular offset (alternate direction)
+                    offset_dist = 40 if i == num_points // 2 else 20
+                    normal_x = -dy / length * offset_dist * ((-1) ** i)
+                    normal_y = dx / length * offset_dist * ((-1) ** i)
+
+                    current = control_points[i]
+                    control_points[i] = (current[0] + normal_x, current[1] + normal_y)
+
+    return control_points
+
+
 def generate_procedural_track(
     width: int, height: int, difficulty: str, padding: int = DEFAULT_TRACK_PADDING
 ) -> TrackBoundary:
@@ -305,22 +344,70 @@ def generate_procedural_track(
     # Get difficulty-based parameters
     track_width, num_control_points, variation = get_difficulty_params(difficulty)
 
-    # Generate control points
+    # Generate centerline control points
     control_points = generate_control_points(
         num_control_points, center, base_radius, variation, (width, height, padding)
     )
 
-    # Interpolate smooth curves
-    num_segments = 64
+    # Add track features for more interesting layout
+    control_points = add_track_variation(control_points, "s_curve")
+
+    # Interpolate smooth centerline curve
+    num_segments = 128  # More segments for smoother curves
     points_per_segment = num_segments // num_control_points
 
+    # Generate centerline points
+    centerline_points = []
+    for i in range(num_control_points):
+        num_control = len(control_points)
+        p0 = control_points[(i - 1) % num_control]
+        p1 = control_points[i]
+        p2 = control_points[(i + 1) % num_control]
+        p3 = control_points[(i + 2) % num_control]
+
+        for t in range(points_per_segment):
+            t_norm = t / points_per_segment
+            point = catmull_rom_point(p0, p1, p2, p3, t_norm)
+            centerline_points.append(point)
+
+    # Now generate inner and outer boundaries from centerline with consistent offset
     all_outer_points = []
     all_inner_points = []
 
-    for i in range(num_control_points):
-        outer, inner = interpolate_curve_segment(control_points, i, points_per_segment, track_width)
-        all_outer_points.extend(outer)
-        all_inner_points.extend(inner)
+    for i in range(len(centerline_points)):
+        current = centerline_points[i]
+        next_point = centerline_points[(i + 1) % len(centerline_points)]
+
+        # Calculate tangent
+        dx = next_point[0] - current[0]
+        dy = next_point[1] - current[1]
+        length = math.sqrt(dx * dx + dy * dy)
+
+        if length > 0:
+            # Perpendicular vector (normal)
+            normal_x = -dy / length
+            normal_y = dx / length
+
+            # Offset by half track width in each direction
+            half_width = track_width / 2
+            outer_x = current[0] + normal_x * half_width
+            outer_y = current[1] + normal_y * half_width
+            inner_x = current[0] - normal_x * half_width
+            inner_y = current[1] - normal_y * half_width
+
+            all_outer_points.append(Point2D(x=outer_x, y=outer_y))
+            all_inner_points.append(Point2D(x=inner_x, y=inner_y))
+        else:
+            # If two consecutive points are identical, use a default offset
+            half_width = track_width / 2
+            all_outer_points.append(Point2D(x=current[0] + half_width, y=current[1]))
+            all_inner_points.append(Point2D(x=current[0] - half_width, y=current[1]))
+
+    # Validate we have enough points
+    if len(all_outer_points) < 3 or len(all_inner_points) < 3:
+        raise ValueError(
+            f"Track generation failed: insufficient points (outer={len(all_outer_points)}, inner={len(all_inner_points)})"
+        )
 
     return TrackBoundary(outer=all_outer_points, inner=all_inner_points)
 
@@ -353,7 +440,7 @@ async def get_simple_track(
         start_position = Point2D(x=width / 2, y=height - 100)
 
         return SimpleTrack(
-            width=width, height=height, boundaries=boundaries, start_position=start_position, track_width=60
+            width=width, height=height, boundaries=boundaries, start_position=start_position, track_width=100
         )
     except Exception as e:
         logger.error("Failed to generate track", error=str(e))
@@ -393,8 +480,8 @@ async def generate_track(params: TrackGenerationParams) -> SimpleTrack:
             track_width=track_width,
         )
     except Exception as e:
-        logger.error("Failed to generate procedural track", error=str(e))
-        raise HTTPException(status_code=HTTP_BAD_REQUEST, detail="Failed to generate track") from e
+        logger.exception("Failed to generate procedural track")
+        raise HTTPException(status_code=HTTP_BAD_REQUEST, detail=f"Failed to generate track: {str(e)}") from e
 
 
 @router.get("/health")

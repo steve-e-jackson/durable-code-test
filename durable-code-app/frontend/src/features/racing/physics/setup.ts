@@ -17,6 +17,14 @@ const PHYSICS_CAR_MASS = 1;
 const PHYSICS_CAR_WIDTH = 30;
 const PHYSICS_CAR_HEIGHT = 20;
 
+// Car physics tuning
+const MIN_SPEED_FOR_STEERING = 0.5; // Minimum speed required to turn
+const MAX_STEERING_ANGLE = 0.6; // Maximum steering angle in radians
+const STEERING_SPEED = 0.05; // How fast the car turns
+const DRIFT_THRESHOLD = 3.0; // Speed at which drift starts
+const DRIFT_FRICTION = 0.95; // Friction during drift
+const NORMAL_FRICTION = 0.98; // Normal friction
+
 // Car physics properties
 export interface CarPhysicsProperties {
   frictionAir: number;
@@ -28,7 +36,7 @@ export interface CarPhysicsProperties {
 export const DEFAULT_CAR_PROPERTIES: CarPhysicsProperties = {
   frictionAir: PHYSICS_FRICTION_AIR,
   mass: PHYSICS_CAR_MASS,
-  inertia: Infinity, // Prevent rotation for now
+  inertia: 10, // Allow rotation with controlled inertia
   restitution: 0.6, // Bounce factor
 };
 
@@ -126,7 +134,8 @@ export function createTrackWalls(
 }
 
 /**
- * Apply force to car based on mouse position and input
+ * Apply force to car based on mouse position and input with realistic physics
+ * Implements rear-wheel pivot point, speed-dependent steering, and drift mechanics
  *
  * @param car Car body to apply force to
  * @param mouseX Target mouse X position
@@ -141,32 +150,36 @@ export function applyCarForces(
   isAccelerating: boolean,
   isBraking: boolean,
 ): void {
+  // Calculate current speed
+  const speed = Math.sqrt(car.velocity.x ** 2 + car.velocity.y ** 2);
+
   // Calculate direction to mouse
   const directionX = mouseX - car.position.x;
   const directionY = mouseY - car.position.y;
   const distance = Math.sqrt(directionX * directionX + directionY * directionY);
 
-  if (distance > 5) {
-    // Only apply force if mouse is not too close
-    // Normalize direction
-    const normalizedX = directionX / distance;
-    const normalizedY = directionY / distance;
+  // Calculate car's forward direction
+  const carForwardX = Math.cos(car.angle);
+  const carForwardY = Math.sin(car.angle);
 
-    // Apply force based on input
-    let forceMagnitude = 0;
-    if (isAccelerating) {
-      forceMagnitude = 0.001; // Forward force
-    } else if (isBraking) {
-      forceMagnitude = -0.0005; // Backward force
-    }
+  // Apply acceleration/braking forces in car's forward direction
+  let forceMagnitude = 0;
+  if (isAccelerating) {
+    forceMagnitude = 0.0015; // Forward force
+  } else if (isBraking) {
+    forceMagnitude = -0.001; // Backward force
+  }
 
-    // Apply the force
-    const forceX = normalizedX * forceMagnitude;
-    const forceY = normalizedY * forceMagnitude;
-
+  // Apply force in the direction the car is facing
+  if (forceMagnitude !== 0) {
+    const forceX = carForwardX * forceMagnitude;
+    const forceY = carForwardY * forceMagnitude;
     Matter.Body.applyForce(car, car.position, { x: forceX, y: forceY });
+  }
 
-    // Apply angular velocity to turn towards mouse
+  // Only apply steering if car is moving
+  if (distance > 5 && speed > MIN_SPEED_FOR_STEERING) {
+    // Calculate desired angle to mouse
     const targetAngle = Math.atan2(directionY, directionX);
     const currentAngle = car.angle;
     const angleDiff = targetAngle - currentAngle;
@@ -174,10 +187,46 @@ export function applyCarForces(
     // Normalize angle difference to [-π, π]
     const normalizedAngleDiff = ((angleDiff + Math.PI) % (2 * Math.PI)) - Math.PI;
 
-    // Apply angular velocity for turning
-    const turnForce = normalizedAngleDiff * 0.01;
-    Matter.Body.setAngularVelocity(car, turnForce);
+    // Calculate steering angle based on speed (less steering at high speed)
+    // Note: Rear axle pivot is conceptually at the back of the car, affecting rotation behavior
+    const speedFactor = Math.min(1, speed / 5);
+    const steeringAngle =
+      normalizedAngleDiff * STEERING_SPEED * (1 / (1 + speedFactor * 0.5));
+
+    // Clamp steering angle
+    const clampedSteering = Math.max(
+      -MAX_STEERING_ANGLE,
+      Math.min(MAX_STEERING_ANGLE, steeringAngle),
+    );
+
+    // Apply rotation around rear axle
+    Matter.Body.setAngularVelocity(car, clampedSteering);
+
+    // Drift mechanics - if turning too fast, reduce lateral grip
+    const lateralVelocityX = car.velocity.x - carForwardX * speed;
+    const lateralVelocityY = car.velocity.y - carForwardY * speed;
+    const lateralSpeed = Math.sqrt(lateralVelocityX ** 2 + lateralVelocityY ** 2);
+
+    // Determine if car is drifting
+    const isDrifting = speed > DRIFT_THRESHOLD && Math.abs(normalizedAngleDiff) > 0.3;
+    const frictionFactor = isDrifting ? DRIFT_FRICTION : NORMAL_FRICTION;
+
+    // Apply lateral friction to simulate tire grip/slip
+    if (lateralSpeed > 0.1) {
+      const frictionX = -lateralVelocityX * (1 - frictionFactor);
+      const frictionY = -lateralVelocityY * (1 - frictionFactor);
+      Matter.Body.setVelocity(car, {
+        x: car.velocity.x + frictionX,
+        y: car.velocity.y + frictionY,
+      });
+    }
   }
+
+  // Apply passive friction to slow down over time
+  Matter.Body.setVelocity(car, {
+    x: car.velocity.x * 0.99,
+    y: car.velocity.y * 0.99,
+  });
 }
 
 /**
