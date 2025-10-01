@@ -20,7 +20,7 @@ export interface GameCanvasProps {
   width: number;
   height: number;
   gameState: GameState;
-  canvasRef: React.RefObject<HTMLCanvasElement>;
+  canvasRef: React.RefObject<HTMLCanvasElement | null>;
   onMouseMove?: (event: React.MouseEvent<HTMLCanvasElement>) => void;
   onMouseDown?: (event: React.MouseEvent<HTMLCanvasElement>) => void;
   onMouseUp?: (event: React.MouseEvent<HTMLCanvasElement>) => void;

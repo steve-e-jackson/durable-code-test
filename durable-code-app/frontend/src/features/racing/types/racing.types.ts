@@ -110,7 +110,7 @@ export interface UseRacingGameReturn {
   trackError: string | null;
 
   // Canvas ref for rendering
-  canvasRef: React.RefObject<HTMLCanvasElement>;
+  canvasRef: React.RefObject<HTMLCanvasElement | null>;
 
   // Lap and timing state
   currentLapNumber: number;
