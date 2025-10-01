@@ -34,13 +34,15 @@ export interface TrackGenerationParams {
 }
 
 // Game State Types
-export enum GameState {
-  MENU = 'menu',
-  LOADING = 'loading',
-  RACING = 'racing',
-  PAUSED = 'paused',
-  FINISHED = 'finished',
-}
+export const GameState = {
+  MENU: 'menu',
+  LOADING: 'loading',
+  RACING: 'racing',
+  PAUSED: 'paused',
+  FINISHED: 'finished',
+} as const;
+
+export type GameState = (typeof GameState)[keyof typeof GameState];
 
 export interface CarState {
   x: number;

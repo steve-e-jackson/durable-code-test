@@ -461,7 +461,7 @@ describe('ErrorBoundary', () => {
     it('should increment error count on multiple errors', () => {
       // Create a component that tracks error count
       let errorCount = 0;
-      function TrackableError() {
+      function TrackableError(): React.ReactElement {
         errorCount++;
         throw new Error(`Error ${errorCount}`);
       }

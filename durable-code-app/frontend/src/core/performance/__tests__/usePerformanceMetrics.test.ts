@@ -193,7 +193,7 @@ describe('usePerformanceMetrics', () => {
     it('should return stop function', () => {
       const { result } = renderHook(() => usePerformanceMetrics());
 
-      let stopMeasuring: () => void;
+      let stopMeasuring: (() => void) | undefined;
 
       act(() => {
         stopMeasuring = result.current.startMeasuring();

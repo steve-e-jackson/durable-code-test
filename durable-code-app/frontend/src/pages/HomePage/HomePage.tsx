@@ -30,6 +30,17 @@ export default function HomePage(): ReactElement {
 
   const ActiveTabComponent = tabConfig.component;
 
+  if (!ActiveTabComponent) {
+    return (
+      <div className={styles.container}>
+        <ParticleBackground />
+        <div className={styles.errorMessage}>
+          Tab component not found for: {activeTab}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.app}>
       <ParticleBackground />

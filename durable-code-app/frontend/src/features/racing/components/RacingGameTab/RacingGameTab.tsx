@@ -28,9 +28,6 @@ export function RacingGameTab(): ReactElement {
     isLoadingTrack,
     trackError,
     canvasRef,
-    onMouseMove,
-    onMouseDown,
-    onMouseUp,
     regenerateTrack,
     currentLapNumber,
     currentLapTime,
@@ -74,9 +71,6 @@ export function RacingGameTab(): ReactElement {
           height={900}
           gameState={gameState}
           canvasRef={canvasRef}
-          onMouseMove={onMouseMove}
-          onMouseDown={onMouseDown}
-          onMouseUp={onMouseUp}
         />
 
         <StatusDisplay
