@@ -58,6 +58,8 @@ export function RepositoryTab(): ReactElement {
         return <FaFileCode />;
       case 'error-resilience':
         return <FaShieldAlt />;
+      case 'resource-naming':
+        return <span>🏷️</span>;
       default:
         return null;
     }
