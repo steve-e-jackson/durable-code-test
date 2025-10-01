@@ -327,6 +327,60 @@ export function useRacingGame(): UseRacingGameReturn {
     physicsWorldRef.current = null;
   }, []);
 
+  // Regenerate track with custom parameters
+  const regenerateTrack = useCallback(
+    async (params?: {
+      numPoints?: number;
+      variationAmount?: number;
+      hairpinChance?: number;
+      hairpinIntensity?: number;
+      smoothingPasses?: number;
+      trackWidth?: number;
+      seed?: number;
+    }) => {
+      setIsLoadingTrack(true);
+      setTrackError(null);
+
+      try {
+        const response = await fetch('/api/racing/track/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            difficulty: 'medium',
+            width: CANVAS_WIDTH,
+            height: CANVAS_HEIGHT,
+            num_points: params?.numPoints,
+            variation_amount: params?.variationAmount,
+            hairpin_chance: params?.hairpinChance,
+            hairpin_intensity: params?.hairpinIntensity,
+            smoothing_passes: params?.smoothingPasses,
+            track_width_override: params?.trackWidth,
+            seed: params?.seed,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to generate track: ${response.statusText}`);
+        }
+
+        const trackData: Track = await response.json();
+        setTrack(trackData);
+
+        // Reset game state when track changes
+        setGameState(GameState.MENU);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        setTrackError(errorMessage);
+        console.error('Failed to generate track:', error);
+      } finally {
+        setIsLoadingTrack(false);
+      }
+    },
+    [],
+  );
+
   // Load track on mount
   useEffect(() => {
     loadTrack();
@@ -378,6 +432,7 @@ export function useRacingGame(): UseRacingGameReturn {
     startGame,
     pauseGame,
     resetGame,
+    regenerateTrack,
     isLoadingTrack,
     trackError,
     canvasRef,

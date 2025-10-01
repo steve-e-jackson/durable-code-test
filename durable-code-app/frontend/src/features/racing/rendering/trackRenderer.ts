@@ -21,6 +21,20 @@ const START_LINE_WIDTH = 6;
 const BLEACHER_COLOR = '#8B4513'; // Brown for wooden bleachers
 const BLEACHER_SEAT_COLOR = '#A0522D';
 
+// Enhanced decorative element constants
+const TREE_TRUNK_COLOR = '#8B4513';
+const TREE_CROWN_COLOR = '#228B22';
+const TREE_CROWN_HIGHLIGHT = '#32CD32';
+const PALM_TRUNK_COLOR = '#8B7355';
+const PALM_FROND_COLOR = '#228B22';
+const BUILDING_COLOR = '#C0C0C0';
+const BUILDING_WINDOW_COLOR = '#4A90E2';
+const TIRE_WALL_COLOR = '#1a1a1a';
+const KERB_RED = '#E63946';
+const KERB_WHITE = '#F1F1F1';
+const GRAVEL_COLOR = '#D2B48C';
+const BARRIER_COLOR = '#DC143C';
+
 /**
  * Render the track background with grass pattern
  *
@@ -183,6 +197,306 @@ function drawStartLine(ctx: CanvasRenderingContext2D, track: Track): void {
 }
 
 /**
+ * Draw a palm tree decoration
+ *
+ * @param ctx Canvas rendering context
+ * @param x X position
+ * @param y Y position
+ */
+function drawPalmTree(ctx: CanvasRenderingContext2D, x: number, y: number): void {
+  ctx.save();
+  ctx.translate(x, y);
+
+  // Palm trunk
+  ctx.fillStyle = PALM_TRUNK_COLOR;
+  ctx.fillRect(-4, -30, 8, 30);
+
+  // Palm fronds
+  ctx.fillStyle = PALM_FROND_COLOR;
+  for (let i = 0; i < 6; i++) {
+    ctx.save();
+    ctx.rotate((Math.PI * 2 * i) / 6);
+    ctx.beginPath();
+    ctx.ellipse(0, -35, 8, 20, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+
+/**
+ * Draw a regular tree decoration
+ *
+ * @param ctx Canvas rendering context
+ * @param x X position
+ * @param y Y position
+ */
+function drawTree(ctx: CanvasRenderingContext2D, x: number, y: number): void {
+  ctx.save();
+  ctx.translate(x, y);
+
+  // Trunk
+  ctx.fillStyle = TREE_TRUNK_COLOR;
+  ctx.fillRect(-3, -20, 6, 20);
+
+  // Crown (foliage)
+  ctx.fillStyle = TREE_CROWN_COLOR;
+  ctx.beginPath();
+  ctx.arc(0, -25, 15, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Highlight
+  ctx.fillStyle = TREE_CROWN_HIGHLIGHT;
+  ctx.beginPath();
+  ctx.arc(-5, -28, 8, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+/**
+ * Draw a building decoration
+ *
+ * @param ctx Canvas rendering context
+ * @param x X position
+ * @param y Y position
+ * @param width Building width
+ * @param height Building height
+ */
+function drawBuilding(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+): void {
+  ctx.save();
+
+  // Building body
+  ctx.fillStyle = BUILDING_COLOR;
+  ctx.fillRect(x, y - height, width, height);
+
+  // Windows
+  ctx.fillStyle = BUILDING_WINDOW_COLOR;
+  const windowRows = Math.floor(height / 15);
+  const windowCols = Math.floor(width / 15);
+
+  for (let row = 0; row < windowRows; row++) {
+    for (let col = 0; col < windowCols; col++) {
+      ctx.fillRect(x + col * 15 + 3, y - height + row * 15 + 3, 8, 8);
+    }
+  }
+
+  // Building outline
+  ctx.strokeStyle = '#808080';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x, y - height, width, height);
+
+  ctx.restore();
+}
+
+/**
+ * Draw tire wall barriers
+ *
+ * @param ctx Canvas rendering context
+ * @param x X position
+ * @param y Y position
+ * @param count Number of tires
+ */
+function drawTireWall(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  count: number,
+): void {
+  ctx.save();
+  ctx.fillStyle = TIRE_WALL_COLOR;
+  ctx.strokeStyle = '#333333';
+  ctx.lineWidth = 2;
+
+  for (let i = 0; i < count; i++) {
+    const tireX = x + i * 12;
+    ctx.beginPath();
+    ctx.arc(tireX, y, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Inner circle
+    ctx.strokeStyle = '#555555';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(tireX, y, 4, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+/**
+ * Draw racing kerbs (red and white striped curbs)
+ *
+ * @param ctx Canvas rendering context
+ * @param points Boundary points to draw kerbs along
+ * @param offset Offset from boundary
+ */
+function drawKerbs(
+  ctx: CanvasRenderingContext2D,
+  points: Point2D[],
+  offset: number,
+): void {
+  const kerbWidth = 8;
+  const stripeLength = 20;
+
+  for (let i = 0; i < points.length; i += Math.floor(stripeLength / 2)) {
+    const point = points[i];
+    const nextPoint = points[(i + 1) % points.length];
+
+    // Calculate normal direction
+    const dx = nextPoint.x - point.x;
+    const dy = nextPoint.y - point.y;
+    const length = Math.sqrt(dx * dx + dy * dy);
+
+    if (length > 0) {
+      const normalX = (-dy / length) * offset;
+      const normalY = (dx / length) * offset;
+
+      // Alternate red and white
+      ctx.fillStyle = i % (stripeLength * 2) < stripeLength ? KERB_RED : KERB_WHITE;
+
+      const kerbX = point.x + normalX;
+      const kerbY = point.y + normalY;
+
+      ctx.fillRect(kerbX - kerbWidth / 2, kerbY - kerbWidth / 2, kerbWidth, kerbWidth);
+    }
+  }
+}
+
+/**
+ * Draw gravel trap run-off areas
+ *
+ * @param ctx Canvas rendering context
+ * @param outer Outer boundary points
+ */
+function drawGravelTraps(ctx: CanvasRenderingContext2D, outer: Point2D[]): void {
+  ctx.fillStyle = GRAVEL_COLOR;
+  ctx.globalAlpha = 0.7;
+
+  // Draw gravel areas at key points around the track
+  const gravelInterval = Math.floor(outer.length / 8);
+
+  for (let i = 0; i < outer.length; i += gravelInterval) {
+    const point = outer[i];
+    const nextPoint = outer[(i + 1) % outer.length];
+
+    const dx = nextPoint.x - point.x;
+    const dy = nextPoint.y - point.y;
+    const length = Math.sqrt(dx * dx + dy * dy);
+
+    if (length > 0) {
+      const normalX = (-dy / length) * 25;
+      const normalY = (dx / length) * 25;
+
+      ctx.beginPath();
+      ctx.arc(point.x + normalX, point.y + normalY, 20, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Add texture
+      for (let j = 0; j < 15; j++) {
+        const offsetX = (Math.random() - 0.5) * 30;
+        const offsetY = (Math.random() - 0.5) * 30;
+        ctx.fillRect(point.x + normalX + offsetX, point.y + normalY + offsetY, 2, 2);
+      }
+    }
+  }
+
+  ctx.globalAlpha = 1.0;
+}
+
+/**
+ * Draw decorative barriers along outer boundary
+ *
+ * @param ctx Canvas rendering context
+ * @param outer Outer boundary points
+ */
+function drawBarriers(ctx: CanvasRenderingContext2D, outer: Point2D[]): void {
+  ctx.strokeStyle = BARRIER_COLOR;
+  ctx.lineWidth = 3;
+  ctx.setLineDash([10, 5]);
+
+  ctx.beginPath();
+  for (let i = 0; i < outer.length; i++) {
+    const point = outer[i];
+    const nextPoint = outer[(i + 1) % outer.length];
+
+    const dx = nextPoint.x - point.x;
+    const dy = nextPoint.y - point.y;
+    const length = Math.sqrt(dx * dx + dy * dy);
+
+    if (length > 0) {
+      const normalX = (-dy / length) * 15;
+      const normalY = (dx / length) * 15;
+
+      if (i === 0) {
+        ctx.moveTo(point.x + normalX, point.y + normalY);
+      } else {
+        ctx.lineTo(point.x + normalX, point.y + normalY);
+      }
+    }
+  }
+  ctx.closePath();
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+/**
+ * Draw environmental decorations (trees, buildings, etc)
+ *
+ * @param ctx Canvas rendering context
+ * @param outer Outer boundary points
+ */
+function drawEnvironmentalDecorations(
+  ctx: CanvasRenderingContext2D,
+  outer: Point2D[],
+): void {
+  const decorationInterval = Math.floor(outer.length / 16);
+
+  for (let i = 0; i < outer.length; i += decorationInterval) {
+    const point = outer[i];
+    const nextPoint = outer[(i + 1) % outer.length];
+
+    const dx = nextPoint.x - point.x;
+    const dy = nextPoint.y - point.y;
+    const length = Math.sqrt(dx * dx + dy * dy);
+
+    if (length > 0) {
+      const normalX = (-dy / length) * 50;
+      const normalY = (dx / length) * 50;
+
+      const decorX = point.x + normalX;
+      const decorY = point.y + normalY;
+
+      // Vary decorations based on position
+      const decorType = i % 4;
+
+      if (decorType === 0) {
+        // Palm tree
+        drawPalmTree(ctx, decorX, decorY);
+      } else if (decorType === 1) {
+        // Regular tree
+        drawTree(ctx, decorX, decorY);
+      } else if (decorType === 2) {
+        // Small building
+        drawBuilding(ctx, decorX - 15, decorY, 30, 40);
+      } else {
+        // Tire wall
+        drawTireWall(ctx, decorX - 18, decorY, 3);
+      }
+    }
+  }
+}
+
+/**
  * Draw bleachers around the track
  *
  * @param ctx Canvas rendering context
@@ -237,7 +551,7 @@ function drawBleachers(ctx: CanvasRenderingContext2D, outer: Point2D[]): void {
 }
 
 /**
- * Render the complete track
+ * Render the complete track with enhanced decorations
  *
  * @param ctx Canvas rendering context
  * @param track Track data to render
@@ -245,16 +559,29 @@ function drawBleachers(ctx: CanvasRenderingContext2D, outer: Point2D[]): void {
 export function renderTrack(ctx: CanvasRenderingContext2D, track: Track): void {
   const { boundaries } = track;
 
-  // Draw bleachers first (behind track)
+  // Layer 1: Gravel traps and run-off areas (furthest back)
+  drawGravelTraps(ctx, boundaries.outer);
+
+  // Layer 2: Environmental decorations (trees, buildings)
+  drawEnvironmentalDecorations(ctx, boundaries.outer);
+
+  // Layer 3: Bleachers (behind track)
   drawBleachers(ctx, boundaries.outer);
 
-  // Fill track surface
+  // Layer 4: Barriers outside track
+  drawBarriers(ctx, boundaries.outer);
+
+  // Layer 5: Track surface
   fillTrackSurface(ctx, boundaries.outer, boundaries.inner);
 
-  // Draw boundaries
+  // Layer 6: Kerbs along boundaries
+  drawKerbs(ctx, boundaries.outer, 5);
+  drawKerbs(ctx, boundaries.inner, -5);
+
+  // Layer 7: Track boundaries
   drawTrackBoundaries(ctx, boundaries.outer, boundaries.inner);
 
-  // Draw start line
+  // Layer 8: Start/finish line
   drawStartLine(ctx, track);
 }
 
