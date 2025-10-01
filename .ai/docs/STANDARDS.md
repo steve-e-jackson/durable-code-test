@@ -291,6 +291,73 @@ strict_equality = true
 | `Broad exception caught (W0718)` | Catch specific exceptions, never use bare `except:` |
 | `Mutable default argument (W0102)` | Use `None` default with initialization in function |
 
+### 3.5 Linting Rule Enforcement - NO SKIPPING CRITICAL RULES
+
+#### Core Principle: Fix, Don't Skip
+**PROHIBITED**: Skipping linting rules without fixing the underlying issue
+**REQUIRED**: All code must pass linting without skip directives for critical rules
+
+When a linting rule fires, it's identifying a real problem. The solution is to **fix the code**, not skip the rule.
+
+#### Critical Rules That Must NEVER Be Skipped
+
+**Python Backend:**
+- **C901** - Complexity too high: Refactor into smaller functions
+- **W0718** - Broad exception catching: Catch specific exceptions
+- **E501** - Line too long: Break into multiple lines
+- **S###** - Security violations (Bandit): Fix the security issue
+- **F401** - Unused imports: Remove them (except __init__.py re-exports)
+
+**TypeScript/React Frontend:**
+- **no-explicit-any**: Use specific types or `unknown` with type guards
+- **react-hooks/exhaustive-deps**: Add all dependencies to dependency array
+- **react-hooks/rules-of-hooks**: Move hooks to top level of component
+- **no-console**: Use proper logging service
+
+**Infrastructure:**
+- **terraform validate**: Fix Terraform configuration errors
+- **shellcheck warnings**: Fix shell script issues
+
+#### Enforcement Mechanism
+
+The `enforcement.no-skip` rule automatically detects and blocks skip attempts:
+```python
+# ❌ BLOCKED - Will fail pre-commit hook
+def complex():  # noqa: C901
+    pass
+
+# ✅ CORRECT - Refactor to fix
+def complex():
+    step_one()
+    step_two()
+```
+
+**Integration Points:**
+- Pre-commit hooks: Runs automatically before commits
+- `make lint-all`: Includes enforcement checks
+- CI/CD: Blocks PRs with violations
+- Design linter: `--categories enforcement`
+
+#### Whitelisted Exceptions
+
+Only these patterns are allowed:
+```python
+# ✅ Allowed: F401 in __init__.py for public API
+from .module import PublicClass  # noqa: F401
+
+# ✅ Allowed: Test files can use 'any' sparingly
+const mockData: any = {};  # Test mock only
+```
+
+#### What To Do Instead
+
+1. **Understand the Rule**: Read documentation for why it exists
+2. **Fix the Root Cause**: Refactor code to comply
+3. **Seek Help**: Ask teammates or consult docs if unsure
+4. **Get Approval**: If truly unavoidable, document and get team lead approval
+
+**See .ai/docs/LINTING_ENFORCEMENT_STANDARDS.md for complete guidance**
+
 ### 4. API Design Principles
 - RESTful conventions with proper HTTP methods
 - Version API endpoints (/api/v1/)
