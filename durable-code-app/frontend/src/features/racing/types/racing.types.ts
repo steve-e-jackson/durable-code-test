@@ -117,6 +117,11 @@ export interface UseRacingGameReturn {
   currentLapTime: number;
   bestLapTime: number | null;
   wrongWayWarning: boolean;
+
+  // Mouse event handlers
+  onMouseMove: (event: React.MouseEvent<HTMLCanvasElement>) => void;
+  onMouseDown: (event: React.MouseEvent<HTMLCanvasElement>) => void;
+  onMouseUp: (event: React.MouseEvent<HTMLCanvasElement>) => void;
 }
 
 // Error Types

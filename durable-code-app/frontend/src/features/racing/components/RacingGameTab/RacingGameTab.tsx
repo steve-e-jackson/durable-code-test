@@ -33,6 +33,9 @@ export function RacingGameTab(): ReactElement {
     currentLapTime,
     bestLapTime,
     wrongWayWarning,
+    onMouseMove,
+    onMouseDown,
+    onMouseUp,
   } = useRacingGame();
 
   const handleRegenerateTrack = () => {
@@ -71,6 +74,9 @@ export function RacingGameTab(): ReactElement {
           height={900}
           gameState={gameState}
           canvasRef={canvasRef}
+          onMouseMove={onMouseMove}
+          onMouseDown={onMouseDown}
+          onMouseUp={onMouseUp}
         />
 
         <StatusDisplay
