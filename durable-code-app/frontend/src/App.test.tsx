@@ -81,13 +81,14 @@ describe('App Component', () => {
       expect(screen.getByRole('tab', { name: /Demo/i })).toBeInTheDocument();
     });
 
-    it('renders AI principles section', () => {
+    it('renders AI principles banner', () => {
       render(<AppWithRouter />);
 
-      expect(screen.getByText('Fundamental AI Principles')).toBeInTheDocument();
+      // Check for principle titles in the banner (no longer "Fundamental AI Principles" header)
       expect(screen.getByText('Immediate Feedback Loops')).toBeInTheDocument();
       expect(screen.getByText('Maximum Context')).toBeInTheDocument();
       expect(screen.getByText('Clear Success Criteria')).toBeInTheDocument();
+      expect(screen.getByText('Modular Task Decomposition')).toBeInTheDocument();
     });
 
     it('renders tab content properly', async () => {
