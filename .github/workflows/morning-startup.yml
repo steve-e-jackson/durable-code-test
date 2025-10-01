@@ -81,7 +81,7 @@ jobs:
           SCOPE="${{ inputs.scope || 'runtime' }}"
 
           echo "⏰ Infrastructure startup initiated at $(date)"
-          make infra-up SCOPE="$SCOPE" ENV="$ENV"
+          make infra-up SCOPE="$SCOPE" ENV="$ENV" AUTO=true
 
       - name: Wait for infrastructure readiness
         if: ${{ inputs.dry_run != true }}
