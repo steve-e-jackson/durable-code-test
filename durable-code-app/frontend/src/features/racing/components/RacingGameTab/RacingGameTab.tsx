@@ -28,14 +28,14 @@ export function RacingGameTab(): ReactElement {
     isLoadingTrack,
     trackError,
     canvasRef,
-    onMouseMove,
-    onMouseDown,
-    onMouseUp,
     regenerateTrack,
     currentLapNumber,
     currentLapTime,
     bestLapTime,
     wrongWayWarning,
+    onMouseMove,
+    onMouseDown,
+    onMouseUp,
   } = useRacingGame();
 
   const handleRegenerateTrack = () => {

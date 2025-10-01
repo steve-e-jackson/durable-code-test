@@ -503,9 +503,5 @@ export function useRacingGame(): UseRacingGameReturn {
     onMouseMove: handleMouseMove,
     onMouseDown: handleMouseDown,
     onMouseUp: handleMouseUp,
-  } as UseRacingGameReturn & {
-    onMouseMove: (event: React.MouseEvent<HTMLCanvasElement>) => void;
-    onMouseDown: (event: React.MouseEvent<HTMLCanvasElement>) => void;
-    onMouseUp: (event: React.MouseEvent<HTMLCanvasElement>) => void;
   };
 }

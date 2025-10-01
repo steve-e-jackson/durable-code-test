@@ -289,6 +289,7 @@
   margin: 0 auto;
   display: flex;
   justify-content: center;
+  gap: 4rem;
   position: relative;
   z-index: 1;
 }
@@ -349,6 +350,18 @@
 .footerInfo p {
   margin: 0.25rem 0;
   opacity: 0.8;
+}
+
+.versionInfo {
+  color: rgba(255, 255, 255, 0.7);
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.versionInfo span {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.8rem;
 }
 
 /* Responsive */

@@ -24,10 +24,14 @@ ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 ENV="${ENV:-dev}"
 TAG="v$(date +%Y%m%d-%H%M%S)"
 
+# Get deployment timestamp for version display
+BUILD_TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+
 echo "=== Starting Application Deployment ==="
 echo "Environment: ${ENV}"
 echo "ECR Registry: ${ECR_REGISTRY}"
 echo "Tag: ${TAG}"
+echo "Build Timestamp: ${BUILD_TIMESTAMP}"
 
 # Login to ECR
 echo "Logging into ECR..."
@@ -38,14 +42,19 @@ echo "Building Docker images..."
 
 # Frontend
 echo "Building frontend..."
-cd durable-code-app/frontend
-docker build -t "durableai-${ENV}-frontend:${TAG}" -f ../../.docker/dockerfiles/frontend/Dockerfile.prod .
+docker build -t "durableai-${ENV}-frontend:${TAG}" \
+  -f .docker/dockerfiles/Dockerfile.frontend \
+  --target prod \
+  --build-arg BUILD_TIMESTAMP="${BUILD_TIMESTAMP}" \
+  .
 docker tag "durableai-${ENV}-frontend:${TAG}" "${ECR_REGISTRY}/durableai-${ENV}-frontend:${TAG}"
 
 # Backend
 echo "Building backend..."
-cd ../backend
-docker build -t "durableai-${ENV}-backend:${TAG}" -f ../../.docker/dockerfiles/backend/Dockerfile.prod .
+docker build -t "durableai-${ENV}-backend:${TAG}" \
+  -f .docker/dockerfiles/Dockerfile.backend \
+  --target prod \
+  .
 docker tag "durableai-${ENV}-backend:${TAG}" "${ECR_REGISTRY}/durableai-${ENV}-backend:${TAG}"
 
 # Push images to ECR
@@ -59,13 +68,13 @@ echo "Creating new task definitions with updated images..."
 # Get current task definitions and update image tags
 echo "Fetching current frontend task definition..."
 aws ecs describe-task-definition \
-  --task-definition "durable-code-${ENV}-frontend" \
+  --task-definition "durableai-${ENV}-frontend" \
   --region "${AWS_REGION}" \
   --query 'taskDefinition' \
   --output json > /tmp/frontend-task-def.json
 
-# Update the image tag in the task definition
-jq ".containerDefinitions[0].image = \"${ECR_REGISTRY}/durableai-${ENV}-frontend:${TAG}\" | del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)" /tmp/frontend-task-def.json > /tmp/frontend-task-def-new.json
+# Update the image tag, ensure port 3000, and fix health check in the task definition
+jq ".containerDefinitions[0].image = \"${ECR_REGISTRY}/durableai-${ENV}-frontend:${TAG}\" | .containerDefinitions[0].portMappings[0].containerPort = 3000 | .containerDefinitions[0].portMappings[0].hostPort = 3000 | .containerDefinitions[0].healthCheck.command = [\"CMD-SHELL\", \"curl -f http://localhost:3000/ || exit 1\"] | del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)" /tmp/frontend-task-def.json > /tmp/frontend-task-def-new.json
 
 echo "Registering new frontend task definition..."
 FRONTEND_TASK_ARN=$(aws ecs register-task-definition \
@@ -76,7 +85,7 @@ FRONTEND_TASK_ARN=$(aws ecs register-task-definition \
 
 echo "Fetching current backend task definition..."
 aws ecs describe-task-definition \
-  --task-definition "durable-code-${ENV}-backend" \
+  --task-definition "durableai-${ENV}-backend" \
   --region "${AWS_REGION}" \
   --query 'taskDefinition' \
   --output json > /tmp/backend-task-def.json
@@ -100,6 +109,7 @@ aws ecs update-service \
   --cluster "durableai-${ENV}-cluster" \
   --service "durableai-${ENV}-frontend" \
   --task-definition "${FRONTEND_TASK_ARN}" \
+  --force-new-deployment \
   --region "${AWS_REGION}" \
   --output json > /dev/null
 
@@ -108,6 +118,7 @@ aws ecs update-service \
   --cluster "durableai-${ENV}-cluster" \
   --service "durableai-${ENV}-backend" \
   --task-definition "${BACKEND_TASK_ARN}" \
+  --force-new-deployment \
   --region "${AWS_REGION}" \
   --output json > /dev/null
 
@@ -118,6 +129,4 @@ echo ""
 echo "The services are now redeploying. Check the ECS console for deployment status."
 echo "To access the application, check the ALB DNS name:"
 echo ""
-aws elbv2 describe-load-balancers --names "durable-code-${ENV}-alb" --query 'LoadBalancers[0].DNSName' --output text
-
-cd ../..
+aws elbv2 describe-load-balancers --names "durableai-${ENV}-alb" --query 'LoadBalancers[0].DNSName' --output text

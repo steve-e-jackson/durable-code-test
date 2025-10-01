@@ -34,13 +34,15 @@ export interface TrackGenerationParams {
 }
 
 // Game State Types
-export enum GameState {
-  MENU = 'menu',
-  LOADING = 'loading',
-  RACING = 'racing',
-  PAUSED = 'paused',
-  FINISHED = 'finished',
-}
+export const GameState = {
+  MENU: 'menu',
+  LOADING: 'loading',
+  RACING: 'racing',
+  PAUSED: 'paused',
+  FINISHED: 'finished',
+} as const;
+
+export type GameState = (typeof GameState)[keyof typeof GameState];
 
 export interface CarState {
   x: number;
@@ -108,13 +110,18 @@ export interface UseRacingGameReturn {
   trackError: string | null;
 
   // Canvas ref for rendering
-  canvasRef: React.RefObject<HTMLCanvasElement>;
+  canvasRef: React.RefObject<HTMLCanvasElement | null>;
 
   // Lap and timing state
   currentLapNumber: number;
   currentLapTime: number;
   bestLapTime: number | null;
   wrongWayWarning: boolean;
+
+  // Mouse event handlers
+  onMouseMove: (event: React.MouseEvent<HTMLCanvasElement>) => void;
+  onMouseDown: (event: React.MouseEvent<HTMLCanvasElement>) => void;
+  onMouseUp: (event: React.MouseEvent<HTMLCanvasElement>) => void;
 }
 
 // Error Types

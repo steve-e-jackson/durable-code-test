@@ -37,7 +37,9 @@ else
 endif
 
 # Docker volume for persistent .terraform directory (workspace-specific)
-TERRAFORM_VOLUME = terraform-cache-$(SCOPE)-$(ENV)-$(shell echo $(PWD) | md5sum | cut -d' ' -f1)
+# Extract workspace name from TERRAFORM_DIR for unique volume per workspace
+WORKSPACE_NAME = $(notdir $(TERRAFORM_DIR))
+TERRAFORM_VOLUME = terraform-cache-$(WORKSPACE_NAME)-$(ENV)-$(shell echo $(PWD) | md5sum | cut -d' ' -f1)
 
 # Docker image for Terraform with AWS CLI
 TERRAFORM_IMAGE = hashicorp/terraform:$(TERRAFORM_VERSION)

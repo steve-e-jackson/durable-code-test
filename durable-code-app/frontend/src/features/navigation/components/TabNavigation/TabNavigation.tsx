@@ -57,13 +57,15 @@ export function TabNavigation({
                   <span className={styles.dropdownIcon}>▼</span>
                 </Tab>
               }
-              items={tab.subTabs.map((subTab) => ({
-                id: subTab.id,
-                label: subTab.title,
-                icon: subTab.icon,
-                description: subTab.description,
-                onClick: () => handleSubTabSelect(tabName, subTab),
-              }))}
+              items={
+                tab.subTabs?.map((subTab) => ({
+                  id: subTab.id,
+                  label: subTab.title,
+                  icon: subTab.icon,
+                  description: subTab.description,
+                  onClick: () => handleSubTabSelect(tabName, subTab),
+                })) ?? []
+              }
               align="left"
             />
           );

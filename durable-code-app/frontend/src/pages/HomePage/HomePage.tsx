@@ -30,6 +30,17 @@ export default function HomePage(): ReactElement {
 
   const ActiveTabComponent = tabConfig.component;
 
+  if (!ActiveTabComponent) {
+    return (
+      <div className={styles.container}>
+        <ParticleBackground />
+        <div className={styles.errorMessage}>
+          Tab component not found for: {activeTab}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.app}>
       <ParticleBackground />
@@ -106,6 +117,12 @@ export default function HomePage(): ReactElement {
                 </a>
               </li>
             </ul>
+          </div>
+          <div className={styles.footerSection}>
+            <h4>Deployed</h4>
+            <p className={styles.versionInfo}>
+              {import.meta.env.VITE_BUILD_TIMESTAMP || 'development'}
+            </p>
           </div>
         </div>
       </footer>

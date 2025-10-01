@@ -30,10 +30,11 @@ data "aws_internet_gateway" "main" {
 }
 
 # VPC Lookup - Find VPC created by base workspace
+# Uses Name tag for reliable discovery since base workspace uses durable-code prefix
 data "aws_vpc" "main" {
   filter {
-    name   = "tag:Environment"
-    values = [local.environment]
+    name   = "tag:Name"
+    values = ["durable-code-${local.environment}-vpc"]
   }
 
   filter {
@@ -42,8 +43,8 @@ data "aws_vpc" "main" {
   }
 
   filter {
-    name   = "tag:Project"
-    values = [var.project_name]
+    name   = "tag:ManagedBy"
+    values = ["Terraform"]
   }
 }
 
@@ -60,8 +61,8 @@ data "aws_subnets" "public" {
   }
 
   filter {
-    name   = "tag:Environment"
-    values = [local.environment]
+    name   = "tag:Scope"
+    values = ["base"]
   }
 }
 
@@ -78,16 +79,17 @@ data "aws_subnets" "private" {
   }
 
   filter {
-    name   = "tag:Environment"
-    values = [local.environment]
+    name   = "tag:Scope"
+    values = ["base"]
   }
 }
 
 # ALB Security Group Lookup
+# Uses durable-code prefix to match base workspace naming
 data "aws_security_group" "alb" {
   filter {
     name   = "tag:Name"
-    values = ["${var.project_name}-${local.environment}-alb-sg"]
+    values = ["durable-code-${local.environment}-alb-sg"]
   }
 
   filter {
@@ -97,10 +99,11 @@ data "aws_security_group" "alb" {
 }
 
 # ECS Tasks Security Group Lookup
+# Uses durable-code prefix to match base workspace naming
 data "aws_security_group" "ecs_tasks" {
   filter {
     name   = "tag:Name"
-    values = ["${var.project_name}-${local.environment}-ecs-tasks-sg"]
+    values = ["durable-code-${local.environment}-ecs-tasks-sg"]
   }
 
   filter {
