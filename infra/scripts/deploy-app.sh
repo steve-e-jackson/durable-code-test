@@ -24,10 +24,14 @@ ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 ENV="${ENV:-dev}"
 TAG="v$(date +%Y%m%d-%H%M%S)"
 
+# Get deployment timestamp for version display
+BUILD_TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+
 echo "=== Starting Application Deployment ==="
 echo "Environment: ${ENV}"
 echo "ECR Registry: ${ECR_REGISTRY}"
 echo "Tag: ${TAG}"
+echo "Build Timestamp: ${BUILD_TIMESTAMP}"
 
 # Login to ECR
 echo "Logging into ECR..."
@@ -41,6 +45,7 @@ echo "Building frontend..."
 docker build -t "durableai-${ENV}-frontend:${TAG}" \
   -f .docker/dockerfiles/Dockerfile.frontend \
   --target prod \
+  --build-arg BUILD_TIMESTAMP="${BUILD_TIMESTAMP}" \
   .
 docker tag "durableai-${ENV}-frontend:${TAG}" "${ECR_REGISTRY}/durableai-${ENV}-frontend:${TAG}"
 

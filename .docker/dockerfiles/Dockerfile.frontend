@@ -109,6 +109,12 @@ CMD ["npm", "run", "test:coverage"]
 # =============================================================================
 FROM dependencies AS builder
 
+# Accept build argument for deployment timestamp
+ARG BUILD_TIMESTAMP=unknown
+
+# Set environment variable for Vite build
+ENV VITE_BUILD_TIMESTAMP=$BUILD_TIMESTAMP
+
 # Build the production application
 RUN npm run build
 

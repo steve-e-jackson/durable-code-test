@@ -118,6 +118,12 @@ export default function HomePage(): ReactElement {
               </li>
             </ul>
           </div>
+          <div className={styles.footerSection}>
+            <h4>Deployed</h4>
+            <p className={styles.versionInfo}>
+              {import.meta.env.VITE_BUILD_TIMESTAMP || 'development'}
+            </p>
+          </div>
         </div>
       </footer>
     </div>
