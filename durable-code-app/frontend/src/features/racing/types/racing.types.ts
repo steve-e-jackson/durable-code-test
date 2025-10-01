@@ -109,6 +109,12 @@ export interface UseRacingGameReturn {
 
   // Canvas ref for rendering
   canvasRef: React.RefObject<HTMLCanvasElement>;
+
+  // Lap and timing state
+  currentLapNumber: number;
+  currentLapTime: number;
+  bestLapTime: number | null;
+  wrongWayWarning: boolean;
 }
 
 // Error Types

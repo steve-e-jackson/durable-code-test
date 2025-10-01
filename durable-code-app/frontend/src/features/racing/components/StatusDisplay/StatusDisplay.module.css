@@ -1,6 +1,6 @@
 /**
  * Purpose: Styling for StatusDisplay component
- * Scope: Status information layout and paused indicator styling
+ * Scope: Status information layout, paused indicator, and wrong-way warning styling
  * Overview: Provides clean, readable display for game statistics with modern styling
  */
 
@@ -68,6 +68,29 @@
   letter-spacing: 1px;
 }
 
+.wrongWayIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  animation: shake 0.5s ease-in-out infinite;
+}
+
+.wrongWayIcon {
+  font-size: 1.25rem;
+}
+
+.wrongWayText {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 1px;
+}
+
 @keyframes pulse {
   0%,
   100% {
@@ -77,6 +100,19 @@
   50% {
     opacity: 0.8;
     transform: scale(0.98);
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
   }
 }
 

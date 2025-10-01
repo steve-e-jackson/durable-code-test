@@ -27,3 +27,4 @@ NEVER proactively create documentation files (*.md) or README files. Only create
 - If a linting rule is firing, FIX the code - don't skip the rule
 - The enforcement.no-skip linting rule will automatically catch and block attempts to skip critical rules
 - See .ai/docs/LINTING_ENFORCEMENT_STANDARDS.md for complete guidance on fixing vs skipping
+- run formatting and linting through docker or make targets, do not use nmp run format or npm run lint.

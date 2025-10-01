@@ -184,13 +184,23 @@ function drawStartLine(ctx: CanvasRenderingContext2D, track: Track): void {
   const { start_position } = track;
   const lineLength = track.track_width;
 
+  // For circular tracks, make the finish line vertical (perpendicular to horizontal)
+  const lineAngle = Math.PI / 2; // Vertical line (90 degrees)
+
+  // Calculate line endpoints perpendicular to track direction
+  const halfLength = lineLength / 2;
+  const x1 = start_position.x + Math.cos(lineAngle) * halfLength;
+  const y1 = start_position.y + Math.sin(lineAngle) * halfLength;
+  const x2 = start_position.x - Math.cos(lineAngle) * halfLength;
+  const y2 = start_position.y - Math.sin(lineAngle) * halfLength;
+
   ctx.strokeStyle = START_LINE_COLOR;
   ctx.lineWidth = START_LINE_WIDTH;
   ctx.setLineDash([10, 5]);
 
   ctx.beginPath();
-  ctx.moveTo(start_position.x - lineLength / 2, start_position.y);
-  ctx.lineTo(start_position.x + lineLength / 2, start_position.y);
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
   ctx.stroke();
 
   ctx.setLineDash([]);
