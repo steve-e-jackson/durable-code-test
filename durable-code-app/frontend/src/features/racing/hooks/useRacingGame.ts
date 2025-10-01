@@ -31,6 +31,8 @@ import {
   renderTrack,
 } from '../rendering/trackRenderer';
 import { SoundManager } from '../audio/soundManager';
+import { TimingSystem } from '../utils/timing';
+import { CheckpointManager } from '../utils/checkpoints';
 
 // Constants
 const CANVAS_WIDTH = 1200; // Larger canvas for bigger track
@@ -79,6 +81,14 @@ export function useRacingGame(): UseRacingGameReturn {
   const inputStateRef = useRef<InputState>(initialInputState);
   const soundManagerRef = useRef<SoundManager | null>(null);
   const lastSpeedRef = useRef<number>(0);
+  const timingSystemRef = useRef<TimingSystem>(new TimingSystem());
+  const checkpointManagerRef = useRef<CheckpointManager>(new CheckpointManager());
+
+  // Lap and timing state
+  const [currentLapNumber, setCurrentLapNumber] = useState<number>(1);
+  const [currentLapTime, setCurrentLapTime] = useState<number>(0);
+  const [bestLapTime, setBestLapTime] = useState<number | null>(null);
+  const [wrongWayWarning, setWrongWayWarning] = useState<boolean>(false);
 
   // Track loading function
   const loadTrack = useCallback(async () => {
@@ -172,13 +182,30 @@ export function useRacingGame(): UseRacingGameReturn {
         // Store velocity before physics update for collision detection
         const velocityBefore = Math.sqrt(car.velocity.x ** 2 + car.velocity.y ** 2);
 
-        // Apply forces based on input
+        // Check for finish line crossing
+        const checkpointResult = checkpointManagerRef.current.checkFinishLineCrossing({
+          x: car.position.x,
+          y: car.position.y,
+        });
+
+        // Update wrong way warning
+        setWrongWayWarning(checkpointResult.wrongWayWarning);
+
+        // If lap completed, update timing
+        if (checkpointResult.isValidLap) {
+          timingSystemRef.current.completeLap();
+          setBestLapTime(timingSystemRef.current.getBestLapTime());
+          setCurrentLapNumber(timingSystemRef.current.getCurrentLapNumber());
+        }
+
+        // Apply forces based on input (with wrong-way resistance)
         applyCarForces(
           car,
           input.mouseX,
           input.mouseY,
           input.leftMouseDown,
           input.rightMouseDown,
+          checkpointResult.wrongWayWarning,
         );
 
         // Update physics engine
@@ -197,6 +224,9 @@ export function useRacingGame(): UseRacingGameReturn {
         // Update car state
         const newCarState = getCarState(car);
         setCarState(newCarState);
+
+        // Update current lap time for display
+        setCurrentLapTime(timingSystemRef.current.getCurrentLapTime());
 
         // Update engine sound based on speed
         if (soundManagerRef.current) {
@@ -277,6 +307,20 @@ export function useRacingGame(): UseRacingGameReturn {
     physicsWorldRef.current = world;
     setCarState(getCarState(world.car));
 
+    // Initialize checkpoint system with finish line
+    checkpointManagerRef.current.setupFinishLine(
+      track.start_position,
+      track.track_width,
+      track.boundaries,
+    );
+
+    // Initialize and start timing system
+    timingSystemRef.current.start();
+    setCurrentLapNumber(1);
+    setCurrentLapTime(0);
+    setBestLapTime(null);
+    setWrongWayWarning(false);
+
     // Initialize and start sound
     if (!soundManagerRef.current) {
       soundManagerRef.current = new SoundManager();
@@ -296,6 +340,13 @@ export function useRacingGame(): UseRacingGameReturn {
     setGameState((prev) =>
       prev === GameState.RACING ? GameState.PAUSED : GameState.RACING,
     );
+
+    // Stop or restart timing when pausing/unpausing
+    if (isPausing) {
+      timingSystemRef.current.stop();
+    } else {
+      timingSystemRef.current.start();
+    }
 
     // Stop or restart engine sound when pausing/unpausing
     if (soundManagerRef.current) {
@@ -319,6 +370,14 @@ export function useRacingGame(): UseRacingGameReturn {
       soundManagerRef.current.dispose();
       soundManagerRef.current = null;
     }
+
+    // Reset timing and checkpoints
+    timingSystemRef.current.reset();
+    checkpointManagerRef.current.reset();
+    setCurrentLapNumber(1);
+    setCurrentLapTime(0);
+    setBestLapTime(null);
+    setWrongWayWarning(false);
 
     // Reset state
     setGameState(GameState.MENU);
@@ -436,6 +495,10 @@ export function useRacingGame(): UseRacingGameReturn {
     isLoadingTrack,
     trackError,
     canvasRef,
+    currentLapNumber,
+    currentLapTime,
+    bestLapTime,
+    wrongWayWarning,
     // Canvas event handlers
     onMouseMove: handleMouseMove,
     onMouseDown: handleMouseDown,

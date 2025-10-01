@@ -32,6 +32,10 @@ export function RacingGameTab(): ReactElement {
     onMouseDown,
     onMouseUp,
     regenerateTrack,
+    currentLapNumber,
+    currentLapTime,
+    bestLapTime,
+    wrongWayWarning,
   } = useRacingGame();
 
   const handleRegenerateTrack = () => {
@@ -75,7 +79,14 @@ export function RacingGameTab(): ReactElement {
           onMouseUp={onMouseUp}
         />
 
-        <StatusDisplay gameState={gameState} carState={carState} />
+        <StatusDisplay
+          gameState={gameState}
+          carState={carState}
+          currentLapNumber={currentLapNumber}
+          currentLapTime={currentLapTime}
+          bestLapTime={bestLapTime}
+          wrongWayWarning={wrongWayWarning}
+        />
       </div>
 
       <div className={styles.techInfo}>

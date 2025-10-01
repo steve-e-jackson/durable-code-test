@@ -1,24 +1,14 @@
 /**
  * Purpose: Sound effects manager for racing game
  * Scope: Engine sounds, collision sounds, and audio management
- * Overview: Supports both real audio files and synthetic audio generation.
- *           Automatically falls back to synthesized audio if files are unavailable.
+ * Overview: Synthesized audio generation using Web Audio API
  * Dependencies: Web Audio API
  * Exports: SoundManager class
- * Implementation: Hybrid audio system with real samples and procedural synthesis
+ * Implementation: Procedural audio synthesis for engine and collision sounds
  */
 
 /**
- * Audio file configuration
- */
-interface AudioFile {
-  path: string;
-  loop: boolean;
-  volume: number;
-}
-
-/**
- * Sound manager for racing game audio effects with real audio file support
+ * Sound manager for racing game audio effects using synthesized audio
  */
 export class SoundManager {
   private audioContext: AudioContext | null = null;
@@ -30,25 +20,8 @@ export class SoundManager {
   private isEngineRunning = false;
   private masterGain: GainNode | null = null;
 
-  // Real audio file support
-  private audioBuffers: Map<string, AudioBuffer> = new Map();
-  private activeAudioSources: Map<string, AudioBufferSourceNode> = new Map();
-  private useRealAudio = false;
-  private engineSource: AudioBufferSourceNode | null = null;
-  private engineSourceGain: GainNode | null = null;
-
-  // Audio file paths
-  private readonly audioFiles: Record<string, AudioFile> = {
-    engineIdle: { path: '/audio/racing/engine-idle.mp3', loop: true, volume: 0.8 },
-    engineRev: { path: '/audio/racing/engine-rev.mp3', loop: false, volume: 0.9 },
-    engineHigh: { path: '/audio/racing/engine-high.mp3', loop: true, volume: 0.8 },
-    tireScreech: { path: '/audio/racing/tire-screech.mp3', loop: false, volume: 0.9 },
-    collision: { path: '/audio/racing/collision.mp3', loop: false, volume: 1.0 },
-    gearShift: { path: '/audio/racing/gear-shift.mp3', loop: false, volume: 0.7 },
-  };
-
   /**
-   * Initialize the audio context and attempt to load real audio files
+   * Initialize the audio context and synthesized audio
    */
   public async initialize(): Promise<void> {
     if (this.audioContext) return;
@@ -60,110 +33,13 @@ export class SoundManager {
 
       // Master gain for overall volume control
       this.masterGain = this.audioContext.createGain();
-      this.masterGain.gain.value = 0.7; // 70% volume
+      this.masterGain.gain.value = 0.3; // 30% volume (reduced from 70%)
       this.masterGain.connect(this.audioContext.destination);
 
-      // Try to load real audio files
-      await this.loadAudioFiles();
-
-      // Only setup synthesized audio if real audio completely failed
-      if (!this.useRealAudio) {
-        this.setupEngineSound();
-      }
+      // Setup synthesized audio
+      this.setupEngineSound();
     } catch (error) {
       console.warn('Web Audio API not supported:', error);
-    }
-  }
-
-  /**
-   * Attempt to load real audio files
-   */
-  private async loadAudioFiles(): Promise<void> {
-    if (!this.audioContext) return;
-
-    try {
-      const loadPromises = Object.entries(this.audioFiles).map(
-        async ([key, config]) => {
-          try {
-            const response = await fetch(config.path);
-            if (!response.ok) {
-              console.warn(
-                `Failed to load audio file: ${config.path} (${response.status})`,
-              );
-              throw new Error(`Failed to load ${config.path}`);
-            }
-
-            const arrayBuffer = await response.arrayBuffer();
-            const audioBuffer = await this.audioContext?.decodeAudioData(arrayBuffer);
-            if (audioBuffer) {
-              this.audioBuffers.set(key, audioBuffer);
-              // Audio file loaded successfully
-            }
-            return true;
-          } catch (error) {
-            console.warn(`✗ Failed to load audio ${key}:`, error);
-            return false;
-          }
-        },
-      );
-
-      await Promise.all(loadPromises);
-
-      // Use real audio if we successfully loaded at least the engine sounds
-      this.useRealAudio =
-        this.audioBuffers.has('engineIdle') ||
-        this.audioBuffers.has('engineRev') ||
-        this.audioBuffers.has('engineHigh');
-
-      // Audio system initialized with real or synthesized audio
-    } catch (error) {
-      console.warn('Audio loading failed:', error);
-      this.useRealAudio = false;
-    }
-  }
-
-  /**
-   * Play a real audio buffer
-   */
-  private playAudioBuffer(key: string, config: AudioFile): void {
-    if (!this.audioContext || !this.masterGain) return;
-
-    const buffer = this.audioBuffers.get(key);
-    if (!buffer) return;
-
-    // Stop existing instance if playing
-    const existing = this.activeAudioSources.get(key);
-    if (existing) {
-      try {
-        existing.stop();
-      } catch {
-        // Already stopped
-      }
-      this.activeAudioSources.delete(key);
-    }
-
-    // Create new source
-    const source = this.audioContext.createBufferSource();
-    source.buffer = buffer;
-    source.loop = config.loop;
-
-    // Create gain node for this source
-    const gainNode = this.audioContext.createGain();
-    gainNode.gain.value = config.volume;
-
-    // Connect: source -> gain -> master -> destination
-    source.connect(gainNode);
-    gainNode.connect(this.masterGain);
-
-    // Play
-    source.start(0);
-    this.activeAudioSources.set(key, source);
-
-    // Cleanup when finished (for non-looping sounds)
-    if (!config.loop) {
-      source.onended = () => {
-        this.activeAudioSources.delete(key);
-      };
     }
   }
 
@@ -208,7 +84,7 @@ export class SoundManager {
   }
 
   /**
-   * Start engine sound (real audio or synthesized)
+   * Start engine sound
    */
   public startEngine(): void {
     if (!this.audioContext || this.isEngineRunning) return;
@@ -219,33 +95,28 @@ export class SoundManager {
         this.audioContext.resume();
       }
 
-      if (this.useRealAudio) {
-        // Use ONLY real audio file - no synthesized sound
-        this.playAudioBuffer('engineIdle', this.audioFiles.engineIdle);
-        this.engineSource = this.activeAudioSources.get('engineIdle') || null;
-      } else {
-        // Use synthesized audio - recreate oscillators if they were stopped
-        if (
-          !this.engineOscillator ||
-          !this.engineOscillator2 ||
-          !this.modulatorOscillator
-        ) {
-          this.setupEngineSound();
-        }
-
-        // Start oscillators if not already started
-        try {
-          this.modulatorOscillator?.start();
-          this.engineOscillator?.start();
-          this.engineOscillator2?.start();
-        } catch {
-          // Oscillators already started, recreate them
-          this.setupEngineSound();
-          this.modulatorOscillator?.start();
-          this.engineOscillator?.start();
-          this.engineOscillator2?.start();
-        }
+      // Use synthesized audio - recreate oscillators if they were stopped
+      if (
+        !this.engineOscillator ||
+        !this.engineOscillator2 ||
+        !this.modulatorOscillator
+      ) {
+        this.setupEngineSound();
       }
+
+      // Start oscillators if not already started
+      try {
+        this.modulatorOscillator?.start();
+        this.engineOscillator?.start();
+        this.engineOscillator2?.start();
+      } catch {
+        // Oscillators already started, recreate them
+        this.setupEngineSound();
+        this.modulatorOscillator?.start();
+        this.engineOscillator?.start();
+        this.engineOscillator2?.start();
+      }
+
       this.isEngineRunning = true;
     } catch (error) {
       console.warn('Failed to start engine sound:', error);
@@ -259,33 +130,24 @@ export class SoundManager {
     if (!this.isEngineRunning) return;
 
     try {
-      if (this.useRealAudio) {
-        // Stop real audio
-        const engineSource = this.activeAudioSources.get('engineIdle');
-        if (engineSource) {
-          engineSource.stop();
-          this.activeAudioSources.delete('engineIdle');
-        }
-      } else {
-        // Fade out synthesized audio
-        if (this.audioContext && this.engineGain) {
-          this.engineGain.gain.setTargetAtTime(0, this.audioContext.currentTime, 0.1);
+      // Fade out synthesized audio
+      if (this.audioContext && this.engineGain) {
+        this.engineGain.gain.setTargetAtTime(0, this.audioContext.currentTime, 0.1);
 
-          // Stop oscillators after fade
-          setTimeout(() => {
-            try {
-              this.modulatorOscillator?.stop();
-              this.engineOscillator?.stop();
-              this.engineOscillator2?.stop();
-            } catch {
-              // Already stopped
-            }
-            // Clear references so they can be recreated
-            this.modulatorOscillator = null;
-            this.engineOscillator = null;
-            this.engineOscillator2 = null;
-          }, 200);
-        }
+        // Stop oscillators after fade
+        setTimeout(() => {
+          try {
+            this.modulatorOscillator?.stop();
+            this.engineOscillator?.stop();
+            this.engineOscillator2?.stop();
+          } catch {
+            // Already stopped
+          }
+          // Clear references so they can be recreated
+          this.modulatorOscillator = null;
+          this.engineOscillator = null;
+          this.engineOscillator2 = null;
+        }, 200);
       }
     } catch (error) {
       console.warn('Failed to stop engine sound:', error);
@@ -306,81 +168,42 @@ export class SoundManager {
 
     const now = this.audioContext.currentTime;
 
-    if (this.useRealAudio) {
-      // For real audio: adjust playback rate and volume based on speed
-      // Speed threshold: 0-3 = idle, 3+ = high
-      const speedThreshold = 3;
-
-      if (speed < speedThreshold) {
-        // Low speed - use engineIdle if not already playing
-        if (!this.activeAudioSources.has('engineIdle')) {
-          // Stop high if playing
-          const highSource = this.activeAudioSources.get('engineHigh');
-          if (highSource) {
-            highSource.stop();
-            this.activeAudioSources.delete('engineHigh');
-          }
-          // Start idle
-          this.playAudioBuffer('engineIdle', this.audioFiles.engineIdle);
-        }
-      } else {
-        // High speed - use engineHigh if not already playing
-        if (!this.activeAudioSources.has('engineHigh')) {
-          // Stop idle if playing
-          const idleSource = this.activeAudioSources.get('engineIdle');
-          if (idleSource) {
-            idleSource.stop();
-            this.activeAudioSources.delete('engineIdle');
-          }
-          // Start high
-          this.playAudioBuffer('engineHigh', this.audioFiles.engineHigh);
-        }
-
-        // Adjust playback rate for high engine sound (1.0 to 1.5x)
-        const engineSource = this.activeAudioSources.get('engineHigh');
-        if (engineSource) {
-          const playbackRate = 1.0 + (speed / 10) * 0.5;
-          engineSource.playbackRate.value = Math.min(1.5, playbackRate);
-        }
-      }
-    } else {
-      // Synthesized audio handling
-      if (
-        !this.engineOscillator ||
-        !this.engineOscillator2 ||
-        !this.modulatorOscillator ||
-        !this.engineGain
-      ) {
-        return;
-      }
-
-      // Map speed to frequency (lower range for deeper sound: 50Hz idle to 200Hz max)
-      const minFreq = 50;
-      const maxFreq = 200;
-      const frequency = minFreq + (speed / 10) * (maxFreq - minFreq);
-      const targetFreq = Math.min(maxFreq, Math.max(minFreq, frequency));
-
-      this.engineOscillator.frequency.setTargetAtTime(targetFreq, now, 0.1);
-      this.engineOscillator2.frequency.setTargetAtTime(targetFreq * 2, now, 0.1);
-
-      // Increase modulation rate with speed for more aggressive sound
-      const modulationFreq = 30 + (speed / 10) * 20; // 30Hz to 50Hz
-      this.modulatorOscillator.frequency.setTargetAtTime(modulationFreq, now, 0.1);
-
-      // Map speed to volume (0.15 idle to 0.6 max for more presence)
-      const minVolume = 0.15;
-      const maxVolume = 0.6;
-      const volume = minVolume + (speed / 10) * (maxVolume - minVolume);
-      this.engineGain.gain.setTargetAtTime(
-        Math.min(maxVolume, Math.max(minVolume, volume)),
-        now,
-        0.05,
-      );
+    // Synthesized audio handling
+    if (
+      !this.engineOscillator ||
+      !this.engineOscillator2 ||
+      !this.modulatorOscillator ||
+      !this.engineGain
+    ) {
+      return;
     }
+
+    // Map speed to frequency (lower range for deeper sound: 50Hz idle to 200Hz max)
+    const minFreq = 50;
+    const maxFreq = 200;
+    const frequency = minFreq + (speed / 10) * (maxFreq - minFreq);
+    const targetFreq = Math.min(maxFreq, Math.max(minFreq, frequency));
+
+    this.engineOscillator.frequency.setTargetAtTime(targetFreq, now, 0.1);
+    this.engineOscillator2.frequency.setTargetAtTime(targetFreq * 2, now, 0.1);
+
+    // Increase modulation rate with speed for more aggressive sound
+    const modulationFreq = 30 + (speed / 10) * 20; // 30Hz to 50Hz
+    this.modulatorOscillator.frequency.setTargetAtTime(modulationFreq, now, 0.1);
+
+    // Map speed to volume (0.15 idle to 0.6 max for more presence)
+    const minVolume = 0.15;
+    const maxVolume = 0.6;
+    const volume = minVolume + (speed / 10) * (maxVolume - minVolume);
+    this.engineGain.gain.setTargetAtTime(
+      Math.min(maxVolume, Math.max(minVolume, volume)),
+      now,
+      0.05,
+    );
   }
 
   /**
-   * Play collision sound effect (real audio or synthesized)
+   * Play collision sound effect
    *
    * @param intensity Collision intensity (0-1)
    */
@@ -388,60 +211,46 @@ export class SoundManager {
     if (!this.audioContext || !this.masterGain) return;
 
     try {
-      if (this.useRealAudio && this.audioBuffers.has('collision')) {
-        // Use real collision sound
-        this.playAudioBuffer('collision', this.audioFiles.collision);
-      } else {
-        // Use synthesized crash sound
-        const now = this.audioContext.currentTime;
+      // Use synthesized crash sound
+      const now = this.audioContext.currentTime;
 
-        // Create noise buffer for crash sound
-        const duration = 0.2;
-        const sampleRate = this.audioContext.sampleRate;
-        const bufferSize = sampleRate * duration;
-        const buffer = this.audioContext.createBuffer(1, bufferSize, sampleRate);
-        const data = buffer.getChannelData(0);
+      // Create noise buffer for crash sound
+      const duration = 0.2;
+      const sampleRate = this.audioContext.sampleRate;
+      const bufferSize = sampleRate * duration;
+      const buffer = this.audioContext.createBuffer(1, bufferSize, sampleRate);
+      const data = buffer.getChannelData(0);
 
-        // Generate white noise with decay
-        for (let i = 0; i < bufferSize; i++) {
-          const decay = 1 - i / bufferSize;
-          data[i] = (Math.random() * 2 - 1) * decay;
-        }
-
-        // Create buffer source
-        const noise = this.audioContext.createBufferSource();
-        noise.buffer = buffer;
-
-        // Create filter for metallic crash sound
-        const filter = this.audioContext.createBiquadFilter();
-        filter.type = 'bandpass';
-        filter.frequency.value = 800; // Metallic frequency
-        filter.Q.value = 2;
-
-        // Create gain for collision volume
-        const collisionGain = this.audioContext.createGain();
-        collisionGain.gain.value = Math.min(1, intensity) * 0.8;
-
-        // Connect: noise -> filter -> gain -> master -> destination
-        noise.connect(filter);
-        filter.connect(collisionGain);
-        collisionGain.connect(this.masterGain);
-
-        // Play and cleanup
-        noise.start(now);
-        noise.stop(now + duration);
+      // Generate white noise with decay
+      for (let i = 0; i < bufferSize; i++) {
+        const decay = 1 - i / bufferSize;
+        data[i] = (Math.random() * 2 - 1) * decay;
       }
+
+      // Create buffer source
+      const noise = this.audioContext.createBufferSource();
+      noise.buffer = buffer;
+
+      // Create filter for metallic crash sound
+      const filter = this.audioContext.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.value = 800; // Metallic frequency
+      filter.Q.value = 2;
+
+      // Create gain for collision volume
+      const collisionGain = this.audioContext.createGain();
+      collisionGain.gain.value = Math.min(1, intensity) * 0.8;
+
+      // Connect: noise -> filter -> gain -> master -> destination
+      noise.connect(filter);
+      filter.connect(collisionGain);
+      collisionGain.connect(this.masterGain);
+
+      // Play and cleanup
+      noise.start(now);
+      noise.stop(now + duration);
     } catch (error) {
       console.warn('Failed to play collision sound:', error);
-    }
-  }
-
-  /**
-   * Play tire screech sound effect
-   */
-  public playTireScreech(): void {
-    if (this.useRealAudio && this.audioBuffers.has('tireScreech')) {
-      this.playAudioBuffer('tireScreech', this.audioFiles.tireScreech);
     }
   }
 
@@ -450,16 +259,6 @@ export class SoundManager {
    */
   public dispose(): void {
     this.stopEngine();
-
-    // Stop all active audio sources
-    this.activeAudioSources.forEach((source) => {
-      try {
-        source.stop();
-      } catch {
-        // Already stopped
-      }
-    });
-    this.activeAudioSources.clear();
 
     if (this.isEngineRunning) {
       try {
@@ -487,9 +286,6 @@ export class SoundManager {
     this.engineGain = null;
     this.masterGain = null;
     this.isEngineRunning = false;
-    this.engineSource = null;
-    this.engineSourceGain = null;
-    this.audioBuffers.clear();
   }
 
   /**

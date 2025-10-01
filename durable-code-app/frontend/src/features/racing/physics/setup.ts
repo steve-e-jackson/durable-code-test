@@ -142,6 +142,7 @@ export function createTrackWalls(
  * @param mouseY Target mouse Y position
  * @param isAccelerating Whether the car should accelerate
  * @param isBraking Whether the car should brake
+ * @param wrongWayDetected Whether car is going the wrong way (adds resistance)
  */
 export function applyCarForces(
   car: Matter.Body,
@@ -149,6 +150,7 @@ export function applyCarForces(
   mouseY: number,
   isAccelerating: boolean,
   isBraking: boolean,
+  _wrongWayDetected: boolean = false,
 ): void {
   // Calculate current speed
   const speed = Math.sqrt(car.velocity.x ** 2 + car.velocity.y ** 2);
@@ -223,9 +225,11 @@ export function applyCarForces(
   }
 
   // Apply passive friction to slow down over time
+  const passiveFriction = 0.99;
+
   Matter.Body.setVelocity(car, {
-    x: car.velocity.x * 0.99,
-    y: car.velocity.y * 0.99,
+    x: car.velocity.x * passiveFriction,
+    y: car.velocity.y * passiveFriction,
   });
 }
 
