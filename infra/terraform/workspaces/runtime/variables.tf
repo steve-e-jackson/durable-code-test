@@ -114,7 +114,7 @@ variable "backend_port" {
 variable "frontend_port" {
   description = "Port for frontend service"
   type        = number
-  default     = 3000  # TODO: Should be 80 for production nginx, but requires target group recreation
+  default     = 3000 # TODO: Should be 80 for production nginx, but requires target group recreation
 }
 
 # Health Check Configuration
