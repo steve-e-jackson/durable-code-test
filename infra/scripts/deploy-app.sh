@@ -38,14 +38,18 @@ echo "Building Docker images..."
 
 # Frontend
 echo "Building frontend..."
-cd durable-code-app/frontend
-docker build -t "durableai-${ENV}-frontend:${TAG}" -f ../../.docker/dockerfiles/frontend/Dockerfile.prod .
+docker build -t "durableai-${ENV}-frontend:${TAG}" \
+  -f .docker/dockerfiles/Dockerfile.frontend \
+  --target prod \
+  .
 docker tag "durableai-${ENV}-frontend:${TAG}" "${ECR_REGISTRY}/durableai-${ENV}-frontend:${TAG}"
 
 # Backend
 echo "Building backend..."
-cd ../backend
-docker build -t "durableai-${ENV}-backend:${TAG}" -f ../../.docker/dockerfiles/backend/Dockerfile.prod .
+docker build -t "durableai-${ENV}-backend:${TAG}" \
+  -f .docker/dockerfiles/Dockerfile.backend \
+  --target prod \
+  .
 docker tag "durableai-${ENV}-backend:${TAG}" "${ECR_REGISTRY}/durableai-${ENV}-backend:${TAG}"
 
 # Push images to ECR
@@ -59,7 +63,7 @@ echo "Creating new task definitions with updated images..."
 # Get current task definitions and update image tags
 echo "Fetching current frontend task definition..."
 aws ecs describe-task-definition \
-  --task-definition "durable-code-${ENV}-frontend" \
+  --task-definition "durableai-${ENV}-frontend" \
   --region "${AWS_REGION}" \
   --query 'taskDefinition' \
   --output json > /tmp/frontend-task-def.json
@@ -76,7 +80,7 @@ FRONTEND_TASK_ARN=$(aws ecs register-task-definition \
 
 echo "Fetching current backend task definition..."
 aws ecs describe-task-definition \
-  --task-definition "durable-code-${ENV}-backend" \
+  --task-definition "durableai-${ENV}-backend" \
   --region "${AWS_REGION}" \
   --query 'taskDefinition' \
   --output json > /tmp/backend-task-def.json
@@ -100,6 +104,7 @@ aws ecs update-service \
   --cluster "durableai-${ENV}-cluster" \
   --service "durableai-${ENV}-frontend" \
   --task-definition "${FRONTEND_TASK_ARN}" \
+  --force-new-deployment \
   --region "${AWS_REGION}" \
   --output json > /dev/null
 
@@ -108,6 +113,7 @@ aws ecs update-service \
   --cluster "durableai-${ENV}-cluster" \
   --service "durableai-${ENV}-backend" \
   --task-definition "${BACKEND_TASK_ARN}" \
+  --force-new-deployment \
   --region "${AWS_REGION}" \
   --output json > /dev/null
 
@@ -118,6 +124,4 @@ echo ""
 echo "The services are now redeploying. Check the ECS console for deployment status."
 echo "To access the application, check the ALB DNS name:"
 echo ""
-aws elbv2 describe-load-balancers --names "durable-code-${ENV}-alb" --query 'LoadBalancers[0].DNSName' --output text
-
-cd ../..
+aws elbv2 describe-load-balancers --names "durableai-${ENV}-alb" --query 'LoadBalancers[0].DNSName' --output text
