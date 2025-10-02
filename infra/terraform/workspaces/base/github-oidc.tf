@@ -80,7 +80,11 @@ resource "aws_iam_role_policy" "github_actions_ecr" {
           "ecr:PutImage",
           "ecr:InitiateLayerUpload",
           "ecr:UploadLayerPart",
-          "ecr:CompleteLayerUpload"
+          "ecr:CompleteLayerUpload",
+          "ecr:DescribeRepositories",
+          "ecr:DescribeImages",
+          "ecr:ListImages",
+          "ecr:ListTagsForResource"
         ]
         Resource = "*"
       }
@@ -138,9 +142,100 @@ resource "aws_iam_role_policy" "github_actions_logs" {
           "logs:CreateLogGroup",
           "logs:CreateLogStream",
           "logs:PutLogEvents",
-          "logs:DescribeLogStreams"
+          "logs:DescribeLogStreams",
+          "logs:DescribeLogGroups",
+          "logs:ListTagsForResource"
         ]
         Resource = "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"
+      }
+    ]
+  })
+}
+
+# Policy for S3 Terraform State
+resource "aws_iam_role_policy" "github_actions_terraform_state" {
+  name = "${var.project_name}-${local.environment}-github-actions-terraform-state"
+  role = aws_iam_role.github_actions.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject",
+          "s3:ListBucket"
+        ]
+        Resource = [
+          "arn:aws:s3:::durable-code-terraform-state",
+          "arn:aws:s3:::durable-code-terraform-state/*"
+        ]
+      }
+    ]
+  })
+}
+
+# Policy for DynamoDB State Locking
+resource "aws_iam_role_policy" "github_actions_terraform_lock" {
+  name = "${var.project_name}-${local.environment}-github-actions-terraform-lock"
+  role = aws_iam_role.github_actions.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:DeleteItem",
+          "dynamodb:DescribeTable"
+        ]
+        Resource = "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/durable-code-terraform-locks"
+      }
+    ]
+  })
+}
+
+# Policy for Infrastructure Management (VPC, ALB, ECS, etc.)
+resource "aws_iam_role_policy" "github_actions_infrastructure" {
+  name = "${var.project_name}-${local.environment}-github-actions-infrastructure"
+  role = aws_iam_role.github_actions.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          # EC2/VPC permissions for infrastructure management
+          "ec2:Describe*",
+          "ec2:CreateTags",
+          "ec2:DeleteTags",
+          # ELB permissions
+          "elasticloadbalancing:Describe*",
+          "elasticloadbalancing:AddTags",
+          "elasticloadbalancing:RemoveTags",
+          # Route53 permissions
+          "route53:GetHostedZone",
+          "route53:ListHostedZones",
+          "route53:GetChange",
+          "route53:ListResourceRecordSets",
+          "route53:ListTagsForResource",
+          # ACM permissions
+          "acm:ListCertificates",
+          "acm:DescribeCertificate",
+          "acm:GetCertificate",
+          "acm:ListTagsForCertificate",
+          # IAM read permissions for roles
+          "iam:GetRole",
+          "iam:ListRolePolicies",
+          "iam:GetRolePolicy",
+          "iam:ListAttachedRolePolicies"
+        ]
+        Resource = "*"
       }
     ]
   })
