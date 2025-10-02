@@ -110,7 +110,9 @@ resource "aws_iam_role_policy" "github_actions_ecs" {
           "ecs:DescribeServices",
           "ecs:DescribeClusters",
           "ecs:ListTasks",
-          "ecs:DescribeTasks"
+          "ecs:DescribeTasks",
+          "ecs:DeleteService",
+          "ecs:PutClusterCapacityProviders"
         ]
         Resource = "*"
       },
@@ -214,6 +216,7 @@ resource "aws_iam_role_policy" "github_actions_infrastructure" {
           "ec2:Describe*",
           "ec2:CreateTags",
           "ec2:DeleteTags",
+          "ec2:DisassociateRouteTable",
           # ELB permissions
           "elasticloadbalancing:Describe*",
           "elasticloadbalancing:AddTags",
@@ -224,16 +227,19 @@ resource "aws_iam_role_policy" "github_actions_infrastructure" {
           "route53:GetChange",
           "route53:ListResourceRecordSets",
           "route53:ListTagsForResource",
+          "route53:ChangeResourceRecordSets",
           # ACM permissions
           "acm:ListCertificates",
           "acm:DescribeCertificate",
           "acm:GetCertificate",
           "acm:ListTagsForCertificate",
-          # IAM read permissions for roles
+          # IAM permissions for role and policy management
           "iam:GetRole",
           "iam:ListRolePolicies",
           "iam:GetRolePolicy",
-          "iam:ListAttachedRolePolicies"
+          "iam:ListAttachedRolePolicies",
+          "iam:DeleteRolePolicy",
+          "iam:DetachRolePolicy"
         ]
         Resource = "*"
       }
