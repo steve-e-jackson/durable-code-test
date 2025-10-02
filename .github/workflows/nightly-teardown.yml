@@ -60,7 +60,7 @@ jobs:
       - name: Check infrastructure status (before)
         run: |
           echo "📊 Infrastructure status before teardown:"
-          make infra-status ENV=${{ inputs.environment || 'dev' }} || echo "Status check failed - continuing with teardown"
+          make infra-status ENV=${{ inputs.environment || 'dev' }} AWS_PROFILE="" || echo "Status check failed - continuing with teardown"
 
       - name: Plan infrastructure teardown
         if: ${{ inputs.dry_run == true }}
@@ -68,7 +68,7 @@ jobs:
           echo "🔍 Planning infrastructure teardown (dry run)..."
           echo "Note: Terraform destroy does not support separate plan output."
           echo "Showing current state instead:"
-          make infra-status ENV=${{ inputs.environment || 'dev' }}
+          make infra-status ENV=${{ inputs.environment || 'dev' }} AWS_PROFILE=""
 
       - name: Execute infrastructure teardown
         if: ${{ inputs.dry_run != true }}
@@ -77,22 +77,23 @@ jobs:
           ENV="${{ inputs.environment || 'dev' }}"
           SCOPE="${{ inputs.scope || 'runtime' }}"
 
+          # In CI, don't use AWS_PROFILE - OIDC sets environment variables directly
           # Add confirmation for base/all scope destruction
           if [[ "$SCOPE" == "all" ]]; then
             echo "⚠️ Destroying all infrastructure"
-            make infra-down SCOPE="$SCOPE" ENV="$ENV" AUTO=true CONFIRM=destroy-all
+            make infra-down SCOPE="$SCOPE" ENV="$ENV" AUTO=true CONFIRM=destroy-all AWS_PROFILE=""
           elif [[ "$SCOPE" == "base" ]]; then
             echo "⚠️ Destroying base infrastructure"
-            make infra-down SCOPE="$SCOPE" ENV="$ENV" AUTO=true CONFIRM=destroy-base
+            make infra-down SCOPE="$SCOPE" ENV="$ENV" AUTO=true CONFIRM=destroy-base AWS_PROFILE=""
           else
-            make infra-down SCOPE="$SCOPE" ENV="$ENV" AUTO=true
+            make infra-down SCOPE="$SCOPE" ENV="$ENV" AUTO=true AWS_PROFILE=""
           fi
 
       - name: Check infrastructure status (after)
         if: ${{ inputs.dry_run != true }}
         run: |
           echo "📊 Infrastructure status after teardown:"
-          make infra-status ENV=${{ inputs.environment || 'dev' }} || echo "Status check completed"
+          make infra-status ENV=${{ inputs.environment || 'dev' }} AWS_PROFILE="" || echo "Status check completed"
 
       - name: Calculate cost savings
         if: ${{ inputs.dry_run != true }}
