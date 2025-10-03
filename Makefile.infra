@@ -223,6 +223,14 @@ infra-plan: ## Show what changes will be made (dry run, respects SCOPE parameter
 	@echo "$(GREEN)✓ Plan complete!$(NC)"
 
 _do-plan: check-terraform-init
+	@# Determine workspace name from TERRAFORM_DIR (base or runtime)
+	@WORKSPACE_SCOPE=$$(basename "$(TERRAFORM_DIR)"); \
+	WORKSPACE_NAME="$$WORKSPACE_SCOPE-$(ENV)"; \
+	echo "$(CYAN)Selecting workspace: $$WORKSPACE_NAME$(NC)"; \
+	$(TERRAFORM_DOCKER_RUN) workspace select "$$WORKSPACE_NAME" 2>/dev/null || { \
+		echo "$(YELLOW)Workspace $$WORKSPACE_NAME does not exist, creating...$(NC)"; \
+		$(TERRAFORM_DOCKER_RUN) workspace new "$$WORKSPACE_NAME"; \
+	}
 	@$(TERRAFORM_DOCKER_RUN) plan -var-file=/environments/$(ENV).tfvars
 
 
@@ -242,6 +250,14 @@ infra-refresh: ## Update state file with real infrastructure
 	@echo "$(GREEN)✓ State refreshed!$(NC)"
 
 _do-refresh: check-terraform-init
+	@# Determine workspace name from TERRAFORM_DIR (base or runtime)
+	@WORKSPACE_SCOPE=$$(basename "$(TERRAFORM_DIR)"); \
+	WORKSPACE_NAME="$$WORKSPACE_SCOPE-$(ENV)"; \
+	echo "$(CYAN)Selecting workspace: $$WORKSPACE_NAME$(NC)"; \
+	$(TERRAFORM_DOCKER_RUN) workspace select "$$WORKSPACE_NAME" 2>/dev/null || { \
+		echo "$(YELLOW)Workspace $$WORKSPACE_NAME does not exist, creating...$(NC)"; \
+		$(TERRAFORM_DOCKER_RUN) workspace new "$$WORKSPACE_NAME"; \
+	}
 	@$(TERRAFORM_DOCKER_RUN) refresh -var-file=/environments/$(ENV).tfvars
 
 infra-output: ## Show outputs from Terraform state (use FORMAT=json for JSON output)
@@ -257,6 +273,14 @@ infra-output: ## Show outputs from Terraform state (use FORMAT=json for JSON out
 	fi
 
 _do-output: check-terraform-init
+	@# Determine workspace name from TERRAFORM_DIR (base or runtime)
+	@WORKSPACE_SCOPE=$$(basename "$(TERRAFORM_DIR)"); \
+	WORKSPACE_NAME="$$WORKSPACE_SCOPE-$(ENV)"; \
+	echo "$(CYAN)Selecting workspace: $$WORKSPACE_NAME$(NC)"; \
+	$(TERRAFORM_DOCKER_RUN) workspace select "$$WORKSPACE_NAME" 2>/dev/null || { \
+		echo "$(YELLOW)⚠️  Workspace $$WORKSPACE_NAME does not exist$(NC)"; \
+		exit 1; \
+	}
 	@if [ "$(FORMAT)" = "json" ]; then \
 		$(TERRAFORM_DOCKER_RUN) output -json; \
 	else \
@@ -363,6 +387,14 @@ infra-up: ## Deploy infrastructure (use AUTO=true for auto-approve, SCOPE=runtim
 	@echo "$(GREEN)✓ Infrastructure deployed successfully!$(NC)"
 
 _do-apply: check-terraform-init
+	@# Determine workspace name from TERRAFORM_DIR (base or runtime)
+	@WORKSPACE_SCOPE=$$(basename "$(TERRAFORM_DIR)"); \
+	WORKSPACE_NAME="$$WORKSPACE_SCOPE-$(ENV)"; \
+	echo "$(CYAN)Selecting workspace: $$WORKSPACE_NAME$(NC)"; \
+	$(TERRAFORM_DOCKER_RUN) workspace select "$$WORKSPACE_NAME" 2>/dev/null || { \
+		echo "$(YELLOW)Workspace $$WORKSPACE_NAME does not exist, creating...$(NC)"; \
+		$(TERRAFORM_DOCKER_RUN) workspace new "$$WORKSPACE_NAME"; \
+	}
 	@if [ "$(AUTO)" = "true" ]; then \
 		echo "$(YELLOW)Auto-approve mode enabled$(NC)"; \
 		$(TERRAFORM_DOCKER_RUN) apply -var-file=/environments/$(ENV).tfvars -auto-approve; \
@@ -423,6 +455,14 @@ infra-down: ## Destroy infrastructure (use AUTO=true for auto-approve, SCOPE=run
 	@echo "$(GREEN)✓ Infrastructure destroyed!$(NC)"
 
 _do-destroy: check-terraform-init
+	@# Determine workspace name from TERRAFORM_DIR (base or runtime)
+	@WORKSPACE_SCOPE=$$(basename "$(TERRAFORM_DIR)"); \
+	WORKSPACE_NAME="$$WORKSPACE_SCOPE-$(ENV)"; \
+	echo "$(CYAN)Selecting workspace: $$WORKSPACE_NAME$(NC)"; \
+	$(TERRAFORM_DOCKER_RUN) workspace select "$$WORKSPACE_NAME" 2>/dev/null || { \
+		echo "$(YELLOW)⚠️  Workspace $$WORKSPACE_NAME does not exist - nothing to destroy$(NC)"; \
+		exit 0; \
+	}
 	@if [ "$(AUTO)" = "true" ]; then \
 		echo "$(RED)Auto-approve mode enabled - destroying immediately!$(NC)"; \
 		$(TERRAFORM_DOCKER_RUN) destroy -var-file=/environments/$(ENV).tfvars -auto-approve; \
