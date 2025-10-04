@@ -21,6 +21,17 @@ data "aws_caller_identity" "current" {}
 # Data source for current AWS region
 data "aws_region" "current" {}
 
+# Remote state data source - Reference base workspace outputs
+data "terraform_remote_state" "base" {
+  backend = "s3"
+
+  config = {
+    bucket = "durable-code-terraform-state"
+    key    = "base/${local.environment}/terraform.tfstate"
+    region = "us-west-2"
+  }
+}
+
 # Internet Gateway Lookup - Required for NAT Gateway dependencies
 data "aws_internet_gateway" "main" {
   filter {
@@ -29,23 +40,9 @@ data "aws_internet_gateway" "main" {
   }
 }
 
-# VPC Lookup - Find VPC created by base workspace
-# Uses Name tag for reliable discovery since base workspace uses durable-code prefix
+# VPC Lookup - Reference from base workspace remote state
 data "aws_vpc" "main" {
-  filter {
-    name   = "tag:Name"
-    values = ["durable-code-${local.environment}-vpc"]
-  }
-
-  filter {
-    name   = "tag:Scope"
-    values = ["base"]
-  }
-
-  filter {
-    name   = "tag:ManagedBy"
-    values = ["Terraform"]
-  }
+  id = data.terraform_remote_state.base.outputs.vpc_id
 }
 
 # Public Subnets Lookup - For ALB placement
@@ -84,32 +81,14 @@ data "aws_subnets" "private" {
   }
 }
 
-# ALB Security Group Lookup
-# Uses durable-code prefix to match base workspace naming
+# ALB Security Group - Reference from base workspace remote state
 data "aws_security_group" "alb" {
-  filter {
-    name   = "tag:Name"
-    values = ["durable-code-${local.environment}-alb-sg"]
-  }
-
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.main.id]
-  }
+  id = data.terraform_remote_state.base.outputs.alb_security_group_id
 }
 
-# ECS Tasks Security Group Lookup
-# Uses durable-code prefix to match base workspace naming
+# ECS Tasks Security Group - Reference from base workspace remote state
 data "aws_security_group" "ecs_tasks" {
-  filter {
-    name   = "tag:Name"
-    values = ["durable-code-${local.environment}-ecs-tasks-sg"]
-  }
-
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.main.id]
-  }
+  id = data.terraform_remote_state.base.outputs.ecs_tasks_security_group_id
 }
 
 # Backend ECR Repository Lookup

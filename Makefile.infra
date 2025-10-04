@@ -136,13 +136,20 @@ check-terraform-init:
 infra-init: ## Initialize Terraform (download providers, configure backend)
 	@echo "$(CYAN)Initializing Terraform...$(NC)"
 	@echo "$(YELLOW)Scope: $(SCOPE)$(NC)"
-	@if [ "$(SCOPE)" = "all" ]; then \
+	@if [ "$(SCOPE)" = "bootstrap" ]; then \
+		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/bootstrap _do-init; \
+	elif [ "$(SCOPE)" = "base" ]; then \
+		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/base _do-init; \
+	elif [ "$(SCOPE)" = "runtime" ]; then \
+		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/runtime _do-init; \
+	elif [ "$(SCOPE)" = "all" ]; then \
 		echo "$(BLUE)--- Initializing base workspace ---$(NC)"; \
 		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/base _do-init; \
 		echo "$(GREEN)--- Initializing runtime workspace ---$(NC)"; \
 		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/runtime _do-init; \
 	else \
-		$(MAKE) _do-init; \
+		echo "$(RED)Error: Invalid SCOPE '$(SCOPE)'. Must be bootstrap, base, runtime, or all$(NC)"; \
+		exit 1; \
 	fi
 	@echo "$(GREEN)✓ Terraform initialized!$(NC)"
 
@@ -392,14 +399,6 @@ infra-up: ## Deploy infrastructure (use AUTO=true for auto-approve, SCOPE=bootst
 	@echo "$(GREEN)✓ Infrastructure deployed successfully!$(NC)"
 
 _do-apply: check-terraform-init
-	@# Determine workspace name from TERRAFORM_DIR (base or runtime)
-	@WORKSPACE_SCOPE=$$(basename "$(TERRAFORM_DIR)"); \
-	WORKSPACE_NAME="$$WORKSPACE_SCOPE-$(ENV)"; \
-	echo "$(CYAN)Selecting workspace: $$WORKSPACE_NAME$(NC)"; \
-	$(TERRAFORM_DOCKER_RUN) workspace select "$$WORKSPACE_NAME" 2>/dev/null || { \
-		echo "$(YELLOW)Workspace $$WORKSPACE_NAME does not exist, creating...$(NC)"; \
-		$(TERRAFORM_DOCKER_RUN) workspace new "$$WORKSPACE_NAME"; \
-	}
 	@if [ "$(AUTO)" = "true" ]; then \
 		echo "$(YELLOW)Auto-approve mode enabled$(NC)"; \
 		$(TERRAFORM_DOCKER_RUN) apply -var-file=/environments/$(ENV).tfvars -auto-approve; \
@@ -475,14 +474,6 @@ infra-down: ## Destroy infrastructure (use AUTO=true for auto-approve, SCOPE=boo
 	@echo "$(GREEN)✓ Infrastructure destroyed!$(NC)"
 
 _do-destroy: check-terraform-init
-	@# Determine workspace name from TERRAFORM_DIR (base or runtime)
-	@WORKSPACE_SCOPE=$$(basename "$(TERRAFORM_DIR)"); \
-	WORKSPACE_NAME="$$WORKSPACE_SCOPE-$(ENV)"; \
-	echo "$(CYAN)Selecting workspace: $$WORKSPACE_NAME$(NC)"; \
-	$(TERRAFORM_DOCKER_RUN) workspace select "$$WORKSPACE_NAME" 2>/dev/null || { \
-		echo "$(YELLOW)⚠️  Workspace $$WORKSPACE_NAME does not exist - nothing to destroy$(NC)"; \
-		exit 0; \
-	}
 	@if [ "$(AUTO)" = "true" ]; then \
 		echo "$(RED)Auto-approve mode enabled - destroying immediately!$(NC)"; \
 		$(TERRAFORM_DOCKER_RUN) destroy -var-file=/environments/$(ENV).tfvars -auto-approve; \

@@ -21,11 +21,39 @@
 
 ## Quick Deployment
 
+### AWS ECS Deployment (Current Production Setup)
+
 ```bash
-# Build production images
+# 1. Ensure infrastructure is deployed first
+make infra-up SCOPE=all ENV=dev AUTO=true
+
+# 2. Deploy application containers to ECS
+make deploy
+
+# 3. Verify deployment
+make deploy-check
+
+# 4. Access application
+# Via ALB DNS: http://durableai-dev-alb-<id>.us-west-2.elb.amazonaws.com
+# Via Custom Domain: https://dev.durableaicoding.net
+```
+
+**What `make deploy` does**:
+1. Builds Docker images for frontend (port 3000) and backend (port 8000)
+2. Authenticates with AWS ECR registry
+3. Tags and pushes images to ECR with timestamp tags
+4. Fetches current ECS task definitions
+5. Updates task definitions with new image tags
+6. Triggers ECS service updates with new task definitions
+7. ECS performs rolling deployment with zero downtime
+
+### Local Development Deployment
+
+```bash
+# Build development images
 make build
 
-# Start production environment
+# Start local environment
 make start
 
 # Verify deployment
@@ -123,24 +151,81 @@ docker-compose ps
 
 ## Cloud Deployment
 
-### AWS Deployment
-**ECS with Docker Compose**:
-```bash
-# Install ECS CLI
-curl -Lo /usr/local/bin/ecs-cli https://amazon-ecs-cli.s3.amazonaws.com/ecs-cli-linux-amd64-latest
+### AWS ECS Deployment (Current Setup)
 
-# Deploy to ECS
-ecs-cli compose --file .docker/compose/prod.yml service up
+**Architecture**:
+- **Infrastructure**: Managed by Terraform in 3 workspaces (bootstrap, base, runtime)
+- **Container Registry**: AWS ECR for Docker images
+- **Compute**: ECS Fargate for serverless containers
+- **Load Balancer**: Application Load Balancer with path-based routing
+- **DNS**: Route53 with ACM SSL certificates
+- **Networking**: VPC with public/private subnets, NAT gateways
+
+**Port Configuration**:
+- Frontend container: Port 3000
+- Backend container: Port 8000
+- ALB routes `/api/*` → Backend (8000)
+- ALB routes `/*` → Frontend (3000)
+
+**Deployment Script** (`infra/scripts/deploy-app.sh`):
+```bash
+# The script handles:
+# 1. ECR authentication
+# 2. Docker image building (frontend & backend)
+# 3. Image tagging with timestamp (v20231204-143022)
+# 4. Pushing to ECR repositories
+# 5. Updating ECS task definitions
+# 6. Triggering service updates
+
+# Manual deployment
+ENV=dev ./infra/scripts/deploy-app.sh
+
+# Or use make target
+make deploy
 ```
 
-**ECR Image Registry**:
-```bash
-# Login to ECR
-aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 123456789012.dkr.ecr.us-west-2.amazonaws.com
+**Resource Naming Convention**:
+- Cluster: `durableai-${ENV}-cluster`
+- Services: `durableai-${ENV}-frontend`, `durableai-${ENV}-backend`
+- ECR Repos: `durableai-${ENV}-frontend`, `durableai-${ENV}-backend`
+- ALB: `durableai-${ENV}-alb`
+- Target Groups: `durableai-${ENV}-frontend-tg`, `durableai-${ENV}-backend-tg`
 
-# Tag and push images
-docker tag durable-code-test-frontend:latest 123456789012.dkr.ecr.us-west-2.amazonaws.com/durable-code-test-frontend:latest
-docker push 123456789012.dkr.ecr.us-west-2.amazonaws.com/durable-code-test-frontend:latest
+**Environment Variables** (Injected by Terraform):
+- Frontend: `ENVIRONMENT`, `BACKEND_URL=http://${alb_dns}/api`
+- Backend: `ENVIRONMENT`, `PORT=8000`
+
+**Health Checks**:
+- Frontend: `GET /` (port 3000) - 200-299 response
+- Backend: `GET /health` (port 8000) - 200-299 response
+- ALB performs continuous health monitoring
+
+**State Management**:
+- Bootstrap state: `s3://durable-code-terraform-state/bootstrap/dev/terraform.tfstate`
+- Base state: `s3://durable-code-terraform-state/base/dev/terraform.tfstate`
+- Runtime state: `s3://durable-code-terraform-state/runtime/dev/terraform.tfstate`
+- Runtime uses `terraform_remote_state` to reference base outputs (VPC, subnets, security groups)
+
+**Service Discovery**:
+Frontend doesn't use AWS Service Discovery - it communicates with backend via the ALB DNS name passed as `BACKEND_URL` environment variable. This ensures:
+- No internal DNS dependencies
+- Works with ALB path-based routing
+- Simplified networking (no service mesh needed)
+
+**Troubleshooting Deployment**:
+```bash
+# Check ECS service status
+aws ecs describe-services --cluster durableai-dev-cluster --services durableai-dev-frontend durableai-dev-backend
+
+# View task logs
+aws logs tail /ecs/durableai-dev-frontend --follow
+aws logs tail /ecs/durableai-dev-backend --follow
+
+# Check target group health
+aws elbv2 describe-target-health --target-group-arn <tg-arn>
+
+# Force new deployment (if stuck)
+aws ecs update-service --cluster durableai-dev-cluster --service durableai-dev-frontend --force-new-deployment
 ```
 
 ### Google Cloud Platform
