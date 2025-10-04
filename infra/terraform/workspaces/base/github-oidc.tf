@@ -103,16 +103,21 @@ resource "aws_iam_role_policy" "github_actions_ecs" {
       {
         Effect = "Allow"
         Action = [
+          "ecs:CreateCluster",
+          "ecs:DeleteCluster",
           "ecs:RegisterTaskDefinition",
           "ecs:DeregisterTaskDefinition",
           "ecs:DescribeTaskDefinition",
+          "ecs:CreateService",
           "ecs:UpdateService",
+          "ecs:DeleteService",
           "ecs:DescribeServices",
           "ecs:DescribeClusters",
           "ecs:ListTasks",
           "ecs:DescribeTasks",
-          "ecs:DeleteService",
-          "ecs:PutClusterCapacityProviders"
+          "ecs:PutClusterCapacityProviders",
+          "ecs:TagResource",
+          "ecs:UntagResource"
         ]
         Resource = "*"
       },
@@ -122,8 +127,8 @@ resource "aws_iam_role_policy" "github_actions_ecs" {
           "iam:PassRole"
         ]
         Resource = [
-          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.project_name}-${local.environment}-ecs-task-execution",
-          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.project_name}-${local.environment}-ecs-task"
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.product_domain}-${local.environment}-ecs-task-execution",
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.product_domain}-${local.environment}-ecs-task"
         ]
       }
     ]
@@ -144,9 +149,13 @@ resource "aws_iam_role_policy" "github_actions_logs" {
           "logs:CreateLogGroup",
           "logs:CreateLogStream",
           "logs:PutLogEvents",
+          "logs:DeleteLogGroup",
+          "logs:DeleteLogStream",
           "logs:DescribeLogStreams",
           "logs:DescribeLogGroups",
-          "logs:ListTagsForResource"
+          "logs:ListTagsForResource",
+          "logs:TagResource",
+          "logs:UntagResource"
         ]
         Resource = "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"
       }
@@ -217,10 +226,31 @@ resource "aws_iam_role_policy" "github_actions_infrastructure" {
           "ec2:CreateTags",
           "ec2:DeleteTags",
           "ec2:DisassociateRouteTable",
+          "ec2:AllocateAddress",
+          "ec2:ReleaseAddress",
+          "ec2:AssociateAddress",
+          "ec2:DisassociateAddress",
+          "ec2:CreateNatGateway",
+          "ec2:DeleteNatGateway",
           # ELB permissions
           "elasticloadbalancing:Describe*",
           "elasticloadbalancing:AddTags",
           "elasticloadbalancing:RemoveTags",
+          "elasticloadbalancing:CreateLoadBalancer",
+          "elasticloadbalancing:DeleteLoadBalancer",
+          "elasticloadbalancing:ModifyLoadBalancerAttributes",
+          "elasticloadbalancing:SetSecurityGroups",
+          "elasticloadbalancing:SetSubnets",
+          "elasticloadbalancing:CreateTargetGroup",
+          "elasticloadbalancing:DeleteTargetGroup",
+          "elasticloadbalancing:ModifyTargetGroup",
+          "elasticloadbalancing:ModifyTargetGroupAttributes",
+          "elasticloadbalancing:CreateListener",
+          "elasticloadbalancing:DeleteListener",
+          "elasticloadbalancing:ModifyListener",
+          "elasticloadbalancing:CreateRule",
+          "elasticloadbalancing:DeleteRule",
+          "elasticloadbalancing:ModifyRule",
           # Route53 permissions
           "route53:GetHostedZone",
           "route53:ListHostedZones",
@@ -235,11 +265,17 @@ resource "aws_iam_role_policy" "github_actions_infrastructure" {
           "acm:ListTagsForCertificate",
           # IAM permissions for role and policy management
           "iam:GetRole",
-          "iam:ListRolePolicies",
-          "iam:GetRolePolicy",
-          "iam:ListAttachedRolePolicies",
+          "iam:CreateRole",
+          "iam:DeleteRole",
+          "iam:PutRolePolicy",
           "iam:DeleteRolePolicy",
-          "iam:DetachRolePolicy"
+          "iam:GetRolePolicy",
+          "iam:ListRolePolicies",
+          "iam:ListAttachedRolePolicies",
+          "iam:AttachRolePolicy",
+          "iam:DetachRolePolicy",
+          "iam:TagRole",
+          "iam:UntagRole"
         ]
         Resource = "*"
       }
