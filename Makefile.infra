@@ -362,26 +362,29 @@ infra-cost: ## Estimate monthly costs (requires Infracost)
 infra-check: infra-fmt infra-validate ## Format and validate configuration
 
 
-infra-up: ## Deploy infrastructure (use AUTO=true for auto-approve, SCOPE=runtime|base|all)
+infra-up: ## Deploy infrastructure (use AUTO=true for auto-approve, SCOPE=bootstrap|runtime|base|all)
 	@echo "$(CYAN)Deploying infrastructure...$(NC)"
 	@echo "$(YELLOW)Environment: $(ENV)$(NC)"
 	@echo "$(YELLOW)AWS Profile: $(AWS_PROFILE)$(NC)"
 	@echo "$(YELLOW)AWS Region: $(AWS_REGION)$(NC)"
 	@echo "$(YELLOW)Deployment Scope: $(SCOPE)$(NC)"
-	@if [ "$(SCOPE)" = "runtime" ]; then \
+	@if [ "$(SCOPE)" = "bootstrap" ]; then \
+		echo "$(MAGENTA)Deploying bootstrap resources (GitHub OIDC, IAM role)$(NC)"; \
+		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/bootstrap _do-apply AUTO="$(AUTO)"; \
+	elif [ "$(SCOPE)" = "runtime" ]; then \
 		echo "$(GREEN)Deploying runtime resources only (ECS, ALB listeners, etc.)$(NC)"; \
 		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/runtime _do-apply AUTO="$(AUTO)"; \
 	elif [ "$(SCOPE)" = "base" ]; then \
 		echo "$(BLUE)Deploying base resources only (VPC, NAT, ECR, Route53)$(NC)"; \
 		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/base _do-apply AUTO="$(AUTO)"; \
 	elif [ "$(SCOPE)" = "all" ]; then \
-		echo "$(YELLOW)Deploying all resources$(NC)"; \
+		echo "$(YELLOW)Deploying all resources (base + runtime, excludes bootstrap)$(NC)"; \
 		echo "$(BLUE)--- Deploying base infrastructure first ---$(NC)"; \
 		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/base _do-apply AUTO="$(AUTO)" || exit 1; \
 		echo "$(GREEN)--- Deploying runtime infrastructure ---$(NC)"; \
 		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/runtime _do-apply AUTO="$(AUTO)"; \
 	else \
-		echo "$(RED)Error: Invalid SCOPE '$(SCOPE)'. Must be base, runtime, or all$(NC)"; \
+		echo "$(RED)Error: Invalid SCOPE '$(SCOPE)'. Must be bootstrap, base, runtime, or all$(NC)"; \
 		exit 1; \
 	fi
 	@echo "$(GREEN)✓ Infrastructure deployed successfully!$(NC)"
@@ -405,11 +408,23 @@ _do-apply: check-terraform-init
 		$(TERRAFORM_DOCKER_RUN_IT) apply -var-file=/environments/$(ENV).tfvars; \
 	fi
 
-infra-down: ## Destroy infrastructure (use AUTO=true for auto-approve, SCOPE=runtime|base|all)
-	@if [ "$(SCOPE)" = "all" ]; then \
+infra-down: ## Destroy infrastructure (use AUTO=true for auto-approve, SCOPE=bootstrap|runtime|base|all)
+	@if [ "$(SCOPE)" = "bootstrap" ]; then \
+		echo "$(RED)╔════════════════════════════════════════════════════════════╗$(NC)"; \
+		echo "$(RED)║  🚨 DANGER: Destroying BOOTSTRAP infrastructure! 🚨       ║$(NC)"; \
+		echo "$(RED)║     This will break GitHub Actions authentication!        ║$(NC)"; \
+		echo "$(RED)║                                                            ║$(NC)"; \
+		echo "$(RED)║  To proceed, you must set CONFIRM=destroy-bootstrap       ║$(NC)"; \
+		echo "$(RED)╚════════════════════════════════════════════════════════════╝$(NC)"; \
+		if [ "$(CONFIRM)" != "destroy-bootstrap" ]; then \
+			echo "$(RED)ERROR: Bootstrap infrastructure is PROTECTED.$(NC)"; \
+			echo "$(RED)Run: make infra-down SCOPE=bootstrap CONFIRM=destroy-bootstrap$(NC)"; \
+			exit 1; \
+		fi; \
+	elif [ "$(SCOPE)" = "all" ]; then \
 		echo "$(RED)╔════════════════════════════════════════════════════════════╗$(NC)"; \
 		echo "$(RED)║  ⚠️  WARNING: This will DESTROY ALL infrastructure! ⚠️     ║$(NC)"; \
-		echo "$(RED)║                                                            ║$(NC)"; \
+		echo "$(RED)║     (excludes bootstrap - GitHub auth preserved)          ║$(NC)"; \
 		echo "$(RED)║  To proceed, you must set CONFIRM=destroy-all             ║$(NC)"; \
 		echo "$(RED)╚════════════════════════════════════════════════════════════╝$(NC)"; \
 		if [ "$(CONFIRM)" != "destroy-all" ]; then \
@@ -439,7 +454,9 @@ infra-down: ## Destroy infrastructure (use AUTO=true for auto-approve, SCOPE=run
 	@echo "$(YELLOW)AWS Profile: $(AWS_PROFILE)$(NC)"
 	@echo "$(YELLOW)AWS Region: $(AWS_REGION)$(NC)"
 	@echo "$(YELLOW)Destroy Scope: $(SCOPE)$(NC)"
-	@if [ "$(SCOPE)" = "runtime" ]; then \
+	@if [ "$(SCOPE)" = "bootstrap" ]; then \
+		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/bootstrap _do-destroy AUTO="$(AUTO)"; \
+	elif [ "$(SCOPE)" = "runtime" ]; then \
 		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/runtime _do-destroy AUTO="$(AUTO)"; \
 	elif [ "$(SCOPE)" = "base" ]; then \
 		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/base _do-destroy AUTO="$(AUTO)"; \
@@ -448,8 +465,9 @@ infra-down: ## Destroy infrastructure (use AUTO=true for auto-approve, SCOPE=run
 		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/runtime _do-destroy AUTO="$(AUTO)" || exit 1; \
 		echo "$(BLUE)--- Destroying base infrastructure ---$(NC)"; \
 		$(MAKE) TERRAFORM_DIR=$(TERRAFORM_BASE_DIR)/workspaces/base _do-destroy AUTO="$(AUTO)"; \
+		echo "$(MAGENTA)--- Bootstrap infrastructure preserved (GitHub auth) ---$(NC)"; \
 	else \
-		echo "$(RED)Error: Invalid SCOPE '$(SCOPE)'. Must be runtime, base, or all$(NC)"; \
+		echo "$(RED)Error: Invalid SCOPE '$(SCOPE)'. Must be bootstrap, runtime, base, or all$(NC)"; \
 		exit 1; \
 	fi
 	@echo "$(GREEN)✓ Infrastructure destroyed!$(NC)"
