@@ -152,7 +152,9 @@ _do-init:
 	@echo "$(YELLOW)Using AWS Profile: $(AWS_PROFILE)$(NC)"
 	@echo "$(YELLOW)Working directory: $(TERRAFORM_DIR)$(NC)"
 	@# Determine backend config file based on workspace directory
-	@if echo "$(TERRAFORM_DIR)" | grep -q "/base$$"; then \
+	@if echo "$(TERRAFORM_DIR)" | grep -q "/bootstrap$$"; then \
+		BACKEND_CONFIG="/backend-config/bootstrap-$(ENV).hcl"; \
+	elif echo "$(TERRAFORM_DIR)" | grep -q "/base$$"; then \
 		BACKEND_CONFIG="/backend-config/base-$(ENV).hcl"; \
 	elif echo "$(TERRAFORM_DIR)" | grep -q "/runtime$$"; then \
 		BACKEND_CONFIG="/backend-config/runtime-$(ENV).hcl"; \
