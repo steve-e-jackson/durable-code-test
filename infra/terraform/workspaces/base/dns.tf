@@ -31,7 +31,7 @@ resource "aws_route53_record" "zone_delegation" {
   records = aws_route53_zone.main[0].name_servers
 
   lifecycle {
-    create_before_destroy = true  # Update delegation before deleting old record if zone recreated
+    create_before_destroy = true # Update delegation before deleting old record if zone recreated
   }
 
   depends_on = [aws_route53_zone.main]
